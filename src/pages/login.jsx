@@ -15,6 +15,11 @@ import {
   User,
   Menu,
   X,
+  House,
+  ChartBarStacked,
+  Truck,
+  HandFist,
+  Undo2,
 } from "lucide-react";
 
 const EcommerceLogin = () => {
@@ -149,9 +154,7 @@ const EcommerceLogin = () => {
                 <h1 className="text-2xl font-bold text-white">
                   SWOO TECH MART
                 </h1>
-                <p className="text-white/80 text-sm">
-                  NYC's Premier Tech Store
-                </p>
+                <p className="text-white/80 text-sm">KTM's PRIME Tech Store</p>
               </div>
             </div>
 
@@ -163,18 +166,16 @@ const EcommerceLogin = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for products, brands, or categories..."
-                  className="w-full px-6 py-3 pl-12 rounded-full border-0 focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:outline-none bg-white/90 text-gray-900 placeholder-gray-500"
+                  className="w-full px-6 py-3 pl-12 rounded-full border-0 focus:ring-2 focus:ring-red focus:ring-opacity-50 focus:outline-none bg-white/90 text-gray-900 placeholder-gray-500"
                 />
                 <button
                   type="submit"
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-red"
                 >
                   <Search size={20} />
                 </button>
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    ⌘K
-                  </span>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded"></span>
                 </div>
               </form>
             </div>
@@ -183,7 +184,7 @@ const EcommerceLogin = () => {
             <div className="flex items-center space-x-4">
               <button className="hidden lg:flex items-center space-x-2 text-white hover:text-gray-200 transition">
                 <User size={20} />
-                <span>Account</span>
+                <span>Pankaj</span>
               </button>
               <button className="relative text-white hover:text-gray-200 transition">
                 <ShoppingCart size={24} />
@@ -220,9 +221,11 @@ const EcommerceLogin = () => {
             <div className="flex items-center space-x-6">
               <a
                 href="#"
-                className="text-white hover:text-gray-200 font-medium transition flex items-center"
+                className="text-white hover:text-gray-200 font-medium transition flex items-center border-b-2 border-transparent hover:border-white pb-1"
               >
-                <span>🏠</span>
+                <span>
+                  <House />
+                </span>
                 <span className="ml-2">Home</span>
               </a>
 
@@ -232,7 +235,9 @@ const EcommerceLogin = () => {
                   onClick={() => setIsCategoryOpen(!isCategoryOpen)}
                   className="flex items-center space-x-2 text-white hover:text-gray-200 font-medium transition"
                 >
-                  <span>📁</span>
+                  <span>
+                    <ChartBarStacked />
+                  </span>
                   <span>Categories</span>
                   <ChevronDown
                     size={16}
@@ -285,17 +290,17 @@ const EcommerceLogin = () => {
                       <div className="grid grid-cols-3 gap-4">
                         {[
                           {
-                            name: "Gaming Laptops",
+                            name: "PS4 Console",
                             discount: "Up to 30% OFF",
                             icon: "🎮",
                           },
                           {
-                            name: "Wireless Earbuds",
+                            name: "Wireless Headphones",
                             discount: "Free Shipping",
                             icon: "🎧",
                           },
                           {
-                            name: "Smart Watches",
+                            name: "Analog Watches",
                             discount: "New Arrivals",
                             icon: "⌚",
                           },
@@ -433,16 +438,22 @@ const EcommerceLogin = () => {
             <div className="flex items-center justify-between text-white text-sm">
               <div className="flex items-center space-x-6">
                 <div className="flex items-center">
-                  <span className="mr-2">🚚</span>
-                  <span>Free Shipping on orders over $99</span>
+                  <span className="mr-2">
+                    <Truck />
+                  </span>
+                  <span>Free Shipping on orders over 999</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="mr-2">🔄</span>
+                  <span className="mr-2">
+                    <Undo2 />
+                  </span>
                   <span>30-Day Return Policy</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="mr-2">🔒</span>
-                  <span>Secure Payment</span>
+                  <span className="mr-2">
+                    <HandFist />
+                  </span>
+                  <span>24/7 Support</span>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
