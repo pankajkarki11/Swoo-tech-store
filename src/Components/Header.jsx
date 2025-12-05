@@ -124,7 +124,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-[#01A49E] shadow-sm w-full">
+    <header className="bg-[#0A1F33] shadow-sm w-full">
       {/* Main Header */}
       <div className="w-full px-4 py-4">
         {/* Top Bar */}
@@ -137,12 +137,12 @@ const Header = () => {
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-              <span className="text-[#01A49E] font-bold text-3xl">S</span>
+            <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-3xl">S</span>
             </div>
             <div className="ml-3">
               <h1 className="text-2xl font-bold text-white">SWOO TECH MART</h1>
-              <p className="text-white text-sm">KTM's PRIME Tech Store</p>
+              <p className="text-white text-sm">KTM's Prime Tech Store</p>
             </div>
           </div>
 
@@ -163,9 +163,7 @@ const Header = () => {
                 <Search size={20} />
               </button>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                  ⌘K
-                </span>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded"></span>
               </div>
             </form>
           </div>
@@ -184,7 +182,7 @@ const Header = () => {
                 3
               </span>
             </button>
-            <button className="hidden lg:block bg-white text-[#01A49E] px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition">
+            <button className="hidden lg:block bg-white text-[#0A1F33] px-6 py-2 rounded-full font-semibold hover:bg-[#33BDB7] transition">
               <Link to="/">Shop Now</Link>
             </button>
           </div>
@@ -270,52 +268,6 @@ const Header = () => {
                         </a>
                       </div>
                     ))}
-                  </div>
-
-                  {/* Featured Products */}
-                  <div className="mt-8 pt-6 border-t border-gray-200">
-                    <h3 className="font-bold text-gray-900 text-lg mb-4">
-                      Featured This Week
-                    </h3>
-                    <div className="grid grid-cols-3 gap-4">
-                      {[
-                        {
-                          name: "PS4 Console",
-                          discount: "Up to 30% OFF",
-                          icon: "🎮",
-                        },
-                        {
-                          name: "Wireless Headphones",
-                          discount: "Free Shipping",
-                          icon: "🎧",
-                        },
-                        {
-                          name: "Analog Watches",
-                          discount: "New Arrivals",
-                          icon: "⌚",
-                        },
-                      ].map((feature, idx) => (
-                        <a
-                          key={idx}
-                          href="#"
-                          className="bg-gray-50 hover:bg-[#01A49E]/5 p-4 rounded-lg transition group"
-                        >
-                          <div className="flex items-center">
-                            <span className="text-2xl mr-3">
-                              {feature.icon}
-                            </span>
-                            <div>
-                              <div className="font-medium text-gray-900 group-hover:text-[#01A49E]">
-                                {feature.name}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {feature.discount}
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-                      ))}
-                    </div>
                   </div>
                 </div>
               )}
@@ -430,7 +382,7 @@ const Header = () => {
       </div>
 
       {/* Quick Access Bar */}
-      <div className="bg-[#01A47B] hidden lg:block w-full">
+      <div className="bg-[#A40107] hidden lg:block w-full">
         <div className="w-full px-4 py-2">
           <div className="flex items-center justify-between text-white text-sm">
             <div className="flex items-center space-x-6">

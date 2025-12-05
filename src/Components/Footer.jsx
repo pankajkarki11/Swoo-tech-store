@@ -265,7 +265,11 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-200 mt-8 pt-8 text-center text-gray-600">
-          <p>© 2024 SWOO TECH MART. All rights reserved.</p>
+          <p>
+            {" "}
+            © 2024 SWOO TECH MART. All rights reserved. | Privacy Policy | Terms
+            of Service
+          </p>
         </div>
       </div>
     </footer>
