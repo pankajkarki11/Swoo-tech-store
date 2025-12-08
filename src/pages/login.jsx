@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Mail,
   Lock,
   Eye,
   EyeOff,
@@ -9,7 +8,6 @@ import {
   User,
   CheckCircle,
   Star,
-  ShoppingBag,
   Shield,
   Truck,
   Gift,
@@ -89,7 +87,7 @@ const EcommerceLogin = () => {
       // Redirect to home page after 3 seconds
       setTimeout(() => {
         navigate("/");
-      }, 3000);
+      }, 500);
     } catch (error) {
       // Show error message
       setErrorMessage(`❌ ${error.message}`);
@@ -110,7 +108,7 @@ const EcommerceLogin = () => {
     if (showToast) {
       const timer = setTimeout(() => {
         setShowToast(false);
-      }, 5000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [showToast]);
@@ -165,13 +163,10 @@ const EcommerceLogin = () => {
         </div>
       )}
 
-      {/* Main Container - Centered Login with Right Image */}
       <div className="w-full max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row items-stretch bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[85vh]">
-          {/* Left Side - Login Form (Centered) */}
           <div className="lg:w-1/2 w-full flex items-center justify-center p-6 md:p-8 lg:p-12">
             <div className="w-full max-w-md mx-auto">
-              {/* Logo/Brand */}
               <div className="text-center mb-10">
                 <div className="flex items-center justify-center mb-4">
                   <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-sm">
@@ -191,9 +186,7 @@ const EcommerceLogin = () => {
                 </p>
               </div>
 
-              {/* Login Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Username Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Username
@@ -213,7 +206,6 @@ const EcommerceLogin = () => {
                   </div>
                 </div>
 
-                {/* Password Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Password
@@ -244,7 +236,6 @@ const EcommerceLogin = () => {
                   </div>
                 </div>
 
-                {/* Remember Me & Forgot Password */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <input
@@ -267,7 +258,6 @@ const EcommerceLogin = () => {
                   </a>
                 </div>
 
-                {/* Login Button */}
                 <button
                   type="submit"
                   className="w-full bg-[#01A49E] hover:bg-[#33BDB7] text-white py-3.5 px-4 rounded-xl font-semibold hover:shadow-xl transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-[1.02] group"
@@ -407,13 +397,11 @@ const EcommerceLogin = () => {
             </div>
           </div>
 
-          {/* Right Side - Image/Visual Section */}
-          <div className="lg:w-1/2 w-full relative bg-gray-20 p-8 md:p-10 lg:p-12 flex flex-col justify-between">
+          <div className="lg:w-1/2 bg-[url]w-full relative bg-gray-20 p-8 md:p-10 lg:p-12 flex flex-col justify-between">
             <div className="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-16 -translate-y-16"></div>
             <div className="absolute bottom-0 right-0 w-48 h-48 bg-white/5 rounded-full translate-x-24 translate-y-24"></div>
-            {/* Content */}
+
             <div className="relative z-10">
-              {/* Stats Bar */}
               <div className="flex items-center justify-between mb-12 bg-gray-200 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                 <div className="text-black">
                   <div className="text-3xl font-bold">50K+</div>
@@ -429,7 +417,6 @@ const EcommerceLogin = () => {
                 </div>
               </div>
 
-              {/* Main Content */}
               <div className="mb-8">
                 <h2 className="text-4xl font-bold text-black mb-4">
                   Discover Amazing Tech Products

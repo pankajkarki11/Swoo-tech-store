@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   ChevronDown,
@@ -15,12 +15,36 @@ import {
   Zap,
   Sparkles,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Header = () => {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [cartCount, setCartCount] = useState(0);
+  const navigate = useNavigate();
+
+  // Load cart count from localStorage
+  useEffect(() => {
+    const updateCartCount = () => {
+      const cart = JSON.parse(localStorage.getItem("swmart_cart") || "[]");
+      const count = cart.reduce((total, item) => total + item.quantity, 0);
+      setCartCount(count);
+    };
+
+    updateCartCount();
+
+    // Listen for storage changes
+    window.addEventListener("storage", updateCartCount);
+
+    // Custom event for cart updates within same tab
+    window.addEventListener("cartUpdated", updateCartCount);
+
+    return () => {
+      window.removeEventListener("storage", updateCartCount);
+      window.removeEventListener("cartUpdated", updateCartCount);
+    };
+  }, []);
 
   // Categories data for dropdown
   const categories = [
@@ -137,13 +161,17 @@ const Header = () => {
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-3xl">S</span>
-            </div>
-            <div className="ml-3">
-              <h1 className="text-2xl font-bold text-white">SWOO TECH MART</h1>
-              <p className="text-white text-sm">KTM's Prime Tech Store</p>
-            </div>
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-sm">
+                <span className="text-white font-bold text-3xl">S</span>
+              </div>
+              <div className="ml-3">
+                <h1 className="text-2xl font-bold text-white">
+                  SWOO TECH MART
+                </h1>
+                <p className="text-white text-sm">KTM's Prime Tech Store</p>
+              </div>
+            </Link>
           </div>
 
           {/* Search Bar - Desktop */}
@@ -162,9 +190,6 @@ const Header = () => {
               >
                 <Search size={20} />
               </button>
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded"></span>
-              </div>
             </form>
           </div>
 
@@ -176,12 +201,19 @@ const Header = () => {
                 <span>LOGIN</span>
               </Link>
             </button>
-            <button className="relative text-white hover:text-gray-200 transition">
+
+            <button
+              onClick={() => navigate("/cart")}
+              className="relative text-white hover:text-gray-200 transition p-2"
+            >
               <ShoppingCart size={24} />
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                3
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-sm rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </button>
+
             <button className="hidden lg:block bg-white text-[#0A1F33] px-6 py-2 rounded-full font-semibold hover:bg-[#33BDB7] transition">
               <Link to="/">Shop Now</Link>
             </button>
@@ -209,15 +241,13 @@ const Header = () => {
         <nav className="hidden lg:flex items-center justify-between">
           {/* Left Navigation */}
           <div className="flex items-center space-x-6">
-            <a
-              href="#"
+            <Link
+              to="/"
               className="text-white hover:text-gray-200 font-medium transition flex items-center border-b-2 border-transparent hover:border-white pb-1"
             >
               <House size={18} />
-              <Link to="/">
-                <span className="ml-2">Home</span>
-              </Link>
-            </a>
+              <span className="ml-2">Home</span>
+            </Link>
 
             {/* Categories Dropdown */}
             <div className="relative">
@@ -321,12 +351,12 @@ const Header = () => {
         {isMobileMenuOpen && (
           <div className="lg:hidden bg-white rounded-xl mt-3 p-4 shadow-lg">
             <div className="space-y-4">
-              <a
-                href="#"
+              <Link
+                to="/"
                 className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
               >
                 🏠 Home
-              </a>
+              </Link>
 
               <div className="space-y-2">
                 <div className="font-semibold text-gray-900 px-4 py-2">
@@ -351,6 +381,21 @@ const Header = () => {
                 </a>
               </div>
 
+              <Link
+                to="/login"
+                className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
+              >
+                👤 Login
+              </Link>
+              <button
+                onClick={() => {
+                  navigate("/cart");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
+              >
+                🛒 Cart {cartCount > 0 && `(${cartCount})`}
+              </button>
               <a
                 href="#"
                 className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"

@@ -1,37 +1,31 @@
 import React, { useState, useEffect } from "react";
 import {
-  Clock,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  Heart,
   Check,
-  Tag,
   Loader2,
 } from "lucide-react";
+import Toast from "../Components/Toast";
 import {
-  fetchProducts,
   fetchProductCategories,
   fetchProductsByCategory,
   fetchAllProducts,
 } from "../services/api";
-import ProductCard from "../components/ProductCard";
+import ProductCard from "../Components/ProductCard";
+import { addToCart as addToCartUtil } from "../utils/cartUtils";
 
 const EcommerceHomepage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [wishlist, setWishlist] = useState(new Set());
-  const [cart, setCart] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [products, setProducts] = useState([]);
-  const [allProducts, setAllProducts] = useState([]); // Store all products for load more
+  const [allProducts, setAllProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(8); // Initial number of products to show
-  const [sortOption, setSortOption] = useState("popular");
-
-  // Hero carousel slides
+  const [visibleCount, setVisibleCount] = useState(12);
   const heroSlides = [
     {
       id: 1,
@@ -61,47 +55,12 @@ const EcommerceHomepage = () => {
       discount: "Free Shipping",
     },
     {
-      id: 3,
+      id: 4,
       title: "Iphone 17 Pro Max",
       description: "Iphone 17 Pro Max available now. Experience the future.",
       image: "images/iphone.jpg",
       color: "from-green-900 to-green-700",
       discount: "Exclusive Launch Offer",
-    },
-  ];
-  // Deals of the day
-  const deals = [
-    {
-      id: 1,
-      name: "Sony Alpha 7IV",
-      category: "Camera",
-      price: 2499,
-      originalPrice: 2999,
-      discount: "17%",
-      timeLeft: "12:34:56",
-      image:
-        "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800",
-    },
-    {
-      id: 2,
-      name: "Logitech MX Keys",
-      category: "Accessories",
-      price: 99,
-      originalPrice: 129,
-      discount: "23%",
-      timeLeft: "08:15:30",
-      image:
-        "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=800",
-    },
-    {
-      id: 3,
-      name: "Dyson V15 Detect",
-      category: "Home",
-      price: 699,
-      originalPrice: 849,
-      discount: "18%",
-      timeLeft: "05:42:18",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800",
     },
   ];
 
@@ -119,7 +78,7 @@ const EcommerceHomepage = () => {
   const loadProductsAndCategories = async () => {
     setIsLoading(true);
     setError(null);
-    setVisibleCount(8); // Reset visible count
+    setVisibleCount(12);
 
     try {
       const [productsData, categoriesData] = await Promise.all([
@@ -128,9 +87,8 @@ const EcommerceHomepage = () => {
       ]);
 
       setAllProducts(productsData);
-      setProducts(productsData.slice(0, 8)); // Show first 8 products
+      setProducts(productsData.slice(0, 12));
       setCategories(categoriesData);
-      sortProducts(productsData.slice(0, 8), sortOption);
     } catch (err) {
       setError("Failed to load products. Please try again later.");
       console.error(err);
@@ -141,16 +99,16 @@ const EcommerceHomepage = () => {
 
   const handleCategoryClick = async (category) => {
     setActiveCategory(category);
-    setVisibleCount(8); // Reset visible count
-    setProducts([]); // Clear current products
+    setVisibleCount(12);
+    setProducts([]);
 
     if (category === "All") {
       setIsLoading(true);
       try {
         const allProductsData = await fetchAllProducts();
         setAllProducts(allProductsData);
-        const initialProducts = allProductsData.slice(0, 8);
-        setProducts(sortProducts(initialProducts, sortOption));
+        const initialProducts = allProductsData.slice(0, 12);
+        setProducts(initialProducts);
       } catch (err) {
         setError(`Failed to load products.`);
         console.error(err);
@@ -164,8 +122,8 @@ const EcommerceHomepage = () => {
     try {
       const categoryProducts = await fetchProductsByCategory(category);
       setAllProducts(categoryProducts);
-      const initialProducts = categoryProducts.slice(0, 8);
-      setProducts(sortProducts(initialProducts, sortOption));
+      const initialProducts = categoryProducts.slice(0, 12);
+      setProducts(initialProducts);
     } catch (err) {
       setError(`Failed to load ${category} products.`);
       console.error(err);
@@ -178,16 +136,13 @@ const EcommerceHomepage = () => {
     setIsLoadingMore(true);
 
     setTimeout(() => {
-      const nextCount = visibleCount + 4;
+      const nextCount = visibleCount + 6;
       const nextProducts = allProducts.slice(0, nextCount);
 
-      // Apply sorting to the new batch
-      const sortedProducts = sortProducts(nextProducts, sortOption);
-      setProducts(sortedProducts);
+      setProducts(nextProducts);
       setVisibleCount(nextCount);
       setIsLoadingMore(false);
 
-      // Smooth scroll to show new products
       if (nextCount > visibleCount) {
         window.scrollTo({
           top: document.documentElement.scrollHeight - 500,
@@ -195,36 +150,6 @@ const EcommerceHomepage = () => {
         });
       }
     }, 800);
-  };
-
-  const handleSortChange = (option) => {
-    setSortOption(option);
-    setShowSortDropdown(false);
-
-    const sortedProducts = sortProducts(products, option);
-    setProducts(sortedProducts);
-  };
-
-  const sortProducts = (productsArray, option) => {
-    const sorted = [...productsArray];
-
-    switch (option) {
-      case "price-low":
-        return sorted.sort((a, b) => a.price - b.price);
-      case "price-high":
-        return sorted.sort((a, b) => b.price - a.price);
-      case "rating":
-        return sorted.sort(
-          (a, b) => (b.rating?.rate || 0) - (a.rating?.rate || 0)
-        );
-      case "newest":
-        return sorted.sort((a, b) => b.id - a.id);
-      case "popular":
-      default:
-        return sorted.sort(
-          (a, b) => (b.rating?.count || 0) - (a.rating?.count || 0)
-        );
-    }
   };
 
   const toggleWishlist = (productId) => {
@@ -240,20 +165,9 @@ const EcommerceHomepage = () => {
   };
 
   const addToCart = (product) => {
-    setCart((prev) => {
-      const existingItem = prev.find((item) => item.id === product.id);
-      if (existingItem) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
+    const updatedCart = addToCartUtil(product);
 
-    // Show success message (you can implement toast notification here)
-    console.log(`Added ${product.title} to cart`);
+    console.log(`✅ Added ${product.title} to cart`);
   };
 
   const nextSlide = () => {
@@ -266,15 +180,10 @@ const EcommerceHomepage = () => {
     );
   };
 
-  const getDiscountPercentage = (price, originalPrice) => {
-    return Math.round(((originalPrice - price) / originalPrice) * 100);
-  };
-
   const hasMoreProducts = visibleCount < allProducts.length;
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Hero Carousel */}
         <div className="relative mb-12 rounded-2xl overflow-hidden">
@@ -314,7 +223,6 @@ const EcommerceHomepage = () => {
             ))}
           </div>
 
-          {/* Carousel Controls */}
           <button
             onClick={prevSlide}
             className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-2 rounded-full transition"
@@ -328,7 +236,6 @@ const EcommerceHomepage = () => {
             <ChevronRight size={24} />
           </button>
 
-          {/* Indicators */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
             {heroSlides.map((_, index) => (
               <button
@@ -355,7 +262,6 @@ const EcommerceHomepage = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              {/* Category Filter */}
               <div className="flex gap-2 overflow-x-auto pb-2">
                 <button
                   onClick={() => handleCategoryClick("All")}
@@ -422,7 +328,6 @@ const EcommerceHomepage = () => {
             </div>
           ) : (
             <>
-              {/* Products Grid */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
                 {products.map((product) => (
                   <ProductCard
@@ -435,7 +340,6 @@ const EcommerceHomepage = () => {
                 ))}
               </div>
 
-              {/* Load More Section */}
               <div className="text-center">
                 <div className="text-gray-600 mb-4">
                   Showing {Math.min(visibleCount, allProducts.length)} of{" "}
