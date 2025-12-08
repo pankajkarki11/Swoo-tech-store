@@ -25,7 +25,7 @@ const EcommerceHomepage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [visibleCount, setVisibleCount] = useState(8);
   const heroSlides = [
     {
       id: 1,

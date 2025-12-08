@@ -1,6 +1,13 @@
-// src/pages/ProductDetailPage.js
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import {
+  isInCart,
+  getCartItemQuantity,
+  addToCart,
+  updateCartItemQuantity,
+  removeFromCart,
+} from "../utils/cartUtils";
+import { ShoppingCart } from "lucide-react";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -10,6 +17,17 @@ const ProductDetailPage = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState("");
+
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [cartStatus, setCartStatus] = useState({
+    isInCart: false,
+    quantity: 0,
+  });
+
+  // Scroll to top when component mounts or id changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [id]);
 
   useEffect(() => {
     fetchProduct();
@@ -35,6 +53,38 @@ const ProductDetailPage = () => {
     }
   };
 
+  // Check cart status on mount and when product changes
+  useEffect(() => {
+    if (product?.id) {
+      const inCart = isInCart(product.id);
+      const cartQuantity = getCartItemQuantity(product.id);
+      setCartStatus({
+        isInCart: inCart,
+        quantity: cartQuantity,
+      });
+    }
+  }, [product]);
+
+  // Listen for cart updates
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      if (product?.id) {
+        const inCart = isInCart(product.id);
+        const cartQuantity = getCartItemQuantity(product.id);
+        setCartStatus({
+          isInCart: inCart,
+          quantity: cartQuantity,
+        });
+      }
+    };
+
+    window.addEventListener("cartUpdated", handleCartUpdate);
+
+    return () => {
+      window.removeEventListener("cartUpdated", handleCartUpdate);
+    };
+  }, [product?.id]);
+
   const handleQuantityChange = (change) => {
     setQuantity((prev) => {
       const newQty = prev + change;
@@ -42,24 +92,87 @@ const ProductDetailPage = () => {
     });
   };
 
-  const addToCart = () => {
-    const cartItem = {
-      ...product,
-      quantity,
-      total: product.price * quantity,
-    };
-    // In a real app, you would dispatch to Redux or update context
-    alert(
-      `Added ${quantity} × ${
-        product.title
-      } to cart! Total: $${cartItem.total.toFixed(2)}`
-    );
+  const handleAddToCart = async () => {
+    if (isAddingToCart || !product) return;
+
+    setIsAddingToCart(true);
+    try {
+      // Use the addToCart function from cartUtils
+      addToCart(product, quantity);
+
+      // Update local state after adding
+      const newQuantity = cartStatus.quantity + quantity;
+      setCartStatus({
+        isInCart: true,
+        quantity: newQuantity,
+      });
+
+      // Show success message
+      alert(
+        `Added ${quantity} × ${product.title} to cart! Total: $${(
+          product.price * quantity
+        ).toFixed(2)}`
+      );
+
+      // Reset quantity to 1 after adding
+      setQuantity(1);
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+      alert("Failed to add item to cart. Please try again.");
+    } finally {
+      setTimeout(() => setIsAddingToCart(false), 500);
+    }
+  };
+
+  const handleUpdateCartQuantity = (change) => {
+    if (!product) return;
+
+    const newQty = cartStatus.quantity + change;
+
+    if (newQty <= 0) {
+      // Remove from cart
+      removeFromCart(product.id);
+      setCartStatus({
+        isInCart: false,
+        quantity: 0,
+      });
+      alert("Item removed from cart");
+    } else {
+      // Update quantity using cartUtils
+      updateCartItemQuantity(product.id, newQty);
+      setCartStatus({
+        isInCart: true,
+        quantity: newQty,
+      });
+      alert(`Cart quantity updated to ${newQty}`);
+    }
+  };
+
+  const handleRemoveFromCart = () => {
+    if (!product) return;
+
+    removeFromCart(product.id);
+    setCartStatus({
+      isInCart: false,
+      quantity: 0,
+    });
+    alert("Item removed from cart");
   };
 
   const buyNow = () => {
-    addToCart();
-    // Navigate to checkout in real app
-    alert("Proceeding to checkout...");
+    if (!product) return;
+
+    // Add to cart first (if not already in cart)
+    if (!cartStatus.isInCart) {
+      addToCart(product, quantity);
+    }
+
+    // Navigate to cart page
+    navigate("/cart");
+  };
+
+  const handleViewCart = () => {
+    navigate("/cart");
   };
 
   if (loading) {
@@ -170,7 +283,6 @@ const ProductDetailPage = () => {
                   className="w-full h-full object-contain p-2"
                 />
               </button>
-              {/* Add more thumbnails if you have additional images */}
             </div>
           </div>
 
@@ -246,7 +358,7 @@ const ProductDetailPage = () => {
                 <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                   <button
                     onClick={() => handleQuantityChange(-1)}
-                    className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={quantity <= 1}
                   >
                     −
@@ -256,7 +368,7 @@ const ProductDetailPage = () => {
                   </span>
                   <button
                     onClick={() => handleQuantityChange(1)}
-                    className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={quantity >= 10}
                   >
                     +
@@ -268,13 +380,73 @@ const ProductDetailPage = () => {
               </div>
             </div>
 
+            {/* Cart Status Display */}
+            {cartStatus.isInCart && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <span className="text-green-600 mr-2">✓</span>
+                    <span className="text-green-800 font-medium">
+                      {cartStatus.quantity} × {product.title} in cart
+                    </span>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleUpdateCartQuantity(-1)}
+                      className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+                    >
+                      -
+                    </button>
+                    <button
+                      onClick={() => handleUpdateCartQuantity(1)}
+                      className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+                    >
+                      +
+                    </button>
+                    <button
+                      onClick={handleRemoveFromCart}
+                      className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+                <button
+                  onClick={handleViewCart}
+                  className="mt-3 w-full py-2 text-center text-green-700 hover:text-green-800 font-medium"
+                >
+                  View Cart →
+                </button>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <button
-                onClick={addToCart}
-                className="flex-1 px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-300 transform hover:scale-[1.02] font-semibold text-lg flex items-center justify-center"
+                onClick={handleAddToCart}
+                disabled={isAddingToCart}
+                className={`flex-1 py-3 rounded-lg transition-all duration-300 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                  cartStatus.isInCart
+                    ? "bg-green-100 text-green-800 hover:bg-green-200"
+                    : "bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white hover:from-[#01857F] hover:to-[#016F6B]"
+                }`}
               >
-                🛒 Add to Cart
+                {isAddingToCart ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                    Adding...
+                  </>
+                ) : cartStatus.isInCart ? (
+                  <>
+                    <ShoppingCart size={16} />
+                    Added to Cart ({cartStatus.quantity})
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={16} />
+                    Add to Cart
+                  </>
+                )}
               </button>
               <button
                 onClick={buyNow}
