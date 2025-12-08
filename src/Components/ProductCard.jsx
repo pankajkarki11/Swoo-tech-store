@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ShoppingCart, Heart, Star, Eye, Zap } from "lucide-react";
 import { isInCart, getCartItemQuantity } from "../utils/cartUtils";
+import { useNavigate } from "react-router-dom";
+import ProductDetailPage from "../pages/ProductDetailPage";
 
 const ProductCard = ({
   product,
@@ -15,6 +17,8 @@ const ProductCard = ({
     isInCart: false,
     quantity: 0,
   });
+
+  const navigate = useNavigate();
 
   // Check cart status on mount and when product changes
   useEffect(() => {
@@ -114,6 +118,7 @@ const ProductCard = ({
 
   return (
     <div
+      onClick={() => navigate(`/products/${product?.id}`)}
       className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -156,7 +161,10 @@ const ProductCard = ({
 
         {/* Wishlist Button */}
         <button
-          onClick={() => onWishlistToggle(product?.id)}
+          onClick={(e) => {
+            e.stopPropagation(); // stops navigation
+            onWishlistToggle(product?.id);
+          }}
           className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:shadow-md transition-all hover:scale-110 z-10"
           aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
@@ -223,7 +231,10 @@ const ProductCard = ({
         {/* Action Buttons */}
         <div className="flex gap-2">
           <button
-            onClick={handleAddToCart}
+            onClick={(e) => {
+              e.stopPropagation(); // stops navigation
+              handleAddToCart();
+            }}
             disabled={isAddingToCart || cartStatus.isInCart}
             className={`flex-1 py-3 rounded-lg transition-all duration-300 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
               cartStatus.isInCart
