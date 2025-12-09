@@ -500,12 +500,13 @@ const AddProductPage = () => {
                 </div>
 
                 {/* Submit Buttons */}
-                <div className="pt-6 border-t border-gray-200">
-                  <div className="flex flex-col sm:flex-row gap-4">
+                <div className="pt-6 border-t mx-auto border-gray-200">
+                  <div className=" mx-auto">
                     <button
                       type="submit"
+                      onClick={handleFakeStoreSubmit}
                       disabled={loading}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3.5 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                      className=" bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3.5 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
                     >
                       {loading ? (
                         <>
@@ -532,138 +533,12 @@ const AddProductPage = () => {
                           Adding Product...
                         </>
                       ) : (
-                        "Add Product to Local Storage"
+                        "Add Product"
                       )}
                     </button>
-
-                    <button
-                      type="button"
-                      onClick={handleFakeStoreSubmit}
-                      disabled={loading}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-700 text-white py-3.5 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-                      title="Simulated POST to FakeStoreAPI"
-                    >
-                      Simulate API Post
-                    </button>
                   </div>
-
-                  <p className="text-sm text-gray-500 mt-4 text-center">
-                    * FakeStoreAPI is read-only. Products are saved to
-                    localStorage for demonstration.
-                  </p>
                 </div>
               </form>
-            </div>
-          </div>
-
-          {/* Right Column - Guidelines */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-xl p-8 sticky top-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Listing Guidelines
-              </h2>
-
-              <div className="space-y-6">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h3 className="font-medium text-blue-800 mb-2">
-                    📝 Title Tips
-                  </h3>
-                  <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Be clear and descriptive</li>
-                    <li>• Include brand and model</li>
-                    <li>• Add key specifications</li>
-                    <li>• Keep it under 100 characters</li>
-                  </ul>
-                </div>
-
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <h3 className="font-medium text-green-800 mb-2">
-                    💰 Pricing Tips
-                  </h3>
-                  <ul className="text-sm text-green-700 space-y-1">
-                    <li>• Research similar products</li>
-                    <li>• Consider your costs</li>
-                    <li>• Be competitive</li>
-                    <li>• Include all fees</li>
-                  </ul>
-                </div>
-
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <h3 className="font-medium text-purple-800 mb-2">
-                    📸 Image Tips
-                  </h3>
-                  <ul className="text-sm text-purple-700 space-y-1">
-                    <li>• Use high-quality images</li>
-                    <li>• Show multiple angles</li>
-                    <li>• Include product in use</li>
-                    <li>• Good lighting is key</li>
-                  </ul>
-                </div>
-
-                <div className="p-4 bg-amber-50 rounded-lg">
-                  <h3 className="font-medium text-amber-800 mb-2">
-                    📋 Description Tips
-                  </h3>
-                  <ul className="text-sm text-amber-700 space-y-1">
-                    <li>• List all features</li>
-                    <li>• Mention condition</li>
-                    <li>• Include dimensions</li>
-                    <li>• Add warranty info</li>
-                  </ul>
-                </div>
-
-                {/* Quick Stats */}
-                <div className="border-t border-gray-200 pt-6">
-                  <h3 className="font-medium text-gray-900 mb-4">
-                    Your Product Stats
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Title Length</span>
-                      <span
-                        className={`font-medium ${
-                          formData.title.length > 0 &&
-                          formData.title.length < 100
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {formData.title.length}/100
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Description Length</span>
-                      <span
-                        className={`font-medium ${
-                          formData.description.length > 50
-                            ? "text-green-600"
-                            : formData.description.length > 0
-                            ? "text-amber-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {formData.description.length} chars
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Images Uploaded</span>
-                      <span className="font-medium text-blue-600">
-                        {images.length}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Note about FakeStoreAPI */}
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <h3 className="font-medium text-gray-900 mb-2">ℹ️ Note</h3>
-                  <p className="text-sm text-gray-600">
-                    FakeStoreAPI is a read-only API for testing. Products added
-                    here are saved to your browser's localStorage for
-                    demonstration purposes.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>

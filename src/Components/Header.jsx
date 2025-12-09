@@ -30,6 +30,36 @@ const Header = () => {
   const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    loadProducts();
+
+    // Listen for product updates
+    window.addEventListener("productsUpdated", loadProducts);
+
+    return () => {
+      window.removeEventListener("productsUpdated", loadProducts);
+    };
+  }, []);
+
+  const loadProducts = () => {
+    // Load from localStorage (our added products)
+    const localProducts = JSON.parse(
+      localStorage.getItem("swmart_products") || "[]"
+    );
+
+    // Also fetch from FakeStoreAPI for demonstration
+    fetch("https://fakestoreapi.com/products")
+      .then((res) => res.json())
+      .then((apiProducts) => {
+        // Combine API products with our local products
+        setProducts([...localProducts, ...apiProducts]);
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+        setProducts(localProducts);
+      });
+  };
+
   const handleLogout = async () => {
     logout();
     setShowDropdown(false);
@@ -284,7 +314,7 @@ const Header = () => {
 
                       <div className="py-2">
                         <Link
-                          to="/user/profile"
+                          to="profile"
                           onClick={() => setShowDropdown(false)}
                           className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                         >
