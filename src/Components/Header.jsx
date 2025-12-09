@@ -496,13 +496,13 @@ const Header = () => {
           {/* Right Navigation */}
           <div className="flex items-center space-x-6">
             <a
-              href="#"
+              href="addproduct"
               className="text-white hover:text-gray-200 font-medium transition"
             >
-              Help Center
+              Add Products
             </a>
             <a
-              href="/addproduct"
+              href="/addedproduct"
               className="text-white hover:text-gray-200 font-medium transition"
             >
               View Products

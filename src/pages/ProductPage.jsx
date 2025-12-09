@@ -233,6 +233,7 @@ const ProductsPage = () => {
                           JSON.stringify(cart)
                         );
                         window.dispatchEvent(new Event("cartUpdated"));
+                        console.log("added to cart!");
                       }}
                       className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
                     >
