@@ -2,7 +2,7 @@
 
 const BASE_URL = "https://fakestoreapi.com";
 
-export const fetchProducts = async (limit = 20, sort = "desc") => {
+export const fetchProducts = async (limit = 30, sort = "desc") => {
   try {
     const response = await fetch(
       `${BASE_URL}/products?sort=${sort}&limit=${limit}`
