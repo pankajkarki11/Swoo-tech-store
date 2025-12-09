@@ -6,13 +6,12 @@ import {
   Check,
   Loader2,
 } from "lucide-react";
-import Toast from "../Components/Toast";
 import {
   fetchProductCategories,
   fetchProductsByCategory,
   fetchAllProducts,
 } from "../services/api";
-import ProductCard from "../Components/ProductCard";
+import ProductCard from "../components/ProductCard";
 import { addToCart as addToCartUtil } from "../utils/cartUtils";
 
 const EcommerceHomepage = () => {

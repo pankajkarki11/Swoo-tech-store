@@ -34,6 +34,11 @@ const CartPage = () => {
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponError, setCouponError] = useState("");
 
+  // Scroll to top when component mounts or id changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
   // Load cart from localStorage on mount
   useEffect(() => {
     loadCartFromStorage();

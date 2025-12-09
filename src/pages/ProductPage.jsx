@@ -1,6 +1,7 @@
 // src/pages/ProductsPage.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
   Search,
   Filter,
@@ -234,6 +235,14 @@ const ProductsPage = () => {
                         );
                         window.dispatchEvent(new Event("cartUpdated"));
                         console.log("added to cart!");
+
+                        toast.success("Added to cart", {
+                          style: {
+                            background: "#333",
+                            color: "#fff",
+                            borderRadius: "10px",
+                          },
+                        });
                       }}
                       className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
                     >

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
   isInCart,
   getCartItemQuantity,
@@ -107,18 +108,12 @@ const ProductDetailPage = () => {
         quantity: newQuantity,
       });
 
-      // Show success message
-      alert(
-        `Added ${quantity} × ${product.title} to cart! Total: $${(
-          product.price * quantity
-        ).toFixed(2)}`
-      );
+      toast.success("Added to cart");
 
       // Reset quantity to 1 after adding
       setQuantity(1);
     } catch (err) {
-      console.error("Failed to add to cart:", err);
-      alert("Failed to add item to cart. Please try again.");
+      toast.success("Cannot add to cart");
     } finally {
       setTimeout(() => setIsAddingToCart(false), 500);
     }
@@ -144,7 +139,7 @@ const ProductDetailPage = () => {
         isInCart: true,
         quantity: newQty,
       });
-      alert(`Cart quantity updated to ${newQty}`);
+      toast.success(`Cart quantity updated to ${newQty}`);
     }
   };
 
@@ -156,7 +151,8 @@ const ProductDetailPage = () => {
       isInCart: false,
       quantity: 0,
     });
-    alert("Item removed from cart");
+
+    toast.error("Item removed from cart");
   };
 
   const buyNow = () => {

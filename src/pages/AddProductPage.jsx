@@ -1,6 +1,7 @@
 // src/pages/AddProductPage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
   Upload,
   Tag,
@@ -212,6 +213,13 @@ const AddProductPage = () => {
       if (response.ok) {
         const data = await response.json();
         console.log("Product added (simulated):", data);
+        toast.success("Product added to cart!", {
+          style: {
+            background: "#333",
+            color: "#fff",
+            borderRadius: "10px",
+          },
+        });
         setSuccess(true);
         resetForm();
       } else {
@@ -269,6 +277,7 @@ const AddProductPage = () => {
               <p className="font-semibold text-green-800">
                 Product Added Successfully!
               </p>
+
               <p className="text-green-600 text-sm">
                 Your product has been added to the catalog.
               </p>
