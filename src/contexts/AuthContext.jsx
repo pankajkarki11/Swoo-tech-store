@@ -32,7 +32,6 @@ export const AuthProvider = ({ children }) => {
   // FakeStoreAPI login
   const login = async (usernameInput, password) => {
     try {
-      // FakeStoreAPI login endpoint
       const response = await fetch("https://fakestoreapi.com/auth/login", {
         method: "POST",
         headers: {

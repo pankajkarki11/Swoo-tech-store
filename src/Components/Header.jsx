@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   Settings,
   LogOut,
+  PhoneCall,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -29,36 +30,6 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadProducts();
-
-    // Listen for product updates
-    window.addEventListener("productsUpdated", loadProducts);
-
-    return () => {
-      window.removeEventListener("productsUpdated", loadProducts);
-    };
-  }, []);
-
-  const loadProducts = () => {
-    // Load from localStorage (our added products)
-    const localProducts = JSON.parse(
-      localStorage.getItem("swmart_products") || "[]"
-    );
-
-    // Also fetch from FakeStoreAPI for demonstration
-    fetch("https://fakestoreapi.com/products")
-      .then((res) => res.json())
-      .then((apiProducts) => {
-        // Combine API products with our local products
-        setProducts([...localProducts, ...apiProducts]);
-      })
-      .catch((error) => {
-        console.error("Error fetching products:", error);
-        setProducts(localProducts);
-      });
-  };
 
   const handleLogout = async () => {
     logout();
@@ -494,20 +465,34 @@ const Header = () => {
           </div>
 
           {/* Right Navigation */}
-          <div className="flex items-center space-x-6">
-            <a
-              href="addproduct"
-              className="text-white hover:text-gray-200 font-medium transition"
-            >
-              Add Products
-            </a>
+          <div className="hidden lg:flex items-center space-x-6">
             <a
               href="/addedproduct"
               className="text-white hover:text-gray-200 font-medium transition"
             >
               View Products
             </a>
-            <div className="flex items-center space-x-2 text-white">
+
+            <div className="flex items-center space-x-6">
+              {user ? (
+                <a
+                  href="addproduct"
+                  className="text-white hover:text-gray-200 font-medium transition"
+                >
+                  Add Products
+                </a>
+              ) : (
+                <Link
+                  to="/"
+                  className="flex items-center space-x-2 hover:opacity-80 transition-opacity text-white hover:text-gray-200"
+                >
+                  <PhoneCall size={20} />
+                  <span className="font-medium">Helpline</span>
+                </Link>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-3 text-white">
               <span className="text-sm">Hotline:</span>
               <span className="font-bold">9862463322</span>
             </div>

@@ -1,4 +1,3 @@
-// src/pages/LoginPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -25,25 +24,21 @@ const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  // State for login status
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
 
-  // Toast notification state
   const [showToast, setShowToast] = useState(false);
   const [toastUsername, setToastUsername] = useState("");
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Demo credentials for easy testing
   const demoCredentials = [
     { username: "mor_2314", password: "83r5^_" },
     { username: "johnd", password: "m38rmF$" },
   ];
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
 
@@ -58,24 +53,25 @@ const LoginPage = () => {
     try {
       // Send login request using AuthContext login function
       const result = await login(username, password);
-      
+
       if (!result.success) {
         throw new Error(result.error || "Login failed");
       }
 
       // Set toast username and show toast
       setToastUsername(username);
-      setSuccessMessage(`Login successful! Welcome ${result.user?.firstname || username}`);
+      setSuccessMessage(
+        `Login successful! Welcome ${result.user?.firstname || username}`
+      );
       setShowToast(true);
 
       // Clear form
       setUsername("");
       setPassword("");
 
-      // Redirect to home page after 1.5 seconds
       setTimeout(() => {
         navigate("/");
-      }, 1500);
+      }, 1000);
     } catch (error) {
       // Show error message
       setError(`❌ ${error.message}`);
@@ -92,7 +88,6 @@ const LoginPage = () => {
     setPassword(pass);
   };
 
-  // Auto-hide toast after 5 seconds
   useEffect(() => {
     if (showToast) {
       const timer = setTimeout(() => {
@@ -349,7 +344,6 @@ const LoginPage = () => {
                   </div>
                 </form>
 
-                {/* Demo Accounts Section */}
                 <div className="mt-10 pt-8 border-t border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <Star className="h-5 w-5 mr-2 text-red-500" />
@@ -367,17 +361,6 @@ const LoginPage = () => {
                         {cred.username}
                       </button>
                     ))}
-                  </div>
-                  <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    <p className="font-medium mb-1">Demo credentials:</p>
-                    <p>
-                      <span className="font-semibold">User:</span> mor_2314 |{" "}
-                      <span className="font-semibold">Pass:</span> 83r5^_
-                    </p>
-                    <p className="mt-1">
-                      <span className="font-semibold">User:</span> johnd |{" "}
-                      <span className="font-semibold">Pass:</span> m38rmF$
-                    </p>
                   </div>
                 </div>
               </div>
@@ -411,8 +394,8 @@ const LoginPage = () => {
                 </h2>
                 <p className="text-gray-700 text-lg mb-8">
                   Join thousands of customers shopping the latest electronics,
-                  gadgets, and tech accessories with exclusive deals and
-                  premium service.
+                  gadgets, and tech accessories with exclusive deals and premium
+                  service.
                 </p>
               </div>
 
@@ -470,7 +453,7 @@ const LoginPage = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Bottom Branding */}
             <div className="relative z-10 mt-8 pt-8 border-t border-gray-200">
               <div className="flex items-center justify-between">
