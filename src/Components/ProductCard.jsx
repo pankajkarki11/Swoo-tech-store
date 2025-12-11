@@ -1,13 +1,12 @@
+// src/components/ProductCard.jsx
 import React, { useState, useEffect } from "react";
 import { ShoppingCart, Heart, Star, Eye, Zap } from "lucide-react";
-import { isInCart, getCartItemQuantity } from "../utils/cartUtils";
 import { useNavigate } from "react-router-dom";
-import ProductDetailPage from "../pages/ProductDetailPage";
+import { useCart } from "../contexts/CartContext";
 
 const ProductCard = ({
   product,
   onWishlistToggle,
-  onAddToCart,
   isInWishlist = false,
   isLoading = false,
 }) => {
@@ -19,34 +18,36 @@ const ProductCard = ({
   });
 
   const navigate = useNavigate();
+  const { addToCart, isInCart, getCartItemQuantity } = useCart();
 
   // Check cart status on mount and when product changes
   useEffect(() => {
-    const inCart = isInCart(product?.id);
-    const quantity = getCartItemQuantity(product?.id);
-    setCartStatus({
-      isInCart: inCart,
-      quantity: quantity,
-    });
-  }, [product?.id]);
-
-  // Listen for cart updates
-  useEffect(() => {
-    const handleCartUpdate = () => {
-      const inCart = isInCart(product?.id);
-      const quantity = getCartItemQuantity(product?.id);
+    if (product?.id) {
+      const inCart = isInCart(product.id);
+      const quantity = getCartItemQuantity(product.id);
       setCartStatus({
         isInCart: inCart,
         quantity: quantity,
       });
+    }
+  }, [product?.id, isInCart, getCartItemQuantity]);
+
+  // Listen for cart updates
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      if (product?.id) {
+        const inCart = isInCart(product.id);
+        const quantity = getCartItemQuantity(product.id);
+        setCartStatus({
+          isInCart: inCart,
+          quantity: quantity,
+        });
+      }
     };
 
     window.addEventListener("cartUpdated", handleCartUpdate);
-
-    return () => {
-      window.removeEventListener("cartUpdated", handleCartUpdate);
-    };
-  }, [product?.id]);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
+  }, [product?.id, isInCart, getCartItemQuantity]);
 
   const formatPrice = (price) => {
     return `$${price?.toFixed(2) || "0.00"}`;
@@ -57,36 +58,17 @@ const ProductCard = ({
     return text.substring(0, maxLength).trim() + "...";
   };
 
-  const getCategoryIcon = (category) => {
-    const icons = {
-      electronics: "⚡",
-      jewelery: "💎",
-      "men's clothing": "👕",
-      "women's clothing": "👗",
-      default: "📦",
-    };
+  const handleAddToCart = async (e) => {
+    if (!product || isAddingToCart) return;
 
-    return icons[category?.toLowerCase()] || icons.default;
-  };
-
-  const getCategoryColor = (category) => {
-    const colors = {
-      electronics: "bg-blue-100 text-blue-700",
-      jewelery: "bg-purple-100 text-purple-700",
-      "men's clothing": "bg-green-100 text-green-700",
-      "women's clothing": "bg-pink-100 text-pink-700",
-      default: "bg-gray-100 text-gray-700",
-    };
-
-    return colors[category?.toLowerCase()] || colors.default;
-  };
-
-  const handleAddToCart = async () => {
-    if (isAddingToCart) return;
-
+    e.stopPropagation();
     setIsAddingToCart(true);
+
     try {
-      await onAddToCart(product);
+      await addToCart(product, 1);
+      // Status will be updated via the event listener
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
     } finally {
       setTimeout(() => setIsAddingToCart(false), 500);
     }
@@ -112,27 +94,23 @@ const ProductCard = ({
     );
   }
 
-  const ratingPercentage = product?.rating?.rate
-    ? (product.rating.rate / 5) * 100
-    : 0;
-
   return (
     <div
       onClick={() => navigate(`/products/${product?.id}`)}
-      className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+      className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Cart Status Badge */}
       {cartStatus.isInCart && (
         <div className="absolute top-3 left-3 z-20">
-          <span className="bg-[#01A49E] text-white text-xs font-bold px-3 py-1 rounded-full">
+          <span className="bg-[#01A49E] text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
             In Cart ({cartStatus.quantity})
           </span>
         </div>
       )}
 
-      {/* Product Image Container */}
+      {/* Product Image */}
       <div className="relative h-64 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
         <img
           src={product?.image}
@@ -143,27 +121,13 @@ const ProductCard = ({
           loading="lazy"
         />
 
-        {/* Category Badge */}
-        {product?.category && (
-          <div className="absolute top-3 left-3">
-            <span
-              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                product.category
-              )}`}
-            >
-              <span className="text-lg">
-                {getCategoryIcon(product.category)}
-              </span>
-              {product.category}
-            </span>
-          </div>
-        )}
-
         {/* Wishlist Button */}
         <button
           onClick={(e) => {
-            e.stopPropagation(); // stops navigation
-            onWishlistToggle(product?.id);
+            e.stopPropagation();
+            if (onWishlistToggle) {
+              onWishlistToggle(product?.id);
+            }
           }}
           className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:shadow-md transition-all hover:scale-110 z-10"
           aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
@@ -183,7 +147,13 @@ const ProductCard = ({
             isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <button className="bg-white text-gray-900 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/products/${product?.id}`);
+            }}
+            className="bg-white text-gray-900 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition flex items-center gap-2"
+          >
             <Eye size={16} />
             Quick View
           </button>
@@ -192,7 +162,6 @@ const ProductCard = ({
 
       {/* Product Details */}
       <div className="p-5">
-        {/* Title and Description */}
         <div className="mb-4">
           <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 min-h-[56px]">
             {product?.title || "Product Title"}
@@ -205,7 +174,6 @@ const ProductCard = ({
         {/* Rating and Price */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="relative"></div>
             <span className="text-yellow-400">★</span>
             <span className="text-gray-900 font-medium text-sm">
               {product?.rating?.rate?.toFixed(1) || "4.5"}
@@ -228,56 +196,34 @@ const ProductCard = ({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation(); // stops navigation
-              handleAddToCart();
-            }}
-            disabled={isAddingToCart || cartStatus.isInCart}
-            className={`flex-1 py-3 rounded-lg transition-all duration-300 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-              cartStatus.isInCart
-                ? "bg-green-100 text-green-800"
-                : "bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white hover:from-[#01857F] hover:to-[#016F6B]"
-            }`}
-          >
-            {isAddingToCart ? (
-              <>
-                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                Adding...
-              </>
-            ) : cartStatus.isInCart ? (
-              <>
-                <ShoppingCart size={16} />
-                Added to Cart
-              </>
-            ) : (
-              <>
-                <ShoppingCart size={16} />
-                Add to Cart
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Free Shipping</span>
-            <span>30-Day Returns</span>
-          </div>
-        </div>
+        {/* Add to Cart Button */}
+        <button
+          onClick={handleAddToCart}
+          disabled={isAddingToCart || cartStatus.isInCart}
+          className={`w-full py-3 rounded-lg transition-all duration-300 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+            cartStatus.isInCart
+              ? "bg-green-100 text-green-800 hover:bg-green-200"
+              : "bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white hover:from-[#01857F] hover:to-[#016F6B] hover:shadow-lg"
+          } ${isAddingToCart ? "animate-pulse" : ""}`}
+        >
+          {isAddingToCart ? (
+            <>
+              <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+              Adding...
+            </>
+          ) : cartStatus.isInCart ? (
+            <>
+              <ShoppingCart size={16} />
+              Added to Cart
+            </>
+          ) : (
+            <>
+              <ShoppingCart size={16} />
+              Add to Cart
+            </>
+          )}
+        </button>
       </div>
-
-      {/* Hot Deal Badge */}
-      {product?.rating?.rate >= 4.5 && (
-        <div className="absolute top-3 left-3 z-10">
-          <span className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
-            HOT DEAL
-          </span>
-        </div>
-      )}
     </div>
   );
 };

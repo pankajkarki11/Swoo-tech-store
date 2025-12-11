@@ -21,16 +21,20 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useCart } from "../contexts/CartContext"; // Import CartContext
 import toast from "react-hot-toast";
 
 const Header = () => {
   const { user, logout, loading } = useAuth();
+  const { getCartCount, isSyncing } = useCart(); // Get cart functions from CartContext
   const [showDropdown, setShowDropdown] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
+
+  // Get cart count from CartContext
+  const cartCount = getCartCount();
 
   // Custom confirmation dialog function
   const confirmAction = (message, onConfirm, onCancel) => {
@@ -82,7 +86,7 @@ const Header = () => {
       () => {
         logout();
         setShowDropdown(false);
-        navigate("/");
+        navigate("/login");
         toast.success("Logged out successfully!");
       },
       () => {
@@ -90,28 +94,6 @@ const Header = () => {
       }
     );
   };
-
-  // Load cart count from localStorage
-  useEffect(() => {
-    const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem("swmart_cart") || "[]");
-      const count = cart.reduce((total, item) => total + item.quantity, 0);
-      setCartCount(count);
-    };
-
-    updateCartCount();
-
-    // Listen for storage changes
-    window.addEventListener("storage", updateCartCount);
-
-    // Custom event for cart updates within same tab
-    window.addEventListener("cartUpdated", updateCartCount);
-
-    return () => {
-      window.removeEventListener("storage", updateCartCount);
-      window.removeEventListener("cartUpdated", updateCartCount);
-    };
-  }, []);
 
   // Categories data for dropdown
   const categories = [
@@ -402,11 +384,16 @@ const Header = () => {
               onClick={() => navigate("/cart")}
               className="relative text-white hover:text-gray-200 transition p-2"
             >
-              <ShoppingCart size={24} />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-sm rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
+              <div className="relative">
+                <ShoppingCart size={24} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+              {isSyncing && (
+                <div className="absolute -bottom-1 right-0 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
               )}
             </button>
 
@@ -617,7 +604,7 @@ const Header = () => {
                     📦 My Orders
                   </Link>
                   <Link
-                    to="/add-product"
+                    to="/addproduct"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
                   >

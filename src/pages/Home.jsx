@@ -6,13 +6,9 @@ import {
   Check,
   Loader2,
 } from "lucide-react";
-import {
-  fetchProductCategories,
-  fetchProductsByCategory,
-  fetchAllProducts,
-} from "../services/api";
+import useApi from "../services/useApi";
 import ProductCard from "../components/ProductCard";
-import { addToCart as addToCartUtil } from "../utils/cartUtils";
+import { useCart } from "../contexts/CartContext";
 
 const EcommerceHomepage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -25,6 +21,10 @@ const EcommerceHomepage = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [visibleCount, setVisibleCount] = useState(8);
+
+  const api = useApi();
+  const { addToCart: addToCartContext } = useCart();
+
   const heroSlides = [
     {
       id: 1,
@@ -80,14 +80,16 @@ const EcommerceHomepage = () => {
     setVisibleCount(12);
 
     try {
+      // Use the API hook instead of direct fetch functions
       const [productsData, categoriesData] = await Promise.all([
-        fetchAllProducts(),
-        fetchProductCategories(),
+        api.productAPI.getAll(),
+        api.productAPI.getCategories(),
       ]);
 
-      setAllProducts(productsData);
-      setProducts(productsData.slice(0, 12));
-      setCategories(categoriesData);
+      // The API hook returns { data, status }, so we need to extract the data
+      setAllProducts(productsData.data);
+      setProducts(productsData.data.slice(0, 12));
+      setCategories(categoriesData.data);
     } catch (err) {
       setError("Failed to load products. Please try again later.");
       console.error(err);
@@ -104,9 +106,9 @@ const EcommerceHomepage = () => {
     if (category === "All") {
       setIsLoading(true);
       try {
-        const allProductsData = await fetchAllProducts();
-        setAllProducts(allProductsData);
-        const initialProducts = allProductsData.slice(0, 12);
+        const allProductsData = await api.productAPI.getAll();
+        setAllProducts(allProductsData.data);
+        const initialProducts = allProductsData.data.slice(0, 12);
         setProducts(initialProducts);
       } catch (err) {
         setError(`Failed to load products.`);
@@ -119,9 +121,9 @@ const EcommerceHomepage = () => {
 
     setIsLoading(true);
     try {
-      const categoryProducts = await fetchProductsByCategory(category);
-      setAllProducts(categoryProducts);
-      const initialProducts = categoryProducts.slice(0, 12);
+      const categoryProducts = await api.productAPI.getByCategory(category);
+      setAllProducts(categoryProducts.data);
+      const initialProducts = categoryProducts.data.slice(0, 12);
       setProducts(initialProducts);
     } catch (err) {
       setError(`Failed to load ${category} products.`);
@@ -163,11 +165,8 @@ const EcommerceHomepage = () => {
     });
   };
 
-  const addToCart = (product) => {
-    const updatedCart = addToCartUtil(product);
-
-    console.log(`✅ Added ${product.title} to cart`);
-  };
+  // The addToCart function is now handled by ProductCard using CartContext
+  // This function is no longer needed here since ProductCard handles it internally
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
@@ -333,8 +332,8 @@ const EcommerceHomepage = () => {
                     key={product.id}
                     product={product}
                     onWishlistToggle={toggleWishlist}
-                    onAddToCart={addToCart}
                     isInWishlist={wishlist.has(product.id)}
+                    // Removed onAddToCart prop since ProductCard handles it internally
                   />
                 ))}
               </div>
@@ -376,6 +375,85 @@ const EcommerceHomepage = () => {
               </div>
             </>
           )}
+        </div>
+
+        {/* Features Section */}
+        <div className="mt-16 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg
+                    className="w-6 h-6 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Fast Delivery</h3>
+                  <p className="text-gray-600 text-sm">
+                    Free shipping over $50
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg
+                    className="w-6 h-6 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    ></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Secure Payment</h3>
+                  <p className="text-gray-600 text-sm">100% secure & safe</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                  <svg
+                    className="w-6 h-6 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">30-Day Returns</h3>
+                  <p className="text-gray-600 text-sm">Easy returns policy</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
