@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import toast from "react-hot-toast";
 
 const Header = () => {
   const { user, logout, loading } = useAuth();
@@ -31,10 +32,63 @@ const Header = () => {
   const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
 
+  // Custom confirmation dialog function
+  const confirmAction = (message, onConfirm, onCancel) => {
+    toast.custom(
+      (t) => (
+        <div
+          className={`${
+            t.visible ? "animate-enter" : "animate-leave"
+          } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+        >
+          <div className="flex-1 w-0 p-4">
+            <div className="flex items-start">
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium text-gray-900">{message}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex border-l border-gray-200">
+            <button
+              onClick={() => {
+                onConfirm();
+                toast.dismiss(t.id); // Dismiss the toast after action
+              }}
+              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              Yes
+            </button>
+            <button
+              onClick={() => {
+                onCancel();
+                toast.dismiss(t.id); // Dismiss the toast after action
+              }}
+              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-red-600 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              No
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity, // Keep toast visible until user interacts
+      }
+    );
+  };
+
   const handleLogout = async () => {
-    logout();
-    setShowDropdown(false);
-    navigate("/");
+    confirmAction(
+      "Are you sure you want to logout?",
+      () => {
+        logout();
+        setShowDropdown(false);
+        navigate("/");
+        toast.success("Logged out successfully!");
+      },
+      () => {
+        toast.error("Logout cancelled.");
+      }
+    );
   };
 
   // Load cart count from localStorage
@@ -157,7 +211,15 @@ const Header = () => {
     if (searchQuery.trim()) {
       console.log("Searching for:", searchQuery);
       // Implement actual search logic here
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
+  };
+
+  const handleCategoryClick = (categoryName) => {
+    setIsCategoryOpen(false);
+    setIsMobileMenuOpen(false);
+    // Navigate to category page or filter products
+    navigate(`/products?category=${encodeURIComponent(categoryName)}`);
   };
 
   if (loading) {
@@ -245,13 +307,13 @@ const Header = () => {
                   >
                     <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-medium text-sm">
-                        {user.firstname?.charAt(0) ||
-                          user.username?.charAt(0) ||
+                        {user?.firstname?.charAt(0) ||
+                          user?.username?.charAt(0) ||
                           "U"}
                       </span>
                     </div>
                     <span className="font-medium capitalize">
-                      {user.firstname || user.username}
+                      {user?.firstname || user?.username || "User"}
                     </span>
                     <ChevronDown
                       size={16}
@@ -267,17 +329,17 @@ const Header = () => {
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-medium">
-                              {user.firstname?.charAt(0) ||
-                                user.username?.charAt(0) ||
+                              {user?.firstname?.charAt(0) ||
+                                user?.username?.charAt(0) ||
                                 "U"}
                             </span>
                           </div>
                           <div>
                             <p className="font-semibold text-gray-900 capitalize">
-                              {user.firstname || user.username}
+                              {user?.firstname || user?.username || "User"}
                             </p>
                             <p className="text-sm text-gray-500 truncate">
-                              {user.email}
+                              {user?.email}
                             </p>
                           </div>
                         </div>
@@ -285,7 +347,7 @@ const Header = () => {
 
                       <div className="py-2">
                         <Link
-                          to="profile"
+                          to="/profile"
                           onClick={() => setShowDropdown(false)}
                           className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                         >
@@ -294,7 +356,7 @@ const Header = () => {
                         </Link>
 
                         <Link
-                          to="/user/orders"
+                          to="/orders"
                           onClick={() => setShowDropdown(false)}
                           className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                         >
@@ -303,7 +365,7 @@ const Header = () => {
                         </Link>
 
                         <Link
-                          to="/user/settings"
+                          to="/settings"
                           onClick={() => setShowDropdown(false)}
                           className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                         >
@@ -391,6 +453,7 @@ const Header = () => {
             <div className="relative">
               <button
                 onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                onBlur={() => setTimeout(() => setIsCategoryOpen(false), 200)}
                 className="flex items-center space-x-2 text-white hover:text-gray-200 font-medium transition"
               >
                 <ChartBarStacked size={18} />
@@ -418,22 +481,22 @@ const Header = () => {
                         <ul className="space-y-2">
                           {category.subcategories.map((subcat, subIndex) => (
                             <li key={subIndex}>
-                              <a
-                                href="#"
-                                className="text-gray-600 hover:text-[#01A49E] transition flex items-center group"
+                              <button
+                                onClick={() => handleCategoryClick(subcat)}
+                                className="text-gray-600 hover:text-[#01A49E] transition flex items-center group w-full text-left"
                               >
                                 <span className="w-1.5 h-1.5 bg-gray-300 rounded-full mr-3 group-hover:bg-[#01A49E] transition"></span>
                                 {subcat}
-                              </a>
+                              </button>
                             </li>
                           ))}
                         </ul>
-                        <a
-                          href="#"
+                        <button
+                          onClick={() => handleCategoryClick(category.name)}
                           className="inline-block text-sm text-[#01A49E] font-semibold mt-2 hover:underline"
                         >
                           View All →
-                        </a>
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -441,49 +504,49 @@ const Header = () => {
               )}
             </div>
 
-            <a
-              href="#"
+            <Link
+              to="/deals"
               className="text-white hover:text-gray-200 font-medium transition flex items-center"
             >
               <Sparkles size={18} />
               <span className="ml-2">Deals</span>
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              to="/new-arrivals"
               className="text-white hover:text-gray-200 font-medium transition flex items-center"
             >
               <Zap size={18} />
               <span className="ml-2">New Arrivals</span>
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              to="/best-sellers"
               className="text-white hover:text-gray-200 font-medium transition flex items-center"
             >
               <Award size={18} />
               <span className="ml-2">Best Sellers</span>
-            </a>
+            </Link>
           </div>
 
           {/* Right Navigation */}
           <div className="hidden lg:flex items-center space-x-6">
-            <a
-              href="/addedproduct"
+            <Link
+              to="/addedproduct"
               className="text-white hover:text-gray-200 font-medium transition"
             >
               View Products
-            </a>
+            </Link>
 
             <div className="flex items-center space-x-6">
               {user ? (
-                <a
-                  href="addproduct"
+                <Link
+                  to="/addproduct"
                   className="text-white hover:text-gray-200 font-medium transition"
                 >
                   Add Products
-                </a>
+                </Link>
               ) : (
                 <Link
-                  to="/"
+                  to="/contact"
                   className="flex items-center space-x-2 hover:opacity-80 transition-opacity text-white hover:text-gray-200"
                 >
                   <PhoneCall size={20} />
@@ -517,44 +580,51 @@ const Header = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {categories.slice(0, 6).map((category, idx) => (
-                    <a
+                    <button
                       key={idx}
-                      href="#"
-                      className="py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-lg text-sm"
+                      onClick={() => handleCategoryClick(category.name)}
+                      className="py-2 px-4 text-gray-700 hover:bg-gray-100 rounded-lg text-sm text-left"
                     >
                       {category.name}
-                    </a>
+                    </button>
                   ))}
                 </div>
-                <a
-                  href="#"
-                  className="block py-2 px-4 text-[#01A49E] font-semibold hover:bg-gray-100 rounded-lg"
+                <button
+                  onClick={() => {
+                    navigate("/categories");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left py-2 px-4 text-[#01A49E] font-semibold hover:bg-gray-100 rounded-lg"
                 >
                   View All Categories →
-                </a>
+                </button>
               </div>
 
               {user ? (
                 <>
                   <Link
-                    to="/user/profile"
+                    to="/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
                   >
-                    👤 {user.firstname || user.username}
+                    👤 {user?.firstname || user?.username || "User"}
                   </Link>
                   <Link
-                    to="/user/orders"
+                    to="/orders"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
                   >
                     📦 My Orders
                   </Link>
+                  <Link
+                    to="/add-product"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
+                  >
+                    ➕ Add Products
+                  </Link>
                   <button
-                    onClick={() => {
-                      handleLogout();
-                      setIsMobileMenuOpen(false);
-                    }}
+                    onClick={handleLogout}
                     className="block w-full text-left py-2 px-4 text-red-600 hover:bg-red-50 rounded-lg"
                   >
                     🚪 Logout
@@ -579,24 +649,34 @@ const Header = () => {
               >
                 🛒 Cart {cartCount > 0 && `(${cartCount})`}
               </button>
-              <a
-                href="#"
+              <Link
+                to="/deals"
+                onClick={() => setIsMobileMenuOpen(false)}
                 className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
               >
                 🔥 Deals
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/new-arrivals"
+                onClick={() => setIsMobileMenuOpen(false)}
                 className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
               >
                 ⭐ New Arrivals
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/products"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
+              >
+                📦 All Products
+              </Link>
+              <Link
+                to="/contact"
+                onClick={() => setIsMobileMenuOpen(false)}
                 className="block py-2 px-4 text-gray-900 hover:bg-gray-100 rounded-lg"
               >
                 📞 Contact
-              </a>
+              </Link>
 
               <div className="pt-4 border-t border-gray-200">
                 <div className="text-sm text-gray-600 px-4">Hotline 24/7</div>
@@ -628,13 +708,13 @@ const Header = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <a href="#" className="hover:text-gray-200">
+              <Link to="/stores" className="hover:text-gray-200">
                 Store Locations
-              </a>
+              </Link>
               <span className="text-white/50">|</span>
-              <a href="#" className="hover:text-gray-200">
+              <Link to="/become-seller" className="hover:text-gray-200">
                 Become a Seller
-              </a>
+              </Link>
             </div>
           </div>
         </div>
