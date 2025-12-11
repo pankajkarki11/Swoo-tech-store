@@ -1,3 +1,4 @@
+// src/pages/Login.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -7,13 +8,7 @@ import {
   ArrowRight,
   User,
   CheckCircle,
-  Star,
   Shield,
-  Truck,
-  Gift,
-  CreditCard,
-  Package,
-  Headphones,
   Check,
   AlertCircle,
   ShoppingBag,
@@ -21,13 +16,13 @@ import {
   Loader2,
   Sparkles,
   LogIn,
-  Calendar,
   History,
-  UserCheck,
-  Award,
+  Smartphone,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
+import useApi from "../services/useApi";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -40,32 +35,45 @@ const LoginPage = () => {
   const [toastUsername, setToastUsername] = useState("");
   const [cartItemCount, setCartItemCount] = useState(0);
   const [apiCartInfo, setApiCartInfo] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const navigate = useNavigate();
   const { login, isSyncingCart, cartSyncMessage, userCartsFromAPI } = useAuth();
   const { getCartCount, mergeWithUserCart } = useCart();
+  const api = useApi();
+
+  // Check for mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const demoCredentials = [
     {
       username: "johnd",
       password: "m38rmF$",
       name: "John Doe",
-      description: "Has saved cart history with multiple items",
-      userInfo: "User ID: 1 - Has multiple saved carts",
+      userInfo: "User ID: 1",
+      avatarColor: "bg-blue-500",
     },
     {
       username: "mor_2314",
       password: "83r5^_",
       name: "Morris",
-      description: "Demo account with existing cart items",
-      userInfo: "User ID: 2 - Cart sync demo",
+      userInfo: "User ID: 2",
+      avatarColor: "bg-purple-500",
     },
     {
       username: "kevinryan",
       password: "kev02937@",
       name: "Kevin Ryan",
-      description: "Premium account with saved preferences",
-      userInfo: "User ID: 3 - Test cart merging",
+      userInfo: "User ID: 3",
+      avatarColor: "bg-green-500",
     },
   ];
 
@@ -86,13 +94,11 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Clear previous messages
     setSuccessMessage("");
     setError("");
     setShowToast(false);
     setApiCartInfo(null);
 
-    // Validate inputs
     if (!username.trim()) {
       setError("Please enter your username");
       return;
@@ -103,7 +109,6 @@ const LoginPage = () => {
       return;
     }
 
-    // Show loading
     setIsLoading(true);
 
     try {
@@ -113,7 +118,6 @@ const LoginPage = () => {
         throw new Error(result.error || "Login failed");
       }
 
-      // Success - show toast
       setToastUsername(result.user.firstname || username);
 
       // Calculate API cart info
@@ -124,7 +128,6 @@ const LoginPage = () => {
           0
         );
 
-        // Show API cart info
         setApiCartInfo({
           totalCarts: result.apiCarts.length,
           totalItems: apiCartItems,
@@ -133,26 +136,16 @@ const LoginPage = () => {
         });
       }
 
-      // Set success message based on cart status
       let successMsg = `Welcome back, ${result.user.firstname || username}!`;
-      if (cartItemCount > 0 && apiCartItems > 0) {
-        successMsg = `Welcome back! Merged ${cartItemCount} local items with ${apiCartItems} saved items.`;
-      } else if (cartItemCount > 0) {
-        successMsg = `Welcome back! Your ${cartItemCount} cart items have been saved.`;
-      } else if (apiCartItems > 0) {
-        successMsg = `Welcome back! Loaded ${apiCartItems} saved items from your account.`;
-      }
 
       setSuccessMessage(successMsg);
       setShowToast(true);
 
-      // Clear form
       setUsername("");
       setPassword("");
 
-      // Show success for 2 seconds, then redirect to cart page
       setTimeout(() => {
-        navigate("/cart");
+        navigate("/");
       }, 2000);
     } catch (error) {
       setError(error.message);
@@ -197,28 +190,17 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 font-sans relative flex items-center justify-center p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 font-sans relative flex items-center justify-center p-4">
       {/* Success Toast */}
       {showToast && (
         <div className="fixed top-4 right-4 z-50 animate-fade-in">
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-5 rounded-xl shadow-2xl flex items-center justify-between max-w-md border-l-4 border-l-emerald-700">
             <div className="flex items-center">
-              <div className="bg-white rounded-full p-2 mr-4 shadow-lg">
-                <CheckCircle className="h-7 w-7 text-green-600" />
-              </div>
               <div>
-                <p className="font-bold text-lg mb-1">
-                  Welcome, {toastUsername}!
-                </p>
-                <div className="flex items-center">
-                  <div className="h-1 w-8 bg-emerald-300 rounded-full mr-2"></div>
-                  <p className="text-sm opacity-95">{successMessage}</p>
-                </div>
+                <p className=" text-sm opacity-95 mb-1">Login Successful !</p>
+                <p className="text-lg font-bold ">{successMessage}</p>
               </div>
             </div>
-          </div>
-          <div className="h-1 w-full bg-emerald-200 rounded-full overflow-hidden mt-1">
-            <div className="h-full bg-emerald-700 rounded-full animate-progress-bar"></div>
           </div>
         </div>
       )}
@@ -238,12 +220,6 @@ const LoginPage = () => {
                 </p>
               </div>
             </div>
-            {cartItemCount > 0 && (
-              <div className="mt-2 text-xs bg-white/10 px-2 py-1 rounded inline-block">
-                {cartItemCount} item{cartItemCount !== 1 ? "s" : ""} in local
-                cart
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -265,12 +241,6 @@ const LoginPage = () => {
                   {apiCartInfo.totalCarts !== 1 ? "s" : ""} with{" "}
                   {apiCartInfo.totalItems} items
                 </p>
-                <div className="flex items-center gap-2 text-xs">
-                  <Calendar size={12} />
-                  <span>
-                    Most recent: {formatDate(apiCartInfo.recentCartDate)}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
@@ -282,46 +252,15 @@ const LoginPage = () => {
           {/* Left Side - Login Form */}
           <div className="lg:w-1/2 w-full flex items-center justify-center p-6 md:p-8 lg:p-12">
             <div className="w-full max-w-md mx-auto">
-              <div className="text-center mb-10">
+              <div className="text-center mb-8">
                 <div className="flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#01A49E] to-[#01857F] rounded-xl flex items-center justify-center shadow-lg">
-                    <LogIn className="h-6 w-6 text-white" />
-                  </div>
                   <div className="ml-4">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                      SWOO TECH MART
-                    </h1>
-                    <p className="text-gray-600 text-sm">Cart Sync Enabled</p>
+                    <h1 className="text-3xl font-bold text-gray-900">LOGIN</h1>
                   </div>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   Welcome Back!
                 </h2>
-                <p className="text-gray-600">
-                  Sign in to sync your cart across devices
-                </p>
-
-                {/* Cart Info Banner */}
-                {cartItemCount > 0 && (
-                  <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-3">
-                    <div className="flex items-center justify-center gap-2 text-blue-700">
-                      <ShoppingBag size={16} />
-                      <span className="text-sm font-medium">
-                        You have {cartItemCount} item
-                        {cartItemCount !== 1 ? "s" : ""} in your local cart
-                      </span>
-                    </div>
-                    <p className="text-xs text-blue-600 mt-1">
-                      These will merge with your saved account items
-                    </p>
-                  </div>
-                )}
-
-                {/* Cart Sync Feature Badge */}
-                <div className="mt-3 inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full text-xs">
-                  <Check size={12} />
-                  <span>Automatic Cart Sync</span>
-                </div>
               </div>
 
               <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -426,11 +365,11 @@ const LoginPage = () => {
                     ) : isSyncingCart ? (
                       <>
                         <RefreshCw className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-                        Syncing Cart...
+                        Signing in...
                       </>
                     ) : (
                       <>
-                        Sign In & Sync Cart
+                        Sign In
                         <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
@@ -452,15 +391,16 @@ const LoginPage = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      className="flex items-center justify-center gap-3 border border-gray-300 p-3 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
-                      disabled={isLoading || isSyncingCart}
+                      className="flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 rounded-lg bg-white hover:bg-gray-100 transition"
                     >
                       <img
-                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                        alt="Google"
-                        className="w-5 h-5"
+                        src="public\images\download.png"
+                        alt="Google logo"
+                        className="w-12 h-12"
                       />
-                      <span className="text-sm font-medium">Google</span>
+                      <span className="text-gray-700 text-sm font-medium">
+                        Google
+                      </span>
                     </button>
 
                     <button
@@ -494,13 +434,9 @@ const LoginPage = () => {
                   <div className="flex items-center gap-2 mb-4">
                     <Sparkles className="h-5 w-5 text-yellow-500" />
                     <h3 className="text-lg font-semibold text-gray-900">
-                      Try demo accounts with saved carts
+                      Try These Demo Accounts
                     </h3>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4">
-                    These accounts have pre-existing cart history to test the
-                    sync feature:
-                  </p>
 
                   <div className="space-y-3 mb-4">
                     {demoCredentials.map((cred, index) => (
@@ -512,23 +448,20 @@ const LoginPage = () => {
                         disabled={isLoading || isSyncingCart}
                         className="w-full text-left bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 text-gray-800 py-3 px-4 rounded-lg transition text-sm font-medium border border-gray-200 hover:border-gray-300 disabled:opacity-50 group"
                       >
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                              <UserCheck className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <div>
-                              <div className="font-medium">{cred.name}</div>
-                              <div className="text-gray-500 text-xs mt-0.5">
-                                {cred.description}
-                              </div>
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-10 h-10 ${cred.avatarColor} rounded-full flex items-center justify-center text-white font-medium`}
+                          >
+                            {cred.name.charAt(0)}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium">{cred.name}</div>
+                            <div className="text-gray-500 text-xs">
+                              {cred.description}
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-mono text-xs bg-gray-200 px-2 py-1 rounded">
-                              {cred.username}
-                            </div>
-                            <div className="text-gray-400 text-xs mt-1">
+                            <div className="text-xs text-gray-400">
                               {cred.userInfo}
                             </div>
                           </div>
@@ -536,108 +469,83 @@ const LoginPage = () => {
                       </button>
                     ))}
                   </div>
-
-                  <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 rounded-lg p-3">
-                    <div className="flex items-start gap-2">
-                      <History className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-purple-800 text-sm font-medium">
-                          Advanced Cart Sync
-                        </p>
-                        <p className="text-purple-600 text-xs mt-1">
-                          • Merges local and saved carts automatically
-                          <br />
-                          • Preserves cart history with dates
-                          <br />
-                          • Syncs across all your devices
-                          <br />• Saves cart to your account in real-time
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right Side - Features & Benefits */}
-          <div className="lg:w-1/2 w-full relative bg-gradient-to-br from-blue-50/80 to-teal-50/80 p-8 md:p-10 lg:p-12 flex flex-col justify-between backdrop-blur-sm">
+          <div className="lg:w-1/2 w-full relative bg-gradient-to-br from-blue-50/80 to-teal-50/80 p-8 md:p-10 lg:p-12 flex flex-col justify-between">
             {/* Background decorations */}
-            <div className="absolute top-0 left-0 w-32 h-32 bg-[#01A49E]/10 rounded-full -translate-x-16 -translate-y-16"></div>
-            <div className="absolute bottom-0 right-0 w-48 h-48 bg-[#01857F]/10 rounded-full translate-x-24 translate-y-24"></div>
-            <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-r from-[#01A49E]/5 to-[#01857F]/5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#01A49E]/10 rounded-full translate-x-16 -translate-y-16"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#01857F]/10 rounded-full -translate-x-24 translate-y-24"></div>
 
             <div className="relative z-10">
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mb-12">
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/20 shadow-sm">
-                  <div className="text-2xl font-bold text-gray-900">50K+</div>
-                  <div className="text-gray-600 text-sm">Happy Customers</div>
-                </div>
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/20 shadow-sm">
-                  <div className="text-2xl font-bold text-gray-900">10K+</div>
-                  <div className="text-gray-600 text-sm">Products</div>
-                </div>
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/20 shadow-sm">
-                  <div className="text-2xl font-bold text-gray-900">4.8★</div>
-                  <div className="text-gray-600 text-sm">Avg Rating</div>
-                </div>
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                {[
+                  { value: "50K+", label: "Customers", color: "bg-blue-500" },
+                  { value: "10K+", label: "Products", color: "bg-purple-500" },
+                  { value: "4.8★", label: "Rating", color: "bg-yellow-500" },
+                ].map((stat, idx) => (
+                  <div key={idx} className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {stat.value}
+                    </div>
+                    <div className="text-gray-600 text-sm">{stat.label}</div>
+                  </div>
+                ))}
               </div>
 
               {/* Main Content */}
               <div className="mb-8">
-                <h2 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                   Never Lose Your Cart
                   <br />
                   <span className="text-[#01A49E]">With Account Sync</span>
                 </h2>
-                <p className="text-gray-700 text-lg mb-8">
+                <p className="text-gray-700 text-lg">
                   Login to save your shopping cart, access it from any device,
                   and continue shopping where you left off.
                 </p>
               </div>
 
               {/* Features List */}
-              <div className="space-y-6 mb-10">
+              <div className="space-y-6 mb-8">
                 {[
                   {
                     icon: History,
                     title: "Cart History",
-                    description:
-                      "View and restore your previous carts with dates",
-                    color: "bg-purple-100 text-purple-600",
+                    description: "View and restore your previous carts",
+                    color: "text-purple-600",
                   },
                   {
                     icon: RefreshCw,
                     title: "Auto-Sync",
-                    description:
-                      "Cart automatically syncs across all your devices",
-                    color: "bg-blue-100 text-blue-600",
+                    description: "Cart automatically syncs across devices",
+                    color: "text-blue-600",
                   },
                   {
                     icon: Shield,
                     title: "Secure Save",
-                    description: "Your cart is securely saved to your account",
-                    color: "bg-green-100 text-green-600",
+                    description: "Your cart is securely saved",
+                    color: "text-green-600",
                   },
                   {
-                    icon: Calendar,
-                    title: "Date Tracking",
-                    description:
-                      "See exactly when items were added to your cart",
-                    color: "bg-orange-100 text-orange-600",
+                    icon: Smartphone,
+                    title: "Multi-Device",
+                    description: "Access your cart from any device",
+                    color: "text-indigo-600",
                   },
                   {
-                    icon: Award,
-                    title: "Smart Merge",
-                    description: "Intelligently merges local and saved carts",
-                    color: "bg-pink-100 text-pink-600",
+                    icon: Globe,
+                    title: "Anywhere Access",
+                    description: "Shop from anywhere, anytime",
+                    color: "text-cyan-600",
                   },
                 ].map((feature, index) => (
-                  <div key={index} className="flex items-center group">
-                    <div
-                      className={`${feature.color} p-3 rounded-xl mr-4 group-hover:scale-110 transition-transform`}
-                    >
+                  <div key={index} className="flex items-center">
+                    <div className={`${feature.color} p-3 rounded-xl mr-4`}>
                       <feature.icon className="h-6 w-6" />
                     </div>
                     <div>
@@ -653,20 +561,18 @@ const LoginPage = () => {
               </div>
 
               {/* Testimonial */}
-              <div className="bg-gradient-to-r from-[#01A49E] via-[#018A85] to-[#016F6B] rounded-2xl p-6 border border-white/20 shadow-lg">
-                <div className="flex items-start">
-                  <div className="bg-white p-3 rounded-lg mr-4">
-                    <ShoppingBag className="h-6 w-6 text-[#01A49E]" />
+              <div className="bg-gradient-to-r from-[#01A49E] to-[#018A85] rounded-2xl p-6 text-white">
+                <div className="flex items-center">
+                  <div className="bg-white/20 p-3 rounded-lg mr-4">
+                    <ShoppingBag className="h-6 w-6" />
                   </div>
                   <div>
-                    <p className="text-white font-semibold mb-2">
-                      How Cart Sync Works
+                    <p className="font-semibold mb-2">
+                      Seamless Shopping Experience
                     </p>
-                    <p className="text-white/90 text-sm">
-                      1. Add items as guest → 2. Login to save → 3. Cart merges
-                      automatically →<br />
-                      4. Access from any device → 5. Continue shopping
-                      seamlessly
+                    <p className="text-sm opacity-90">
+                      Your cart is automatically saved and synced across all
+                      your devices.
                     </p>
                   </div>
                 </div>
@@ -677,81 +583,16 @@ const LoginPage = () => {
             <div className="relative z-10 mt-8 pt-8 border-t border-gray-200/50">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-900 font-bold text-lg">
-                    SWOO TECH MART
-                  </p>
+                  <p className="text-gray-900 font-bold">SWOO TECH MART</p>
                   <p className="text-gray-600 text-sm">
                     Smart Shopping, Seamless Sync
                   </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <Package className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div className="bg-teal-100 p-2 rounded-lg">
-                    <CreditCard className="h-5 w-5 text-teal-600" />
-                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Inline styles for animations */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes progressBar {
-          0% {
-            width: 100%;
-          }
-          100% {
-            width: 0%;
-          }
-        }
-
-        @keyframes shake {
-          0%,
-          100% {
-            transform: translateX(0);
-          }
-          10%,
-          30%,
-          50%,
-          70%,
-          90% {
-            transform: translateX(-5px);
-          }
-          20%,
-          40%,
-          60%,
-          80% {
-            transform: translateX(5px);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out;
-        }
-
-        .animate-progress-bar {
-          animation: progressBar 5s linear forwards;
-        }
-
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
-        }
-      `}</style>
     </div>
   );
 };

@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { useAuth } from "./AuthContext";
 
@@ -23,102 +24,168 @@ export const CartProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [cartStats, setCartStats] = useState({
+    itemCount: 0,
+    uniqueProducts: 0,
+    totalValue: 0,
+    lastUpdated: null,
+  });
 
-  const { user, syncCurrentCartToUser } = useAuth();
+  const { user, saveCartToAPI, loadUserCartsFromAPI, systemCartStats } =
+    useAuth();
 
-  // Load from localStorage on initial load
+  // Refs to prevent multiple operations
+  const isAutoSyncing = useRef(false);
+  const syncTimeoutRef = useRef(null);
+  const updateTimeoutRef = useRef(null);
+
+  // Initialize cart data
   useEffect(() => {
-    const loadCartData = () => {
+    const initializeCart = () => {
       try {
+        // Load from localStorage
         const savedCart = localStorage.getItem("swmart_cart");
         const savedWishlist = localStorage.getItem("swmart_wishlist");
 
         if (savedCart) {
           const parsedCart = JSON.parse(savedCart);
           setCart(parsedCart);
-          console.log(
-            "Loaded cart from localStorage:",
-            parsedCart.length,
-            "items"
-          );
+          console.log("🛒 Loaded cart:", parsedCart.length, "items");
         }
 
         if (savedWishlist) {
           setWishlist(JSON.parse(savedWishlist));
         }
+
+        updateCartStats();
       } catch (error) {
-        console.error("Error loading cart data:", error);
-        // Reset to empty arrays on error
-        setCart([]);
-        setWishlist([]);
-        localStorage.setItem("swmart_cart", JSON.stringify([]));
-        localStorage.setItem("swmart_wishlist", JSON.stringify([]));
+        console.error("❌ Cart init error:", error);
+        resetCartData();
       } finally {
         setIsInitialized(true);
       }
     };
 
-    loadCartData();
+    initializeCart();
   }, []);
+
+  // Update cart stats when cart changes
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    // Debounce stats update
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+
+    updateTimeoutRef.current = setTimeout(() => {
+      updateCartStats();
+    }, 300);
+  }, [cart, isInitialized]);
 
   // Save cart to localStorage when it changes
   useEffect(() => {
-    if (isInitialized) {
-      try {
-        localStorage.setItem("swmart_cart", JSON.stringify(cart));
+    if (!isInitialized) return;
 
-        // If user is logged in, sync cart to their account
-        if (user && user.id) {
-          // Debounce the sync to prevent too many API calls
-          const timeoutId = setTimeout(() => {
-            syncCartToUserAccount();
-          }, 1000);
+    try {
+      localStorage.setItem("swmart_cart", JSON.stringify(cart));
 
-          return () => clearTimeout(timeoutId);
+      // Auto-sync to API if user is logged in (debounced)
+      if (user && user.id && cart.length > 0) {
+        if (syncTimeoutRef.current) {
+          clearTimeout(syncTimeoutRef.current);
         }
-      } catch (error) {
-        console.error("Error saving cart to localStorage:", error);
+
+        syncTimeoutRef.current = setTimeout(() => {
+          autoSyncToAPI();
+        }, 5000); // 5 second debounce
       }
+    } catch (error) {
+      console.error("❌ Cart save error:", error);
     }
+
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
   }, [cart, isInitialized, user]);
 
-  // Save wishlist to localStorage when it changes
+  // Save wishlist to localStorage
   useEffect(() => {
     if (isInitialized) {
       localStorage.setItem("swmart_wishlist", JSON.stringify(wishlist));
     }
   }, [wishlist, isInitialized]);
 
-  // Sync cart to user account (simulated API)
-  const syncCartToUserAccount = useCallback(async () => {
-    if (!user || !user.id || cart.length === 0) return;
+  // Auto-sync cart to API
+  const autoSyncToAPI = useCallback(async () => {
+    if (
+      !user ||
+      !user.id ||
+      cart.length === 0 ||
+      isAutoSyncing.current ||
+      isSyncing
+    )
+      return;
 
     try {
+      isAutoSyncing.current = true;
       setIsSyncing(true);
-      await syncCurrentCartToUser();
-      console.log("Cart synced to user account");
+      await saveCartToAPI(user.id, cart);
+      console.log("✅ Auto-sync completed");
     } catch (error) {
-      console.error("Failed to sync cart to user account:", error);
+      console.error("❌ Auto-sync failed:", error);
     } finally {
+      isAutoSyncing.current = false;
       setIsSyncing(false);
     }
-  }, [user, cart, syncCurrentCartToUser]);
+  }, [user, cart, isSyncing, saveCartToAPI]);
 
-  // Cart functions
-  const addToCart = async (product, quantity = 1) => {
-    if (!product) return cart;
+  // Update cart statistics
+  const updateCartStats = useCallback(() => {
+    const itemCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
+    const uniqueProducts = new Set(cart.map((item) => item.id)).size;
+    const totalValue = cart.reduce((sum, item) => {
+      const price = parseFloat(item.price) || 0;
+      const quantity = parseInt(item.quantity) || 0;
+      return sum + price * quantity;
+    }, 0);
+
+    setCartStats({
+      itemCount,
+      uniqueProducts,
+      totalValue,
+      lastUpdated: new Date().toISOString(),
+    });
+  }, [cart]);
+
+  // Reset cart data
+  const resetCartData = () => {
+    setCart([]);
+    setWishlist([]);
+    localStorage.setItem("swmart_cart", JSON.stringify([]));
+    localStorage.setItem("swmart_wishlist", JSON.stringify([]));
+  };
+
+  // Cart operations
+  const addToCart = useCallback(async (product, quantity = 1) => {
+    if (!product) return;
 
     setCart((prevCart) => {
-      const existingItemIndex = prevCart.findIndex(
+      const existingIndex = prevCart.findIndex(
         (item) => item.id === product.id
       );
 
-      if (existingItemIndex > -1) {
-        // Update existing item quantity
+      if (existingIndex > -1) {
+        // Update existing item
         const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex] = {
-          ...updatedCart[existingItemIndex],
-          quantity: updatedCart[existingItemIndex].quantity + quantity,
+        updatedCart[existingIndex] = {
+          ...updatedCart[existingIndex],
+          quantity: updatedCart[existingIndex].quantity + quantity,
           updatedAt: new Date().toISOString(),
         };
         return updatedCart;
@@ -134,109 +201,103 @@ export const CartProvider = ({ children }) => {
       }
     });
 
-    // Dispatch cart update event for other components
     window.dispatchEvent(new Event("cartUpdated"));
+  }, []);
 
-    return cart;
-  };
-
-  const removeFromCart = async (productId) => {
-    setCart((prevCart) => {
-      const updatedCart = prevCart.filter((item) => item.id !== productId);
-      return updatedCart;
-    });
-
+  const removeFromCart = useCallback(async (productId) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
     window.dispatchEvent(new Event("cartUpdated"));
-    return cart;
-  };
+  }, []);
 
-  const updateQuantity = async (productId, quantity) => {
-    if (quantity < 1) {
-      return await removeFromCart(productId);
-    }
+  const updateQuantity = useCallback(
+    async (productId, quantity) => {
+      if (quantity < 1) {
+        return await removeFromCart(productId);
+      }
 
-    setCart((prevCart) => {
-      const updatedCart = prevCart.map((item) =>
-        item.id === productId
-          ? {
-              ...item,
-              quantity: quantity,
-              updatedAt: new Date().toISOString(),
-            }
-          : item
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.id === productId
+            ? { ...item, quantity, updatedAt: new Date().toISOString() }
+            : item
+        )
       );
-      return updatedCart;
-    });
 
-    window.dispatchEvent(new Event("cartUpdated"));
-    return cart;
-  };
+      window.dispatchEvent(new Event("cartUpdated"));
+    },
+    [removeFromCart]
+  );
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     setCart([]);
     window.dispatchEvent(new Event("cartUpdated"));
-    return [];
-  };
+  }, []);
 
-  // Wishlist functions
-  const addToWishlist = (product) => {
+  // Wishlist operations
+  const addToWishlist = useCallback((product) => {
     if (!product) return;
 
     setWishlist((prev) => {
       if (prev.find((item) => item.id === product.id)) {
-        return prev; // Already in wishlist
+        return prev;
       }
       return [...prev, { ...product, addedAt: new Date().toISOString() }];
     });
-  };
+  }, []);
 
-  const removeFromWishlist = (productId) => {
+  const removeFromWishlist = useCallback((productId) => {
     setWishlist((prev) => prev.filter((item) => item.id !== productId));
-  };
+  }, []);
 
-  const moveToCart = (product) => {
-    addToCart(product);
-    removeFromWishlist(product.id);
-  };
+  const moveToCart = useCallback(
+    (product) => {
+      addToCart(product);
+      removeFromWishlist(product.id);
+    },
+    [addToCart, removeFromWishlist]
+  );
 
-  const moveToWishlist = (product) => {
-    addToWishlist(product);
-    removeFromCart(product.id);
-  };
+  const moveToWishlist = useCallback(
+    (product) => {
+      addToWishlist(product);
+      removeFromCart(product.id);
+    },
+    [addToWishlist, removeFromCart]
+  );
 
-  // Calculate totals
-  const getCartTotal = () => {
+  // Calculations
+  const getCartTotal = useCallback(() => {
     return cart.reduce((total, item) => {
       const price = parseFloat(item.price) || 0;
       const quantity = parseInt(item.quantity) || 0;
       return total + price * quantity;
     }, 0);
-  };
+  }, [cart]);
 
-  const getCartCount = () => {
+  const getCartCount = useCallback(() => {
     return cart.reduce(
       (count, item) => count + (parseInt(item.quantity) || 0),
       0
     );
-  };
+  }, [cart]);
 
-  const getWishlistCount = () => {
-    return wishlist.length;
-  };
+  const getWishlistCount = useCallback(() => wishlist.length, [wishlist]);
 
-  // Check if product is in cart
-  const isInCart = (productId) => {
-    return cart.some((item) => item.id === productId);
-  };
+  // Queries
+  const isInCart = useCallback(
+    (productId) => cart.some((item) => item.id === productId),
+    [cart]
+  );
 
-  // Get quantity of specific product in cart
-  const getCartItemQuantity = (productId) => {
-    const item = cart.find((item) => item.id === productId);
-    return item ? parseInt(item.quantity) || 0 : 0;
-  };
+  const getCartItemQuantity = useCallback(
+    (productId) => {
+      const item = cart.find((item) => item.id === productId);
+      return item ? parseInt(item.quantity) || 0 : 0;
+    },
+    [cart]
+  );
 
-  // Get cart items with formatted prices
-  const getFormattedCart = () => {
+  const getFormattedCart = useCallback(() => {
     return cart.map((item) => ({
       ...item,
       formattedPrice: `$${parseFloat(item.price || 0).toFixed(2)}`,
@@ -244,90 +305,109 @@ export const CartProvider = ({ children }) => {
         parseFloat(item.price || 0) * parseInt(item.quantity || 0)
       ).toFixed(2)}`,
     }));
-  };
+  }, [cart]);
 
-  // Manual sync function (can be called from UI)
-  const manualSyncCart = async () => {
-    if (!user || !user.id) {
-      console.warn("Cannot sync: No user logged in");
+  // Manual sync
+  const manualSyncCart = useCallback(async () => {
+    if (!user || !user.id || isAutoSyncing.current) {
+      console.warn("⚠️ Cannot sync now");
       return false;
     }
 
     try {
       setIsSyncing(true);
-      await syncCurrentCartToUser();
-      console.log("Manual cart sync completed");
+      await saveCartToAPI(user.id, cart);
+      console.log("✅ Manual sync completed");
       return true;
     } catch (error) {
-      console.error("Manual cart sync failed:", error);
+      console.error("❌ Manual sync failed:", error);
       return false;
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [user, cart, saveCartToAPI]);
 
-  // Load user's saved cart when they log in (called from AuthContext)
-  const loadUserCart = (userCartItems) => {
-    if (!userCartItems || !Array.isArray(userCartItems)) return;
+  // Load user's cart from AuthContext
+  const loadUserCart = useCallback(
+    (userCartItems) => {
+      if (!userCartItems || !Array.isArray(userCartItems)) return;
 
-    try {
-      setCart(userCartItems);
-      localStorage.setItem("swmart_cart", JSON.stringify(userCartItems));
-      console.log("Loaded user cart:", userCartItems.length, "items");
-      window.dispatchEvent(new Event("cartUpdated"));
-    } catch (error) {
-      console.error("Error loading user cart:", error);
-    }
-  };
+      try {
+        setCart(userCartItems);
+        localStorage.setItem("swmart_cart", JSON.stringify(userCartItems));
+        console.log("✅ User cart loaded:", userCartItems.length, "items");
+        window.dispatchEvent(new Event("cartUpdated"));
+        updateCartStats();
+      } catch (error) {
+        console.error("❌ Error loading user cart:", error);
+      }
+    },
+    [updateCartStats]
+  );
 
-  // Merge current cart with user's cart (called from AuthContext)
-  const mergeWithUserCart = (userCartItems) => {
-    if (!userCartItems || !Array.isArray(userCartItems)) {
-      // If no user cart, keep current cart
-      return cart;
-    }
+  // Merge carts
+  const mergeWithUserCart = useCallback(
+    (userCartItems) => {
+      if (!userCartItems || !Array.isArray(userCartItems)) {
+        return cart;
+      }
 
-    try {
-      // Merge logic: user cart items + current cart items (current overrides)
-      const mergedCart = [...userCartItems];
+      try {
+        const mergedMap = new Map();
 
-      cart.forEach((currentItem) => {
-        const existingIndex = mergedCart.findIndex(
-          (item) => item.id === currentItem.id
-        );
-        if (existingIndex > -1) {
-          // Current cart item overrides user cart item
-          mergedCart[existingIndex] = {
-            ...mergedCart[existingIndex],
-            quantity: currentItem.quantity, // Use current quantity
-            updatedAt: new Date().toISOString(),
-          };
-        } else {
-          // Add current item to merged cart
-          mergedCart.push({
-            ...currentItem,
-            updatedAt: new Date().toISOString(),
+        // Add user's items
+        userCartItems.forEach((item) => {
+          mergedMap.set(item.id, {
+            ...item,
+            source: "api",
           });
-        }
-      });
+        });
 
-      setCart(mergedCart);
-      localStorage.setItem("swmart_cart", JSON.stringify(mergedCart));
-      console.log("Merged cart completed:", mergedCart.length, "items");
-      window.dispatchEvent(new Event("cartUpdated"));
+        // Add/override with current items
+        cart.forEach((currentItem) => {
+          const existingItem = mergedMap.get(currentItem.id);
+          if (existingItem) {
+            mergedMap.set(currentItem.id, {
+              ...existingItem,
+              quantity: currentItem.quantity, // Current overrides
+              updatedAt: new Date().toISOString(),
+              source: "local-override",
+            });
+          } else {
+            mergedMap.set(currentItem.id, {
+              ...currentItem,
+              source: "local",
+            });
+          }
+        });
 
-      return mergedCart;
-    } catch (error) {
-      console.error("Error merging carts:", error);
-      return cart;
-    }
-  };
+        const mergedCart = Array.from(mergedMap.values());
+        setCart(mergedCart);
+        localStorage.setItem("swmart_cart", JSON.stringify(mergedCart));
+        console.log("✅ Carts merged:", mergedCart.length, "items");
+        window.dispatchEvent(new Event("cartUpdated"));
+        updateCartStats();
+
+        return mergedCart;
+      } catch (error) {
+        console.error("❌ Merge error:", error);
+        return cart;
+      }
+    },
+    [cart, updateCartStats]
+  );
+
+  // Get system statistics
+  const getSystemStatistics = useCallback(() => {
+    return systemCartStats;
+  }, [systemCartStats]);
 
   const value = {
     // State
     cart,
     wishlist,
     isSyncing,
+    cartStats,
 
     // Cart operations
     addToCart,
@@ -356,7 +436,11 @@ export const CartProvider = ({ children }) => {
     loadUserCart,
     mergeWithUserCart,
 
-    // Additional helpers
+    // Statistics
+    getSystemStatistics,
+    updateCartStats,
+
+    // Helpers
     cartItemCount: getCartCount(),
     cartTotalAmount: getCartTotal(),
     isCartEmpty: cart.length === 0,

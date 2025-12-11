@@ -1,14 +1,25 @@
 // src/components/ProductCard.jsx
-import React, { useState, useEffect } from "react";
-import { ShoppingCart, Heart, Star, Eye, Zap } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  ShoppingCart,
+  Heart,
+  Star,
+  Eye,
+  Zap,
+  ChevronRight,
+  CheckCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
+import useApi from "../services/useApi";
+import toast from "react-hot-toast";
 
 const ProductCard = ({
   product,
   onWishlistToggle,
   isInWishlist = false,
   isLoading = false,
+  compact = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -19,8 +30,9 @@ const ProductCard = ({
 
   const navigate = useNavigate();
   const { addToCart, isInCart, getCartItemQuantity } = useCart();
+  const api = useApi();
 
-  // Check cart status on mount and when product changes
+  // Update cart status when product or cart changes
   useEffect(() => {
     if (product?.id) {
       const inCart = isInCart(product.id);
@@ -49,36 +61,131 @@ const ProductCard = ({
     return () => window.removeEventListener("cartUpdated", handleCartUpdate);
   }, [product?.id, isInCart, getCartItemQuantity]);
 
-  const formatPrice = (price) => {
+  const formatPrice = useCallback((price) => {
     return `$${price?.toFixed(2) || "0.00"}`;
-  };
+  }, []);
 
-  const truncateText = (text, maxLength = 60) => {
-    if (!text || text.length <= maxLength) return text;
-    return text.substring(0, maxLength).trim() + "...";
-  };
+  const truncateText = useCallback(
+    (text, maxLength = compact ? 40 : 60) => {
+      if (!text || text.length <= maxLength) return text;
+      return text.substring(0, maxLength).trim() + "...";
+    },
+    [compact]
+  );
 
-  const handleAddToCart = async (e) => {
-    if (!product || isAddingToCart) return;
+  // Enhanced add to cart with API sync
+  const handleAddToCart = useCallback(
+    async (e) => {
+      if (!product || isAddingToCart) return;
 
-    e.stopPropagation();
-    setIsAddingToCart(true);
+      e.stopPropagation();
+      setIsAddingToCart(true);
 
-    try {
-      await addToCart(product, 1);
-      // Status will be updated via the event listener
-    } catch (error) {
-      console.error("Failed to add to cart:", error);
-    } finally {
-      setTimeout(() => setIsAddingToCart(false), 500);
-    }
-  };
+      try {
+        // First, add to local cart using CartContext
+        await addToCart(product, 1);
+
+        // Show success message
+        toast.success(
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            <span>
+              <strong>{product.title}</strong> added to cart!
+            </span>
+          </div>,
+          {
+            duration: 2000,
+            icon: "🛒",
+          }
+        );
+
+        // If user is logged in, sync to API in background
+        const user = JSON.parse(localStorage.getItem("swmart_user") || "null");
+        const token = localStorage.getItem("swmart_token");
+
+        if (user && token) {
+          // Get current cart from localStorage
+          const currentCart = JSON.parse(
+            localStorage.getItem("swmart_cart") || "[]"
+          );
+
+          // Find user's existing carts
+          try {
+            const { data: existingCarts } = await api.cartAPI.getUserCarts(
+              user.id
+            );
+
+            // Prepare cart data for API
+            const apiCartData = {
+              userId: user.id,
+              date: new Date().toISOString(),
+              products: currentCart.map((item) => ({
+                productId: item.id,
+                quantity: item.quantity || 1,
+              })),
+            };
+
+            if (existingCarts?.length > 0) {
+              // Update most recent cart
+              const latestCart = existingCarts[0];
+              await api.cartAPI.update(latestCart.id, apiCartData);
+            } else {
+              // Create new cart
+              await api.cartAPI.create(apiCartData);
+            }
+
+            console.log("✅ Cart synced to API after adding item");
+          } catch (apiError) {
+            console.error("❌ Error syncing to API (background):", apiError);
+            // Don't show error to user - this happens in background
+          }
+        }
+      } catch (error) {
+        console.error("Failed to add to cart:", error);
+        toast.error(
+          <div className="flex items-center gap-2">
+            <span>Failed to add to cart. Please try again.</span>
+          </div>
+        );
+      } finally {
+        setTimeout(() => setIsAddingToCart(false), 500);
+      }
+    },
+    [product, isAddingToCart, addToCart, api.cartAPI]
+  );
+
+  // Quick view handler
+  const handleQuickView = useCallback(
+    (e) => {
+      e.stopPropagation();
+      navigate(`/products/${product?.id}`);
+    },
+    [navigate, product?.id]
+  );
+
+  // Wishlist toggle handler
+  const handleWishlistToggle = useCallback(
+    (e) => {
+      e.stopPropagation();
+      if (onWishlistToggle) {
+        onWishlistToggle(product?.id);
+        toast.success(
+          isInWishlist ? "Removed from wishlist" : "Added to wishlist!",
+          {
+            icon: isInWishlist ? "💔" : "❤️",
+            duration: 1500,
+          }
+        );
+      }
+    },
+    [product?.id, onWishlistToggle, isInWishlist]
+  );
 
   // Loading skeleton
   if (isLoading) {
     return (
       <div className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
-        <div className="h-64 bg-gray-200"></div>
+        <div className={`${compact ? "h-48" : "h-64"} bg-gray-200`}></div>
         <div className="p-5">
           <div className="space-y-3">
             <div className="h-4 bg-gray-200 rounded"></div>
@@ -94,17 +201,106 @@ const ProductCard = ({
     );
   }
 
+  // Compact version for lists
+  if (compact) {
+    return (
+      <div
+        onClick={() => navigate(`/products/${product?.id}`)}
+        className="group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100"
+      >
+        <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+          <img
+            src={product?.image}
+            alt={product?.title || "Product"}
+            className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+            loading="lazy"
+          />
+
+          {/* Wishlist Button */}
+          <button
+            onClick={handleWishlistToggle}
+            className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:shadow-md transition-all hover:scale-110 z-10"
+            aria-label={
+              isInWishlist ? "Remove from wishlist" : "Add to wishlist"
+            }
+          >
+            <Heart
+              size={16}
+              fill={isInWishlist ? "#ef4444" : "none"}
+              strokeWidth={isInWishlist ? 0 : 2}
+              className={
+                isInWishlist
+                  ? "text-red-500"
+                  : "text-gray-600 hover:text-red-500"
+              }
+            />
+          </button>
+        </div>
+
+        <div className="p-4">
+          <h3 className="font-bold text-gray-900 text-sm mb-2 line-clamp-2 hover:text-[#01A49E] transition-colors">
+            {product?.title || "Product Title"}
+          </h3>
+
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-1">
+              <span className="text-yellow-400">★</span>
+              <span className="text-gray-900 font-medium text-xs">
+                {product?.rating?.rate?.toFixed(1) || "4.5"}
+              </span>
+              <span className="text-gray-400 text-xs">
+                ({product?.rating?.count || 0})
+              </span>
+            </div>
+            <div className="text-lg font-bold text-gray-900">
+              {formatPrice(product?.price || 0)}
+            </div>
+          </div>
+
+          <button
+            onClick={handleAddToCart}
+            disabled={isAddingToCart || cartStatus.isInCart}
+            className={`w-full py-2 rounded-lg transition-all duration-300 text-sm font-medium flex items-center justify-center gap-2 ${
+              cartStatus.isInCart
+                ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border border-green-200"
+                : "bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white hover:from-[#01857F] hover:to-[#016F6B] hover:shadow-md"
+            } ${isAddingToCart ? "animate-pulse" : ""}`}
+          >
+            {isAddingToCart ? (
+              <>
+                <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                Adding...
+              </>
+            ) : cartStatus.isInCart ? (
+              <>
+                <CheckCircle size={14} />
+                Added ({cartStatus.quantity})
+              </>
+            ) : (
+              <>
+                <ShoppingCart size={14} />
+                Add to Cart
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Full version with hover effects
   return (
     <div
       onClick={() => navigate(`/products/${product?.id}`)}
-      className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer border border-gray-100"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Cart Status Badge */}
       {cartStatus.isInCart && (
-        <div className="absolute top-3 left-3 z-20">
-          <span className="bg-[#01A49E] text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
+        <div className="absolute top-3 left-3 z-20 animate-fade-in">
+          <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+            <ShoppingCart size={12} />
             In Cart ({cartStatus.quantity})
           </span>
         </div>
@@ -123,18 +319,14 @@ const ProductCard = ({
 
         {/* Wishlist Button */}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onWishlistToggle) {
-              onWishlistToggle(product?.id);
-            }
-          }}
+          onClick={handleWishlistToggle}
           className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:shadow-md transition-all hover:scale-110 z-10"
           aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart
             size={18}
             fill={isInWishlist ? "#ef4444" : "none"}
+            strokeWidth={isInWishlist ? 0 : 2}
             className={`transition-colors ${
               isInWishlist ? "text-red-500" : "text-gray-600 hover:text-red-500"
             }`}
@@ -143,16 +335,13 @@ const ProductCard = ({
 
         {/* Quick View Overlay */}
         <div
-          className={`absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center transition-all duration-300 ${
             isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/products/${product?.id}`);
-            }}
-            className="bg-white text-gray-900 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition flex items-center gap-2"
+            onClick={handleQuickView}
+            className="mb-6 bg-white text-gray-900 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
             <Eye size={16} />
             Quick View
@@ -163,7 +352,19 @@ const ProductCard = ({
       {/* Product Details */}
       <div className="p-5">
         <div className="mb-4">
-          <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 min-h-[56px]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+              {product?.category?.toUpperCase()}
+            </span>
+            {product?.price && product.price < 50 && (
+              <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                <Zap size={10} />
+                Great Value
+              </span>
+            )}
+          </div>
+
+          <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 min-h-[56px] group-hover:text-[#01A49E] transition-colors">
             {product?.title || "Product Title"}
           </h3>
           <p className="text-gray-600 text-sm line-clamp-2 min-h-[40px]">
@@ -174,7 +375,22 @@ const ProductCard = ({
         {/* Rating and Price */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400">★</span>
+            <div className="flex text-yellow-400">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={14}
+                  fill={
+                    i < Math.floor(product?.rating?.rate || 0)
+                      ? "currentColor"
+                      : "none"
+                  }
+                  strokeWidth={
+                    i < Math.floor(product?.rating?.rate || 0) ? 0 : 1
+                  }
+                />
+              ))}
+            </div>
             <span className="text-gray-900 font-medium text-sm">
               {product?.rating?.rate?.toFixed(1) || "4.5"}
             </span>
@@ -187,12 +403,6 @@ const ProductCard = ({
             <div className="text-2xl font-bold text-gray-900">
               {formatPrice(product?.price || 0)}
             </div>
-            {product?.price && product.price < 50 && (
-              <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1">
-                <Zap size={10} />
-                Great Value
-              </div>
-            )}
           </div>
         </div>
 
@@ -200,11 +410,11 @@ const ProductCard = ({
         <button
           onClick={handleAddToCart}
           disabled={isAddingToCart || cartStatus.isInCart}
-          className={`w-full py-3 rounded-lg transition-all duration-300 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+          className={`w-full py-3 rounded-xl transition-all duration-300 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
             cartStatus.isInCart
-              ? "bg-green-100 text-green-800 hover:bg-green-200"
+              ? "bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 hover:from-green-100 hover:to-emerald-100 border border-green-200"
               : "bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white hover:from-[#01857F] hover:to-[#016F6B] hover:shadow-lg"
-          } ${isAddingToCart ? "animate-pulse" : ""}`}
+          } ${isAddingToCart ? "animate-pulse" : ""} group-hover:shadow-lg`}
         >
           {isAddingToCart ? (
             <>
@@ -213,19 +423,54 @@ const ProductCard = ({
             </>
           ) : cartStatus.isInCart ? (
             <>
-              <ShoppingCart size={16} />
+              <CheckCircle size={16} />
               Added to Cart
+              <ChevronRight
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                size={16}
+              />
             </>
           ) : (
             <>
               <ShoppingCart size={16} />
               Add to Cart
+              <ChevronRight
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                size={16}
+              />
             </>
           )}
         </button>
       </div>
+
+      {/* Hover Indicator */}
+      <div
+        className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#01A49E] to-[#01857F] transform transition-transform duration-300 ${
+          isHovered ? "scale-x-100" : "scale-x-0"
+        }`}
+      ></div>
     </div>
   );
 };
+
+// Add animation styles
+const style = document.createElement("style");
+style.textContent = `
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+`;
+document.head.appendChild(style);
 
 export default ProductCard;
