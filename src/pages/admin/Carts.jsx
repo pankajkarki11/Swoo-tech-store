@@ -91,19 +91,27 @@ const Carts = () => {
     setFilteredCarts(filtered);
   };
 
-  const calculateCartTotal = (cart) => {
-    return (
-      cart.products?.reduce((total, item) => {
-        return total + item.price * item.quantity;
-      }, 0) || 0
-    );
-  };
+ const calculateCartTotal = (cart) => {
+  if (!cart.products) return 0;
 
-  const calculateTotalItems = (cart) => {
-    return (
-      cart.products?.reduce((total, item) => total + item.quantity, 0) || 0
-    );
-  };
+  let total = 0;
+  for (let item of cart.products) {
+    total += item.price * item.quantity;
+  }
+  return total;
+};
+
+
+const calculateTotalItems = (cart) => {
+  if (!cart.products) return 0;
+
+  let total = 0;
+  for (let item of cart.products) {
+    total += item.quantity;
+  }
+  return total;
+};
+
 
   const handleDelete = async () => {
     if (!selectedCart) return;
@@ -202,47 +210,6 @@ const Carts = () => {
             </div>
             <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
               <ShoppingCart className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Total Value
-              </p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                $
-                {carts
-                  .reduce((sum, cart) => sum + calculateCartTotal(cart), 0)
-                  .toFixed(2)}
-              </p>
-            </div>
-            <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/20">
-              <Calendar className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Avg. Cart Value
-              </p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                $
-                {(
-                  carts.reduce(
-                    (sum, cart) => sum + calculateCartTotal(cart),
-                    0
-                  ) / Math.max(carts.length, 1)
-                ).toFixed(2)}
-              </p>
-            </div>
-            <div className="p-3 rounded-lg bg-orange-100 dark:bg-orange-900/20">
-              <Users className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </Card>
