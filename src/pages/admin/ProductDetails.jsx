@@ -90,7 +90,7 @@ const ProductDetails = () => {
     prev.filter((product) => product.id !== selectedProduct.id));
      setIsDeleteModalOpen(false);
      setSelectedProduct(null);
-     navigate("/admin/dashboard");
+     navigate("/admin/delete");
 
     } catch (error) {
       toast.error("Failed to delete product");

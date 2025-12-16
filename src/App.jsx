@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import { Toaster } from "react-hot-toast";
+import NotFound from "./pages/admin/NotFound";
 
 // Client Components
 import LayoutClient from "./components/LayoutClient";
@@ -65,6 +66,7 @@ function App() {
             <Route index element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:id" element={<ProductDetailPage />} />
+            <Route path="/notfound" element = {<NotFound/>}/>
 
             {/* Protected Routes (Require Login) */}
             <Route
@@ -131,6 +133,7 @@ function App() {
             <Route path="carts/:id" element={<CartDetails />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="users/:id" element={<UserDetails />} />
+             <Route path="delete" element = {<NotFound/>}/>
           </Route>
 
        

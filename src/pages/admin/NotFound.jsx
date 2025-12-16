@@ -1,7 +1,7 @@
 // src/pages/NotFound.jsx
 import React from "react";
 import { Link } from "react-router-dom";
-import Button from "../components/ui/Button";
+import Button from "../../components/ui/Button";
 import { Home, ArrowLeft, AlertCircle } from "lucide-react";
 
 const NotFound = () => {
@@ -26,7 +26,7 @@ const NotFound = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/">
+          <Link to="/admin">
             <Button variant="primary">
               <Home className="h-5 w-5 mr-2" />
               Go Home
