@@ -197,17 +197,6 @@ const EcommerceHomepage = () => {
     });
   }, []);
 
-  const refreshStats = async () => {
-    setIsRefreshingStats(true);
-    try {
-      await refreshAllData();
-      await loadSystemStats(true);
-    } catch (error) {
-      console.error("Refresh failed:", error);
-    } finally {
-      setIsRefreshingStats(false);
-    }
-  };
 
   const hasMoreProducts = visibleCount < allProducts.length;
 
@@ -446,61 +435,7 @@ const EcommerceHomepage = () => {
           )}
         </div>
 
-        {/* Live System Stats Section - MOVED TO BOTTOM */}
-        <div className="mt-8 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-8 gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={refreshStats}
-                disabled={isRefreshingStats}
-                className="bg-gray-400 hover:bg-gray-300 p-2 rounded-lg transition disabled:opacity-50 flex items-center gap-2"
-                title="Refresh stats"
-              >
-                <RefreshCw
-                  size={20}
-                  className={isRefreshingStats ? "animate-spin" : ""}
-                />
-                <span className="hidden sm:inline">
-                  {isRefreshingStats ? "Refreshing..." : "Refresh"}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-[#01A49E] p-4 rounded-xl backdrop-blur-sm  transition-colors">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-white/20 p-2 rounded-lg">
-                  <Package className="text-white" size={22} />
-                </div>
-                <div>
-                  <div className="text-2xl text-white font-bold">
-                    {systemStats.totalProducts}
-                  </div>
-                  <div className="text-sm text-white opacity-90">
-                    Total Products
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#01A49E] p-4 rounded-xl backdrop-blur-sm  transition-colors">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-white/20 p-2 rounded-lg">
-                  <ShoppingCart className="text-white" size={22} />
-                </div>
-                <div>
-                  <div className="text-2xl text-white font-bold">
-                    {systemStats.totalCarts}
-                  </div>
-                  <div className="text-sm text-white opacity-90">
-                    Active Carts
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+     
       </main>
     </div>
   );

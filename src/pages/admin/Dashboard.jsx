@@ -3,9 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
-import { Badge } from "lucide-react";
+
+import Badge from "../../components/ui/Badge";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
-import useApi from "../../hooks/useApi";
+import useApi from "../../services/AdminuseApi";
 import {
   ShoppingCart,
   Users,
@@ -289,7 +290,7 @@ const Dashboard = () => {
               <span className="text-gray-600 dark:text-gray-400">
                 API Status
               </span>
-              <Badge variant="success">Online</Badge>
+              <Badge variant="warning">Online</Badge>
             </div>
 
             <div className="flex justify-between items-center">

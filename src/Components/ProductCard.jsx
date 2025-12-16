@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
-import useApi from "../services/useApi";
+import useApi from "../services/AdminuseApi";
 import toast from "react-hot-toast";
 
 const ProductCard = ({
@@ -73,7 +73,7 @@ const ProductCard = ({
     [compact]
   );
 
-  // Enhanced add to cart with API sync
+  // add to cart with API sync
   const handleAddToCart = useCallback(
     async (e) => {
       if (!product || isAddingToCart) return;
@@ -85,7 +85,6 @@ const ProductCard = ({
         // First, add to local cart using CartContext
         await addToCart(product, 1);
 
-        // Show success message
         toast.success(
           <div className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-500" />
@@ -137,7 +136,6 @@ const ProductCard = ({
             console.log("✅ Cart synced to API after adding item");
           } catch (apiError) {
             console.error("❌ Error syncing to API (background):", apiError);
-            // Don't show error to user - this happens in background
           }
         }
       } catch (error) {

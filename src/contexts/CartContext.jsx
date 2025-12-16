@@ -1,5 +1,4 @@
-// src/contexts/CartContext.jsx
-import React, {
+import {
   createContext,
   useContext,
   useState,
