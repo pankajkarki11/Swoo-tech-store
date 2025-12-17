@@ -207,8 +207,8 @@ const EcommerceHomepage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans dark:bg-gray-800">
-      <main className="container mx-auto px-4 py-8  dark:bg-gray-800">
+    <div className="min-h-screen bg-white font-sans dark:bg-gray-900">
+      <main className="container mx-auto px-4 py-8  dark:bg-gray-900">
         {/* Hero Carousel */}
         <div className="relative mb-12 rounded-3xl overflow-hidden shadow-2xl">
           <div className="relative h-[300px] md:h-[400px] lg:h-[500px]">

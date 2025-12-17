@@ -235,8 +235,8 @@ const CartPage = () => {
   }, [refreshAllData, isRefreshing]);
 
   return (
-    <div className="min-h-screen bg-white font-sans py-8 dark:bg-gray-800">
-      <div className="container mx-auto px-4 dark:bg-gray-800">
+    <div className="min-h-screen bg-white font-sans py-8 dark:bg-gray-900">
+      <div className="container mx-auto px-4 dark:bg-gray-900">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">

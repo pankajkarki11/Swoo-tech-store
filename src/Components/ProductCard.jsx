@@ -201,7 +201,7 @@ const ProductCard = ({
   return (
     <div
       onClick={() => navigate(`/products/${product?.id}`)}
-      className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer border border-gray-100 dark:bg-gray-800"
+      className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer border border-gray-100 dark:bg-gray-900"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -216,11 +216,11 @@ const ProductCard = ({
       )}
 
       {/* Product Image */}
-      <div className="relative h-64 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden dark:bg-gray-700">
+      <div className="relative h-64 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden dark:bg-gray-800">
         <img
           src={product?.image}
           alt={product?.title || "Product"}
-          className={`w-full  h-full object-contain p-4 transition-transform duration-500 dark:bg-gray-700 ${
+          className={`w-full  h-full object-contain p-4 transition-transform duration-500 dark:bg-gray-800 ${
             isHovered ? "scale-110" : "scale-100   dark:bg-gray-700"
           }`}
           loading="lazy"

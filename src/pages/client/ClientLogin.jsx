@@ -150,7 +150,7 @@ const ClientLogin = () => {
   }, [showToast]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 font-sans relative flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white font-sans relative flex items-center justify-center p-4 dark:bg-gray-900">
       {/* Success Toast */}
       {showToast && (
         <div className="fixed top-4 right-4 z-50 animate-fade-in">
@@ -171,33 +171,30 @@ const ClientLogin = () => {
       )}
 
       <div className="w-full max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row items-stretch bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[85vh]">
+        <div className="flex flex-col lg:flex-row items-stretch bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[85vh] dark:bg-gray-900/5 dark:shadow-white dark:shadow-sm">
           {/* Left Side - Login Form */}
-          <div className="lg:w-1/2 w-full flex items-center justify-center p-6 md:p-8 lg:p-12">
+          <div className="lg:w-1/2 w-full flex items-center justify-center p-6 md:p-8 lg:p-12 dark:from-gray-900 dark:to-gray-800">
             <div className="w-full max-w-md mx-auto">
               {/* Auth Mode Selector */}
-              <div className="mb-6">
-                <div className="flex rounded-lg bg-gray-100 p-1">               
-                </div>
-              </div>
+            
 
               <div className="text-center mb-8">
                 <div className="flex items-center justify-center mb-4">
                   <div className="ml-4">
-                    <h1 className="text-3xl font-bold text-gray-900">LOGIN</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">LOGIN</h1>
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-gray-200">
                   Welcome Back!
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   {authMode === "api"
-                    ? "Sign in to sync your cart across devices"
+                    ? "Sign in to your account"
                     : "Try our demo mode for offline testing"}
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-xl p-8">
+              <div className="bg-white rounded-2xl shadow-xl p-8 dark:bg-gray-800">
                 {error && (
                   <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start animate-shake">
                     <AlertCircle
@@ -210,7 +207,7 @@ const ClientLogin = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
                       Username
                     </label>
                     <div className="relative">
@@ -221,7 +218,7 @@ const ClientLogin = () => {
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#01A49E]/30 focus:border-[#01A49E] transition text-base bg-gray-50/50"
+                        className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#01A49E]/30 focus:border-[#01A49E] transition text-base bg-gray-50/50 dark:bg-white"
                         placeholder="Enter your username"
                         required
                         disabled={isLoading || isSyncingCart}
@@ -231,7 +228,7 @@ const ClientLogin = () => {
 
                   {authMode === "api" && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
                         Password
                       </label>
                       <div className="relative">
@@ -242,7 +239,7 @@ const ClientLogin = () => {
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#01A49E]/30 focus:border-[#01A49E] transition text-base bg-gray-50/50"
+                          className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#01A49E]/30 focus:border-[#01A49E] transition text-base bg-gray-50/50 dark:bg-white"
                           placeholder="Enter your password"
                           required
                           disabled={isLoading || isSyncingCart}
@@ -290,7 +287,7 @@ const ClientLogin = () => {
 
                   {/* Sign Up Link */}
                   <div className="text-center pt-2">
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-white">
                       Don't have an account?{" "}
                       <Link
                         to="/register"
@@ -307,7 +304,7 @@ const ClientLogin = () => {
                   <div className="mt-10 pt-8 border-t border-gray-200">
                     <div className="flex items-center gap-2 mb-4">
                       <Sparkles className="h-5 w-5 text-yellow-500" />
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Try These Accounts
                       </h3>
                     </div>
@@ -320,7 +317,7 @@ const ClientLogin = () => {
                             useDemoAccount(cred.username, cred.password)
                           }
                           disabled={isLoading || isSyncingCart}
-                          className="w-full text-left bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 text-gray-800 py-3 px-4 rounded-lg transition text-sm font-medium border border-gray-200 hover:border-gray-300 disabled:opacity-50 group"
+                          className="w-full text-left bg-white hover:from-gray-100 hover:to-gray-200 text-gray-800 py-3 px-4 rounded-lg transition text-sm font-medium border border-gray-200 hover:border-gray-300 disabled:opacity-50 group dark:bg-gray-400 dark:hover:bg-gray-500 "
                         >
                           <div className="flex items-center gap-3">
                             <div
@@ -330,12 +327,12 @@ const ClientLogin = () => {
                             </div>
                             <div className="flex-1">
                               <div className="font-medium">{cred.name}</div>
-                              <div className="text-gray-500 text-xs">
+                              <div className="text-gray-500 text-xs dark:text-gray-800">
                                 {cred.description}
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-xs text-gray-400">
+                              <div className="text-xs text-gray-400 dark:text-gray-800">
                                 Click to use
                               </div>
                             </div>
@@ -350,7 +347,15 @@ const ClientLogin = () => {
           </div>
 
           {/* Right Side - Features */}
-          <div className="lg:w-1/2 w-full relative bg-gradient-to-br from-blue-50/80 to-teal-50/80 p-8 md:p-10 lg:p-12 flex flex-col justify-between">
+         <div className="
+  lg:w-1/2 w-full relative
+  bg-gradient-to-br
+  from-blue-50/80 to-teal-50/80
+  dark:from-gray-900 dark:to-gray-800
+  p-8 md:p-10 lg:p-12
+  flex flex-col justify-between
+">
+
             <div className="relative z-10">
               <div className="mb-8">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -364,15 +369,15 @@ const ClientLogin = () => {
                       : "Explore All Features"}
                   </span>
                 </h2>
-                <p className="text-gray-700 text-lg">
+                <p className="text-gray-700 text-lg dark:text-white">
                   {authMode === "api"
                     ? "Login to save your shopping cart, access it from any device, and continue shopping where you left off."
-                    : "Experience the full shopping experience without any commitment. Perfect for testing!"}
+                    : ""}
                 </p>
               </div>
 
               {/* Features List */}
-              <div className="space-y-6 mb-8">
+              <div className="space-y-6 mb-8 dark:text-white">
                 {(authMode === "api"
                   ? [
                       {
@@ -407,36 +412,7 @@ const ClientLogin = () => {
                       },
                     ]
                   : [
-                      {
-                        icon: Shield,
-                        title: "No Risk",
-                        description: "Try everything without consequences",
-                        color: "text-green-600",
-                      },
-                      {
-                        icon: Database,
-                        title: "Local Storage",
-                        description: "Works completely offline",
-                        color: "text-blue-600",
-                      },
-                      {
-                        icon: ShoppingBag,
-                        title: "Full Features",
-                        description: "Access all shopping features",
-                        color: "text-purple-600",
-                      },
-                      {
-                        icon: Globe,
-                        title: "Instant Access",
-                        description: "No API delays or limits",
-                        color: "text-cyan-600",
-                      },
-                      {
-                        icon: Sparkles,
-                        title: "Perfect for Testing",
-                        description: "Ideal for development and demos",
-                        color: "text-yellow-600",
-                      },
+                      
                     ]
                 ).map((feature, index) => (
                   <div key={index} className="flex items-center">
@@ -444,10 +420,10 @@ const ClientLogin = () => {
                       <feature.icon className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">
                         {feature.title}
                       </h3>
-                      <p className="text-gray-600 text-sm">
+                      <p className="text-gray-600 text-sm dark:text-gray-300">
                         {feature.description}
                       </p>
                     </div>
@@ -484,8 +460,8 @@ const ClientLogin = () => {
             <div className="relative z-10 mt-8 pt-8 border-t border-gray-200/50">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-900 font-bold">SWOO TECH MART</p>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-900 font-bold dark:text-white">SWOO TECH MART</p>
+                  <p className="text-gray-400 text-sm dark:text-white">
                   
                        Smart Shopping, Seamless Sync
                       

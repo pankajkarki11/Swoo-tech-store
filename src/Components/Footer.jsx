@@ -1,6 +1,6 @@
 const Footer = () => {
   return (
-    <footer className="bg-white text-black text-left mt-16 border-t border-gray-200 rounded-t-lg dark:bg-gray-800 text-white">
+    <footer className="bg-white text-black text-left mt-16 border-t border-gray-200 rounded-t-lg dark:bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-5 gap-8">
           <div>
@@ -30,7 +30,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="/laptops"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Laptops
@@ -38,7 +38,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="pc&computers"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   PC and Computers
@@ -46,7 +46,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="cellphones"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Cell phones
@@ -54,7 +54,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="tablets"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Tablets
@@ -62,7 +62,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="gaming&vr"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Gaming & VR
@@ -70,7 +70,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="networks"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Networks
@@ -78,7 +78,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="camera"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Camera
@@ -86,7 +86,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="sound"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Sound
@@ -94,7 +94,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="office"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Office
@@ -108,7 +108,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="aboutswoo"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   About Swoo
@@ -116,7 +116,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="contact"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Contact
@@ -124,7 +124,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="career"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Career
@@ -132,7 +132,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="blog"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Blog
@@ -140,7 +140,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="sitemap"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Sitemap
@@ -148,7 +148,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="store-locations"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Store Locations
@@ -162,7 +162,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="customer-services"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Customer Service
@@ -170,7 +170,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="policy"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Policy
@@ -178,7 +178,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="terms&conditions"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Terms & Conditions
@@ -186,7 +186,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="track-order"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Track Order
@@ -194,7 +194,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="faqs"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   FAQs
@@ -202,7 +202,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/profile"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   My Account
@@ -210,7 +210,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="product-support"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Product Support
@@ -224,7 +224,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="become-seller"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Become Seller
@@ -232,7 +232,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="affiliate"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Affiliate
@@ -240,7 +240,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="advertise"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Advertise
@@ -248,7 +248,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="partnership"
                   className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Partnership
