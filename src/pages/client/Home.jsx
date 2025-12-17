@@ -197,7 +197,6 @@ const EcommerceHomepage = () => {
     });
   }, []);
 
-
   const hasMoreProducts = visibleCount < allProducts.length;
 
   // Format timer for display
@@ -208,8 +207,8 @@ const EcommerceHomepage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 font-sans">
-      <main className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-white font-sans dark:bg-gray-800">
+      <main className="container mx-auto px-4 py-8  dark:bg-gray-800">
         {/* Hero Carousel */}
         <div className="relative mb-12 rounded-3xl overflow-hidden shadow-2xl">
           <div className="relative h-[300px] md:h-[400px] lg:h-[500px]">
@@ -288,7 +287,7 @@ const EcommerceHomepage = () => {
         </div>
 
         {/* Products Section */}
-        <div className="mb-12">
+        <div className="mb-12 dark:bg-red">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
             <div className="mb-6 lg:mb-0">
               <div className="flex items-center gap-3 mb-3">
@@ -296,10 +295,10 @@ const EcommerceHomepage = () => {
                   <Sparkles className="text-white" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900  dark:text-white">
                     Featured Products
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600  dark:text-white">
                     From our vast collection of {systemStats.totalProducts}{" "}
                     items
                   </p>
@@ -390,7 +389,7 @@ const EcommerceHomepage = () => {
               </div>
 
               <div className="text-center">
-                <div className="text-gray-600 mb-6 flex items-center justify-center gap-2">
+                <div className="text-gray-600 mb-6 flex items-center justify-center gap-2 dark:text-white">
                   <div className="h-1 w-12 bg-gradient-to-r from-[#01A49E] to-[#01857F] rounded-full"></div>
                   <span>
                     Showing {Math.min(visibleCount, allProducts.length)} of{" "}
@@ -425,7 +424,7 @@ const EcommerceHomepage = () => {
                         You've seen all {allProducts.length} products!
                       </p>
                     </div>
-                    <p className="text-green-600 text-sm">
+                    <p className="text-green-600 text-sm  dark:text-white">
                       Check back later for new arrivals.
                     </p>
                   </div>
@@ -434,8 +433,6 @@ const EcommerceHomepage = () => {
             </>
           )}
         </div>
-
-     
       </main>
     </div>
   );

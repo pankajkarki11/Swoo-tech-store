@@ -416,25 +416,18 @@ const HeaderClient = () => {
           {/* Right Navigation */}
           <div className="hidden lg:flex items-center space-x-6">
             <Link
-              to="/addedproduct"
+              to="/seller"
               className="text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 font-medium transition-colors flex items-center group"
             >
               <Package
                 size={18}
                 className="mr-2 group-hover:scale-110 transition-transform"
               />
-              View Products
+              Become Seller
             </Link>
 
             <div className="flex items-center space-x-6">
-              {isAuthenticated ? (
-                <Link
-                  to="/addproduct"
-                  className="text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 font-medium transition-colors"
-                >
-                  Add Products
-                </Link>
-              ) : (
+              
                 <Link
                   to="/contact"
                   className="flex items-center space-x-2 hover:opacity-80 transition-opacity text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-300"
@@ -442,7 +435,7 @@ const HeaderClient = () => {
                   <PhoneCall size={20} />
                   <span className="font-medium">Helpline</span>
                 </Link>
-              )}
+              
             </div>
 
             <div className="flex items-center space-x-3 text-white dark:text-gray-200">

@@ -182,7 +182,7 @@ const ProductCard = ({
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse dark:bg-gray-800">
         <div className={`${compact ? "h-48" : "h-64"} bg-gray-200`}></div>
         <div className="p-5">
           <div className="space-y-3">
@@ -198,99 +198,10 @@ const ProductCard = ({
       </div>
     );
   }
-
-  // Compact version for lists
-  if (compact) {
-    return (
-      <div
-        onClick={() => navigate(`/products/${product?.id}`)}
-        className="group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100"
-      >
-        <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-          <img
-            src={product?.image}
-            alt={product?.title || "Product"}
-            className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
-            loading="lazy"
-          />
-
-          {/* Wishlist Button */}
-          <button
-            onClick={handleWishlistToggle}
-            className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:shadow-md transition-all hover:scale-110 z-10"
-            aria-label={
-              isInWishlist ? "Remove from wishlist" : "Add to wishlist"
-            }
-          >
-            <Heart
-              size={16}
-              fill={isInWishlist ? "#ef4444" : "none"}
-              strokeWidth={isInWishlist ? 0 : 2}
-              className={
-                isInWishlist
-                  ? "text-red-500"
-                  : "text-gray-600 hover:text-red-500"
-              }
-            />
-          </button>
-        </div>
-
-        <div className="p-4">
-          <h3 className="font-bold text-gray-900 text-sm mb-2 line-clamp-2 hover:text-[#01A49E] transition-colors">
-            {product?.title || "Product Title"}
-          </h3>
-
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-1">
-              <span className="text-yellow-400">★</span>
-              <span className="text-gray-900 font-medium text-xs">
-                {product?.rating?.rate?.toFixed(1) || "4.5"}
-              </span>
-              <span className="text-gray-400 text-xs">
-                ({product?.rating?.count || 0})
-              </span>
-            </div>
-            <div className="text-lg font-bold text-gray-900">
-              {formatPrice(product?.price || 0)}
-            </div>
-          </div>
-
-          <button
-            onClick={handleAddToCart}
-            disabled={isAddingToCart || cartStatus.isInCart}
-            className={`w-full py-2 rounded-lg transition-all duration-300 text-sm font-medium flex items-center justify-center gap-2 ${
-              cartStatus.isInCart
-                ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border border-green-200"
-                : "bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white hover:from-[#01857F] hover:to-[#016F6B] hover:shadow-md"
-            } ${isAddingToCart ? "animate-pulse" : ""}`}
-          >
-            {isAddingToCart ? (
-              <>
-                <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                Adding...
-              </>
-            ) : cartStatus.isInCart ? (
-              <>
-                <CheckCircle size={14} />
-                Added ({cartStatus.quantity})
-              </>
-            ) : (
-              <>
-                <ShoppingCart size={14} />
-                Add to Cart
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Full version with hover effects
   return (
     <div
       onClick={() => navigate(`/products/${product?.id}`)}
-      className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer border border-gray-100"
+      className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer border border-gray-100 dark:bg-gray-800"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -305,12 +216,12 @@ const ProductCard = ({
       )}
 
       {/* Product Image */}
-      <div className="relative h-64 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+      <div className="relative h-64 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden dark:bg-gray-700">
         <img
           src={product?.image}
           alt={product?.title || "Product"}
-          className={`w-full h-full object-contain p-4 transition-transform duration-500 ${
-            isHovered ? "scale-110" : "scale-100"
+          className={`w-full  h-full object-contain p-4 transition-transform duration-500 dark:bg-gray-700 ${
+            isHovered ? "scale-110" : "scale-100   dark:bg-gray-700"
           }`}
           loading="lazy"
         />
@@ -318,12 +229,12 @@ const ProductCard = ({
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistToggle}
-          className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:shadow-md transition-all hover:scale-110 z-10"
+          className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:shadow-md transition-all hover:scale-110 z-10 dark:bg-white"
           aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart
             size={18}
-            fill={isInWishlist ? "#ef4444" : "none"}
+            fill={isInWishlist ? "#f40303ff" : "none"}
             strokeWidth={isInWishlist ? 0 : 2}
             className={`transition-colors ${
               isInWishlist ? "text-red-500" : "text-gray-600 hover:text-red-500"
@@ -339,7 +250,7 @@ const ProductCard = ({
         >
           <button
             onClick={handleQuickView}
-            className="mb-6 bg-white text-gray-900 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            className="mb-6 bg-white text-gray-900 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1 "
           >
             <Eye size={16} />
             Quick View
@@ -362,10 +273,10 @@ const ProductCard = ({
             )}
           </div>
 
-          <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 min-h-[56px] group-hover:text-[#01A49E] transition-colors">
+          <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 min-h-[56px] group-hover:text-[#01A49E] transition-colors dark:text-white dark:group-hover:text-white">
             {product?.title || "Product Title"}
           </h3>
-          <p className="text-gray-600 text-sm line-clamp-2 min-h-[40px]">
+          <p className="text-gray-600 text-sm line-clamp-2 min-h-[40px] dark:text-white">
             {truncateText(product?.description, 80)}
           </p>
         </div>
@@ -389,16 +300,16 @@ const ProductCard = ({
                 />
               ))}
             </div>
-            <span className="text-gray-900 font-medium text-sm">
+            <span className="text-gray-900 font-medium text-sm dark:text-white">
               {product?.rating?.rate?.toFixed(1) || "4.5"}
             </span>
-            <span className="text-gray-400 text-sm">
+            <span className="text-gray-400 text-sm dark:text-white">
               ({product?.rating?.count || 0})
             </span>
           </div>
 
           <div className="text-right">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {formatPrice(product?.price || 0)}
             </div>
           </div>
@@ -443,10 +354,15 @@ const ProductCard = ({
 
       {/* Hover Indicator */}
       <div
-        className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#01A49E] to-[#01857F] transform transition-transform duration-300 ${
-          isHovered ? "scale-x-100" : "scale-x-0"
-        }`}
-      ></div>
+  className={`
+    absolute bottom-0 left-0 right-0 h-1
+    bg-gradient-to-r from-[#01A49E] to-[#01857F]
+    dark:bg-gradient-to-r dark:from-white dark:to-gray-300
+    transform origin-left transition-transform duration-300
+    ${isHovered ? "scale-x-100" : "scale-x-0"}
+  `}
+></div>
+
     </div>
   );
 };

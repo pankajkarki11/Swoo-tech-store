@@ -235,8 +235,8 @@ const CartPage = () => {
   }, [refreshAllData, isRefreshing]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 font-sans py-8">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-white font-sans py-8 dark:bg-gray-800">
+      <div className="container mx-auto px-4 dark:bg-gray-800">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -250,7 +250,7 @@ const CartPage = () => {
               </button>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 ">
               <button
                 onClick={refreshCartData}
                 disabled={isRefreshing}
@@ -270,10 +270,10 @@ const CartPage = () => {
               <ShoppingBag className="text-white" size={28} />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 Shopping Cart
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-white">
                 {getCartCount()} {getCartCount() === 1 ? "item" : "items"} in
                 your cart
                 {isSyncing && (
@@ -286,7 +286,7 @@ const CartPage = () => {
           </div>
 
           {/* System Stats Banner */}
-          <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
+          <div className="mt-6 bg-white rounded-2xl shadow-lg p-6 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-blue-50 p-4 rounded-xl">
                 <div className="flex items-center gap-3">
@@ -324,14 +324,14 @@ const CartPage = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* Current Cart */}
             {cart.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <ShoppingBag className="text-gray-400" size={48} />
+              <div className="bg-gray rounded-2xl shadow-lg p-8 text-center dark:bg-dark-800 dark:shadow-white dark:shadow-sm">
+                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 dark:bg-dark-800">
+                  <ShoppingBag className="text-red-400" size={48} />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-white">
                   Your cart is empty
                 </h2>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6 dark:text-white">
                   Add some items to your cart to see them here.
                 </p>
                 <button
@@ -343,9 +343,9 @@ const CartPage = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="bg-white rounded-2xl shadow-lg p-6 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                       Current Cart Items
                     </h2>
                     <div className="flex items-center gap-2">
@@ -370,7 +370,7 @@ const CartPage = () => {
                       )}
                       <button
                         onClick={clearCartHandler}
-                        className="text-sm border border-red-300 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
+                        className="text-sm border border-red-300 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition dark:bg-red-500 dark:text-white dark:hover:bg-red-700"
                       >
                         Clear Cart
                       </button>
@@ -380,14 +380,14 @@ const CartPage = () => {
                   {cart.map((item) => (
                     <div
                       key={`${item.id}-${item.addedAt}`}
-                      className="flex flex-col sm:flex-row gap-4 p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 rounded-lg transition"
+                      className="flex flex-col sm:flex-row gap-4 p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 rounded-lg transition dark:hover:bg-gray-700"
                     >
                       <div className="flex-shrink-0">
-                        <div className="w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden">
+                        <div className="w-20 h-20 bg-white rounded-lg overflow-hidden dark:bg-gray-600 ">
                           <img
                             src={item.image}
                             alt={item.title}
-                            className="w-full h-full object-contain p-2"
+                            className="w-full h-full object-contain p-2 "
                             loading="lazy"
                           />
                         </div>
@@ -396,11 +396,11 @@ const CartPage = () => {
                       <div className="flex-grow">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2">
                           <div className="flex-grow">
-                            <h3 className="font-bold text-gray-900 mb-1 line-clamp-2">
+                            <h3 className="font-bold text-gray-900 mb-1 line-clamp-2 dark:text-white">
                               {item.title}
                             </h3>
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
                                 {item.category}
                               </span>
                               {item.fromAPI && (
@@ -411,7 +411,7 @@ const CartPage = () => {
                               )}
                             </div>
                             {item.addedAt && (
-                              <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-white">
                                 <Calendar size={12} />
                                 Added {formatDate(item.addedAt)}
                               </div>
@@ -420,7 +420,7 @@ const CartPage = () => {
 
                           <button
                             onClick={() => removeFromCart(item.id)}
-                            className="text-gray-400 hover:text-red-500 transition p-1"
+                            className="text-gray-400 hover:text-red-500 transition p-1 dark:text-red-400 dark:hover:text-red-500"
                           >
                             <Trash2 size={18} />
                           </button>
@@ -428,7 +428,7 @@ const CartPage = () => {
 
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div className="flex items-center space-x-4">
-                            <div className="flex items-center bg-gray-100 rounded-lg">
+                            <div className="flex items-center bg-gray-100 rounded-lg dark:bg-gray-300">
                               <button
                                 onClick={() =>
                                   updateQuantity(item.id, item.quantity - 1)
@@ -453,10 +453,10 @@ const CartPage = () => {
                           </div>
 
                           <div className="text-right">
-                            <div className="text-xl font-bold text-gray-900">
+                            <div className="text-2xl font-bold text-gray-900 dark:text-white">
                               ${(item.price * item.quantity).toFixed(2)}
                             </div>
-                            <div className="text-gray-500 text-sm">
+                            <div className="text-gray-500 text-sm dark:text-white dark:text-sm">
                               ${item.price.toFixed(2)} each
                             </div>
                           </div>
@@ -470,24 +470,24 @@ const CartPage = () => {
 
             {/* Cart History */}
             {user && apiCarts.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
+              <div className="bg-white rounded-2xl shadow-lg p-6 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-gradient-to-r from-purple-100 to-purple-200 rounded-lg">
                       <History className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900">
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                         Your Cart History
                       </h2>
-                      <p className="text-gray-600 text-sm">
+                      <p className="text-gray-600 text-sm dark:text-white">
                         {apiCarts.length} saved carts from your account
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowCartHistory(!showCartHistory)}
-                    className="text-sm text-[#01A49E] hover:text-[#01857F] transition"
+                    className="text-sm text-[#01A49E] hover:text-[#01857F] transition dark:text-white dark:hover:text-gray-300"
                   >
                     {showCartHistory ? "Hide" : "Show"} History
                   </button>
@@ -508,15 +508,15 @@ const CartPage = () => {
                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
                             <div>
                               <div className="flex items-center gap-2 mb-2">
-                                <Package className="h-4 w-4 text-gray-500" />
-                                <span className="font-medium text-gray-900">
+                                <Package className="h-4 w-4 text-gray-500 dark:text-white" />
+                                <span className="font-medium text-gray-900 dark:text-white">
                                   Cart #{apiCart.id}
                                 </span>
                                 <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
                                   {apiCart.products?.length || 0} items
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-white">
                                 <Clock size={14} />
                                 <span>{formatDate(apiCart.date)}</span>
                               </div>
@@ -547,24 +547,24 @@ const CartPage = () => {
 
           {/* Right Column */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">
+            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-6 dark:text-white">
                 Order Summary
               </h2>
 
               {/* Order Details */}
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">${totals.subtotal}</span>
+                  <span className="text-gray-600 dark:text-white ">Subtotal</span>
+                  <span className="font-medium dark:text-white">${totals.subtotal}</span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-600 dark:text-white">Shipping</span>
                   <span
                     className={
                       totals.shipping === "0.00"
-                        ? "text-green-600 font-medium"
+                        ? "text-green-600 font-medium dark:text-green-400"
                         : "font-medium"
                     }
                   >
@@ -575,21 +575,21 @@ const CartPage = () => {
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-medium">${totals.tax}</span>
+                  <span className="text-gray-600 dark:text-white">Tax</span>
+                  <span className="font-medium dark:text-white">${totals.tax}</span>
                 </div>
 
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-gray-900">
+                    <span className="text-lg font-bold text-gray-900 dark:text-white">
                       Total
                     </span>
                     <div>
-                      <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
                         ${totals.total}
                       </div>
                       {totals.shipping === "0.00" && (
-                        <div className="text-green-600 text-sm font-medium">
+                        <div className="text-green-600 text-sm font-medium dark:text-green-400">
                           Free Shipping
                         </div>
                       )}

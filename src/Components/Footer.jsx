@@ -1,6 +1,6 @@
 const Footer = () => {
   return (
-    <footer className="bg-white text-black text-left mt-16 border-t border-gray-200 rounded-t-lg">
+    <footer className="bg-white text-black text-left mt-16 border-t border-gray-200 rounded-t-lg dark:bg-gray-800 text-white">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-5 gap-8">
           <div>
@@ -10,7 +10,7 @@ const Footer = () => {
               </div>
               <h3 className="text-xl font-bold">SWOO TECH MART</h3>
             </div>
-            <p className="text-gray-800">
+            <p className="text-gray-800 dark:text-white">
               Your one-stop destination for all tech needs in KTM.
             </p>
             <div className="mt-4">
@@ -18,10 +18,10 @@ const Footer = () => {
               <p className="text-[#01A49E] text-3xl font-bold mb-2">
                 9862463322
               </p>
-              <p className="text-gray-600 mb-2">
+              <p className="text-gray-600 mb-2 dark:text-white">
                 Khadgagau-2,27-Chandragiri,Kathmandu,Nepal
               </p>
-              <p className="text-gray-600">contact@swootechmart.com</p>
+              <p className="text-gray-600 dark:text-white">contact@swootechmart.com</p>
             </div>
           </div>
 
@@ -31,7 +31,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Laptops
                 </a>
@@ -39,7 +39,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   PC and Computers
                 </a>
@@ -47,7 +47,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Cell phones
                 </a>
@@ -55,7 +55,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Tablets
                 </a>
@@ -63,7 +63,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Gaming & VR
                 </a>
@@ -71,7 +71,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Networks
                 </a>
@@ -79,7 +79,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Camera
                 </a>
@@ -87,7 +87,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Sound
                 </a>
@@ -95,7 +95,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Office
                 </a>
@@ -109,7 +109,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   About Swoo
                 </a>
@@ -117,7 +117,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Contact
                 </a>
@@ -125,7 +125,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Career
                 </a>
@@ -133,7 +133,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Blog
                 </a>
@@ -141,7 +141,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Sitemap
                 </a>
@@ -149,7 +149,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Store Locations
                 </a>
@@ -163,7 +163,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Customer Service
                 </a>
@@ -171,7 +171,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Policy
                 </a>
@@ -179,7 +179,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Terms & Conditions
                 </a>
@@ -187,7 +187,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Track Order
                 </a>
@@ -195,7 +195,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   FAQs
                 </a>
@@ -203,7 +203,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   My Account
                 </a>
@@ -211,7 +211,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Product Support
                 </a>
@@ -225,7 +225,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Become Seller
                 </a>
@@ -233,7 +233,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Affiliate
                 </a>
@@ -241,7 +241,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Advertise
                 </a>
@@ -249,7 +249,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-gray-600 hover:text-gray-900 transition"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
                 >
                   Partnership
                 </a>
@@ -262,7 +262,7 @@ const Footer = () => {
           <p>SUBSCRIBE AND GET 20% OFF YOUR FIRST PURCHASE</p>
         </div>
 
-        <div className="border-t border-gray-200 mt-8 pt-8 text-center text-gray-600">
+        <div className="border-t border-gray-200 mt-8 pt-8 text-center text-gray-600 dark:text-white">
           <p>
             {" "}
             © 2024 SWOO TECH MART. All rights reserved. | Privacy Policy | Terms

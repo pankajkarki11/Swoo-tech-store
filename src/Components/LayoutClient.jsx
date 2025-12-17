@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 
 const LayoutClient = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col dark:bg-gray-800">
       <HeaderClient />
       <main className="flex-grow">
         <Outlet />
