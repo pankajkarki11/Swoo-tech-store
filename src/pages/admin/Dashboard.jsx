@@ -307,11 +307,7 @@ const Dashboard = () => {
               </span>
             </div>
 
-            <div className="pt-4">
-              <Button variant="primary" fullWidth>
-                Refresh All Data
-              </Button>
-            </div>
+          
           </div>
         </Card>
       </div>

@@ -249,13 +249,14 @@ const ProductCard = ({
             isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <button
+          <Button
+          variant="overlay"
             onClick={handleQuickView}
-            className="mb-6 bg-white text-gray-900 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1 "
+        
           >
             <Eye size={16} />
             Quick View
-          </button>
+          </Button>
         </div>
       </div>
 

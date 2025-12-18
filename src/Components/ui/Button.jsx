@@ -9,6 +9,8 @@ const Button = ({
   loading = false,
   disabled = false,
   className = "",
+  IconPosition="left",
+  iconOnly=false,
   ...props
 }) => {
   const baseStyles =
@@ -25,17 +27,29 @@ const Button = ({
       "border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700",
     ghost:
       "text-gray-700 hover:bg-gray-100 focus:gray-red-500 dark:text-gray-300 dark:hover:bg-gray-700",
-    home: "bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white px-6 py-3 rounded-full font-semibold hover:shadow-lg transition hover:scale-105 border-rounded"
+    teal: "bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white rounded-full font-semibold hover:shadow-lg transition hover:scale-105 border-rounded",
+    cart: "bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white rounded-lg font-semibold hover:shadow-lg transition hover:scale-105 border-rounded",
+    overlay:"mb-6 bg-white text-gray-900 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1 "
   };
 
   const sizes = {
     small: "px-2 py-1.5 text-sm",
-    medium: "px-4 py-2.5 text-sm",
-    large: "px-6 py-3 text-base",
-    xlarge: "px-8 py-4 text-lg",
+    medium: "px-8 py-2 text-sm",
+    large: "px-10 py-3 text-base",
+    xlarge: "px-20 py-3 text-base",
+     addcart: "px-20 py-5 text-lg",
+
   };
 
   const widthClass = fullWidth ? "w-full" : "";
+
+  //icon spacing
+  const iconSpacing ={
+    small:"gap-1",
+    medium:"gap-1.5",
+    large:"gap-2",
+    xlarge:"gap-2.5",
+  }
 
   return (
     <button
@@ -43,6 +57,7 @@ const Button = ({
         ${baseStyles}
         ${variants[variant]}
         ${sizes[size]}
+        ${IconSpacing[size]}
         ${widthClass}
         ${className}
       `}

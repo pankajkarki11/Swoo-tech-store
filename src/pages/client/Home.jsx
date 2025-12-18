@@ -286,7 +286,8 @@ const EcommerceHomepage = () => {
             </div>
             
             <Button
-            variant="home"
+            
+            size="medium"
               onClick={handleRefreshStats}
               disabled={isRefreshingStats}
               
@@ -493,7 +494,8 @@ const EcommerceHomepage = () => {
 
                 {hasMoreProducts ? (
                   <Button
-                  variant="home"
+                  variant="teal"
+                  size="xlarge"
                     onClick={loadMoreProducts}
                     disabled={isLoadingMore}
                     
@@ -579,10 +581,10 @@ const EcommerceHomepage = () => {
             <input
               type="text"
               placeholder="Enter your email"
-              className="flex-grow px-4 py-3 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#01A49E]"
+              className="flex-grow px-20 py-3 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-red focus:ring-2 focus:ring-[#01A49E]"
             />
             <Link to ="/subscribe">
-          <Button variant="home" size="large">
+          <Button variant="teal" size="xlarge">
               Subscribe
             </Button>
             </Link>

@@ -380,72 +380,7 @@ const CartPage = () => {
                         Clear Cart
                       </Button>
 
-    {/* Cart History */}
-            {user && apiCarts.length > 0 && (
-              <div className="">
-                <div className="flex items-center justify-between mb-6">
-                  
-                  <Button
-                  variant="success"
-                    onClick={() => setShowCartHistory(!showCartHistory)}
-                    
-                  >
-                    {showCartHistory ? "Hide" : "Show"} History
-                  </Button>
-                </div>
-
-                {showCartHistory && (
-                  <div className="space-y-4">
-                    {isLoadingAPICarts ? (
-                      <div className="flex justify-center py-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-[#01A49E]" />
-                      </div>
-                    ) : (
-                      apiCarts.slice(0, 5).map((apiCart) => (
-                        <div
-                          key={apiCart.id}
-                          className="border border-gray-200 rounded-xl p-4 hover:border-purple-300 transition"
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
-                            <div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <Package className="h-4 w-4 text-gray-500 dark:text-white" />
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  Cart #{apiCart.id}
-                                </span>
-                                <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
-                                  {apiCart.products?.length || 0} items
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-white">
-                                <Clock size={14} />
-                                <span>{formatDate(apiCart.date)}</span>
-                              </div>
-                            
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <Button
-                               variant="home"
-                                onClick={() =>
-                                 
-                                  loadAPICartIntoCurrentCart(apiCart)
-                                }
-                                disabled={isLoadingAPICarts}
-                                
-                              >
-                                <Download size={14} />
-                                Load to Cart
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+  
 
 
 
@@ -546,6 +481,73 @@ const CartPage = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+              {/* Cart History */}
+            {user && apiCarts.length > 0 && (
+              <div className="">
+                  
+                  <Button
+                 size="medium"
+                  variant="success"
+                    onClick={() => setShowCartHistory(!showCartHistory)}
+                    fullWidth
+                  >
+                    {showCartHistory ? "Hide" : "Show"} History
+                  </Button>
+                
+
+                {showCartHistory && (
+                  <div className="space-y-4 ">
+                    {isLoadingAPICarts ? (
+                      
+                        <Loader2 className="h-8 w-8 animate-spin text-[#01A49E]" />
+                      
+                    ) : (
+                      apiCarts.slice(0, 5).map((apiCart) => (
+                        <div
+                          key={apiCart.id}
+                          className="border border-gray-200 rounded-xl p-4 hover:border-purple-300 transition mt-4"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-2">
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Package className="h-4 w-4 text-gray-500 dark:text-white" />
+                                <span className="font-medium text-gray-900 dark:text-white">
+                                  Cart #{apiCart.id}
+                                </span>
+                                <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                                  {apiCart.products?.length || 0} items
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-white">
+                                <Clock size={14} />
+                                <span>{formatDate(apiCart.date)}</span>
+                              </div>
+                            
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Button
+                               variant="teal"
+                                onClick={() =>
+                                 
+                                  loadAPICartIntoCurrentCart(apiCart)
+                                }
+                                disabled={isLoadingAPICarts}
+                                
+                              >
+                                <Download size={14} />
+                                Load to Cart
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
