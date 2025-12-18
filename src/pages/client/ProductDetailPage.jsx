@@ -150,7 +150,7 @@ const ProductDetailPage = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#01A49E]"></div>
-          <p className="text-lg text-gray-600 animate-pulse">
+          <p className="text-lg text-gray-600 animate-pulse dark:text-white">
             Loading product details...
           </p>
         </div>
@@ -163,7 +163,7 @@ const ProductDetailPage = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8 text-center">
           <div className="text-7xl mb-6">😞</div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          <h2 className="text-3xl font-bold text-gray-800 mb-4 dark:text-white">
             Product Not Found
           </h2>
           <p className="text-gray-600 mb-8">
@@ -194,46 +194,46 @@ const ProductDetailPage = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <nav className="mb-8">
-        <ol className="flex items-center space-x-2 text-sm text-gray-600 flex-wrap">
+        <ol className="flex items-center space-x-2 text-sm text-gray-600 flex-wrap dark:text-wite">
           <li>
             <button
               onClick={() => navigate("/")}
-              className="hover:text-[#01A49E] transition-colors flex items-center gap-1"
+              className="hover:text-[#01A49E] transition-colors flex items-center gap-1 dark:text-gray-400 dark:hover:text-[#01A49E] transition-color"
             >
               <Home size={16} />
               Home
             </button>
           </li>
-          <li>›</li>
+          <li className="dark:text-gray-400 ">›</li>
           <li className="capitalize">
             <button
               onClick={() => navigate("/")}
-              className="hover:text-[#01A49E] transition-colors"
+              className="hover:text-[#01A49E] transition-colors dark:text-gray-400 dark:hover:text-[#01A49E] transition-color"
             >
               {product.category}
             </button>
           </li>
           <li>›</li>
-          <li className="font-medium text-gray-800 truncate">
+          <li className="font-medium text-gray-800 truncate dark:text-gray-300">
             {product.title}
           </li>
         </ol>
       </nav>
 
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden dark:bg-gray-800">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
           {/* Left Column - Images */}
           <div>
             {/* Main Image */}
-            <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden mb-6 h-96">
+            <div className="relative bg-gray-100 rounded-2xl overflow-hidden mb-6 h-96 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
               <img
                 src={selectedImage}
                 alt={product.title}
-                className="w-full h-full object-contain p-8 transition-transform duration-500 hover:scale-105"
+                className="w-full h-full object-contain p-8 transition-transform duration-500 hover:scale-110 dark:shadow-white dark:shadow-lg"
               />
               {product.price > 100 && (
                 <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1.5 bg-green-500 text-white text-sm font-bold rounded-full flex items-center gap-1">
+                  <span className="px-3 py-1.5 bg-green-500 text-white text-sm font-bold rounded-full flex items-center gap-1 dark:bg-green-800">
                     <Truck size={14} />
                     FREE SHIPPING
                   </span>
@@ -277,7 +277,7 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-3xl lg:text-3xl font-bold text-gray-900 mb-4 leading-tight dark:text-gray-200">
               {product.title}
             </h1>
 
@@ -295,76 +295,77 @@ const ProductDetailPage = () => {
                     </span>
                   ))}
                 </div>
-                <span className="ml-3 text-lg font-semibold text-gray-700">
+                <span className="ml-3 text-lg font-semibold text-gray-700 dark:text-gray-300">
                   {product.rating?.rate?.toFixed(1) || "0.0"}/5
                 </span>
               </div>
-              <span className="text-gray-300 hidden sm:inline">•</span>
-              <span className="text-gray-600">
+              <span className="text-gray-200 hidden sm:inline">•</span>
+              <span className="text-gray-600 dark:text-gray-300">
                 {product.rating?.count || 0} reviews
               </span>
-              <span className="text-gray-300 hidden sm:inline">•</span>
-              <span className="text-green-600 font-semibold flex items-center gap-1">
+              <span className="text-gray-200 hidden sm:inline">•</span>
+              <span className="text-green-600 font-semibold flex items-center gap-1 dark:text-green-400">
                 <Check size={16} />
                 In Stock
               </span>
             </div>
 
             {/* Price */}
-            <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100">
+            <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 dark:from-slate-900 dark:to-slate-800 dark:border-gray-700
+">
               <div className="flex items-end">
-                <span className="text-5xl font-bold text-gray-900">
+                <span className="text-5xl font-bold text-gray-900 dark:text-white">
                   ${product.price.toFixed(2)}
                 </span>
                 {product.price > 100 && (
-                  <span className="ml-4 text-lg text-green-600 font-semibold flex items-center gap-1">
+                  <span className="ml-4 text-lg text-green-600 font-semibold flex items-center gap-1 dark:text-green-400">
                     <Truck size={18} />
                     Free Shipping
                   </span>
                 )}
               </div>
-              <p className="text-gray-600 mt-2">
+              <p className="text-gray-600 mt-2 dark:text-gray-200">
                 Tax included. Shipping calculated at checkout.
               </p>
             </div>
 
             {/* Description */}
             <div className="mb-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2 dark:text-gray-200">
                 <Package size={20} />
                 Description
               </h3>
-              <p className="text-gray-600 leading-relaxed text-lg">
+              <p className="text-gray-600 leading-relaxed text-lg dark:text-gray-300">
                 {product.description}
               </p>
             </div>
 
             {/* Quantity Selector */}
             <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 dark:text-gray-200">
                 Quantity
               </h3>
               <div className="flex items-center">
                 <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                   <button
                     onClick={() => handleQuantityChange(-1)}
-                    className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-gray-700"
                     disabled={quantity <= 1 || isSyncing}
                   >
                     −
                   </button>
-                  <span className="px-6 py-3 text-xl font-bold w-16 text-center">
+                  <span className="px-6 py-3 text-xl font-bold w-16 text-center dark:text-gray-300">
                     {quantity}
                   </span>
                   <button
                     onClick={() => handleQuantityChange(1)}
-                    className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-gray-700"
                     disabled={quantity >= 10 || isSyncing}
                   >
                     +
                   </button>
                 </div>
-                <span className="ml-4 text-gray-500 text-sm">
+                <span className="ml-4 text-gray-500 text-sm dark:text-gray-200">
                   Max 10 per customer
                 </span>
               </div>
@@ -456,14 +457,14 @@ const ProductDetailPage = () => {
 
         {/* Reviews Section */}
         <div className="border-t border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-gray-300">
             Customer Reviews
           </h2>
           <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
             <div className="text-center">
-              <div className="text-4xl font-bold text-gray-900 mb-2">
+              <div className="text-4xl font-bold text-gray-900 mb-2 dark:text-gray-200">
                 {product.rating?.rate?.toFixed(1) || "0.0"}
-                <span className="text-2xl text-gray-600">/5</span>
+                <span className="text-2xl text-gray-600 dark:text-gray-200">/5</span>
               </div>
               <div className="flex text-yellow-400 text-2xl mb-2 justify-center">
                 {[...Array(5)].map((_, i) => (
@@ -476,7 +477,7 @@ const ProductDetailPage = () => {
                   </span>
                 ))}
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-200">
                 {product.rating?.count || 0} total reviews
               </p>
             </div>
@@ -486,12 +487,12 @@ const ProductDetailPage = () => {
           </div>
 
           {/* Review Placeholder */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8 text-center">
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8 text-center dark:from-gray-600 dark:to-gray-700">
             <div className="text-5xl mb-4">📝</div>
-            <p className="text-gray-600 text-lg mb-2">
+            <p className="text-gray-600 text-lg mb-2 dark:text-gray-200">
               No reviews yet for this product
             </p>
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-gray-200">
               Be the first to share your thoughts!
             </p>
           </div>

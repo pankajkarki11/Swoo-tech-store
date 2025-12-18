@@ -1,6 +1,6 @@
 // src/pages/UserDetails.jsx
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useOutletContext } from "react-router-dom";
+import { useParams, Link, useOutletContext,useNavigate } from "react-router-dom";
 
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -30,7 +30,8 @@ const UserDetails = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userCarts, setUserCarts] = useState([]);
-
+  const [cartsWithProducts, setCartsWithProducts] = useState([]); // NEW: Store carts with full product details
+const navigate=useNavigate();
   useEffect(() => {
     fetchUserDetails();
   }, [id]);
@@ -45,28 +46,91 @@ const UserDetails = () => {
 
       // Fetch user's carts
       const cartsResponse = await api.cartAPI.getUserCarts(id);
-      setUserCarts(cartsResponse.data || []);
+      const carts = cartsResponse.data || [];
+      setUserCarts(carts);
+
+      // NEW: Fetch full product details for each cart
+      await fetchProductDetailsForCarts(carts);
     } catch (error) {
+      console.error("Error fetching user details:", error);
       toast.error("Failed to load user details");
     } finally {
       setLoading(false);
     }
   };
 
+  // NEW: Fetch product details for all carts
+  const fetchProductDetailsForCarts = async (carts) => {
+    try {
+      const cartsWithFullProducts = await Promise.all(
+        carts.map(async (cart) => {
+          if (!cart.products || cart.products.length === 0) {
+            return { ...cart, products: [] };
+          }
+
+          // Fetch full product details for each product in the cart
+          const productsWithDetails = await Promise.all(
+            cart.products.map(async (item) => {
+              try {
+                const productResponse = await api.productAPI.getById(item.productId);
+                return {
+                  ...productResponse.data,
+                  quantity: item.quantity,
+                  cartProductId: item.productId
+                };
+              } catch (error) {
+                console.error(`Error fetching product ${item.productId}:`, error);
+                // Return a fallback if product fetch fails
+                return {
+                  id: item.productId,
+                  title: "Unknown Product",
+                  price: 0,
+                  quantity: item.quantity,
+                  cartProductId: item.productId
+                };
+              }
+            })
+          );
+
+          return {
+            ...cart,
+            products: productsWithDetails
+          };
+        })
+      );
+
+      setCartsWithProducts(cartsWithFullProducts);
+    } catch (error) {
+      console.error("Error fetching product details:", error);
+      // Fallback to carts without full details
+      setCartsWithProducts(carts);
+    }
+  };
+
+  // FIXED: Calculate total spent using cartsWithProducts
   const calculateTotalSpent = () => {
-    return userCarts.reduce((total, cart) => {
+    if (cartsWithProducts.length === 0) return 0;
+    
+    return cartsWithProducts.reduce((total, cart) => {
       return (
         total +
         (cart.products?.reduce((cartTotal, item) => {
-          return cartTotal + item.price * item.quantity;
+          const price = parseFloat(item.price) || 0;
+          const quantity = parseInt(item.quantity) || 0;
+          return cartTotal + (price * quantity);
         }, 0) || 0)
       );
     }, 0);
   };
 
+  // FIXED: Calculate total orders using cartsWithProducts
   const calculateTotalOrders = () => {
-    return userCarts.reduce((total, cart) => {
-      return total + (cart.products?.length || 0);
+    if (cartsWithProducts.length === 0) return 0;
+    
+    return cartsWithProducts.reduce((total, cart) => {
+      return total + (cart.products?.reduce((sum, item) => {
+        return sum + (parseInt(item.quantity) || 0);
+      }, 0) || 0);
     }, 0);
   };
 
@@ -165,11 +229,15 @@ const UserDetails = () => {
 
                 {/* Quick Actions */}
                 <div className="mt-4 space-y-2">
-                  <Button variant="outline" fullWidth>
+                  <Button 
+                  onClick={()=>navigate("/sentemail")}
+                  variant="outline" fullWidth>
                     <Mail className="h-4 w-4 mr-2" />
                     Send Email
                   </Button>
-                  <Button variant="primary" fullWidth>
+                  <Button 
+                  onClick={()=>navigate("/vieworder")}
+                  variant="primary" fullWidth>
                     <CreditCard className="h-4 w-4 mr-2" />
                     View Orders
                   </Button>
@@ -240,6 +308,33 @@ const UserDetails = () => {
 
                 {/* User Stats */}
                 <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="flex items-center justify-center h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg mb-3 mx-auto">
+                      <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                        #{user.id}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        User ID
+                      </div>
+                    </div>
+                  </div>
+                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="flex items-center justify-center h-10 w-10 bg-green-100 dark:bg-green-900/30 rounded-lg mb-3 mx-auto">
+                    <User className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Active
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Status
+                      </div>
+                    </div>
+                  </div>
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                     <div className="flex items-center justify-center h-10 w-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg mb-3 mx-auto">
                       <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -254,44 +349,20 @@ const UserDetails = () => {
                     </div>
                   </div>
 
+                 
+
+             
+
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div className="flex items-center justify-center h-10 w-10 bg-green-100 dark:bg-green-900/30 rounded-lg mb-3 mx-auto">
-                      <Package className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <div className="flex items-center justify-center h-10 w-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg mb-3 mx-auto">
+                      <Package className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-gray-900 dark:text-white">
                         {calculateTotalOrders()}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Total Orders
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div className="flex items-center justify-center h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg mb-3 mx-auto">
-                      <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                        #{user.id}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        User ID
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div className="flex items-center justify-center h-10 w-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg mb-3 mx-auto">
-                      <User className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Active
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Status
+                        Total Items
                       </div>
                     </div>
                   </div>
@@ -307,7 +378,8 @@ const UserDetails = () => {
               <Card.Description>User's recent shopping carts</Card.Description>
             </Card.Header>
 
-            {userCarts.length > 0 ? (
+            {/* FIXED: Use cartsWithProducts instead of userCarts */}
+            {cartsWithProducts.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
                   <Table.Header>
@@ -320,12 +392,17 @@ const UserDetails = () => {
                   </Table.Header>
 
                   <Table.Body>
-                    {userCarts.slice(0, 5).map((cart) => {
+                    {cartsWithProducts.slice(0, 5).map((cart) => {
                       const total =
                         cart.products?.reduce(
-                          (sum, item) => sum + item.price * item.quantity,
+                          (sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 0),
                           0
                         ) || 0;
+
+                      const itemCount = cart.products?.reduce(
+                        (sum, item) => sum + (parseInt(item.quantity) || 0),
+                        0
+                      ) || 0;
 
                       return (
                         <Table.Row key={cart.id}>
@@ -347,10 +424,7 @@ const UserDetails = () => {
                             <div className="flex items-center">
                               <ShoppingCart className="h-4 w-4 text-gray-400 mr-2" />
                               <span className="font-medium text-gray-900 dark:text-white">
-                                {cart.products?.reduce(
-                                  (sum, item) => sum + item.quantity,
-                                  0
-                                ) || 0}
+                                {itemCount}
                               </span>
                             </div>
                           </Table.Cell>
@@ -370,8 +444,9 @@ const UserDetails = () => {
                           </Table.Cell>
 
                           <Table.Cell>
-                            <Link to={`/carts/${cart.id}`}>
-                              <Button size="small" variant="ghost">
+                            <Link to={`/admin/carts/${cart.id}`}>
+                              <Button size="small"
+                              className="hover:underline">
                                 View
                               </Button>
                             </Link>
@@ -437,9 +512,11 @@ const UserDetails = () => {
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">
-                  Cart Abandonment
+                  Total Items Purchased
                 </span>
-                <span className="font-medium text-red-600">12%</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {calculateTotalOrders()}
+                </span>
               </div>
             </div>
           </Card>

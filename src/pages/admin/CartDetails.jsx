@@ -188,33 +188,8 @@ const CartDetails = () => {
       </div>
     );
   }
-
-  if (!cart) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <div className="text-center py-12">
-            <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-              Cart not found
-            </h3>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              The cart you're looking for doesn't exist or has been removed.
-            </p>
-            <div className="mt-6">
-              <Button variant="primary" onClick={handleBack}>
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Back to Carts
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-1 py-8">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -234,7 +209,8 @@ const CartDetails = () => {
           </div>
 
           <div className="flex space-x-3">
-            <Button variant="primary">
+            <Button variant="primary"
+            onClick={()=>navigate("/processorder")}>
               <Truck className="h-5 w-5 mr-2" />
               Process Order
             </Button>
@@ -286,10 +262,12 @@ const CartDetails = () => {
                                 />
                               </div>
                               <div className="ml-4">
-                                <div className="font-medium text-gray-900 dark:text-white">
-                                  {item.product?.title ||
-                                    `Product #${item.productId}`}
+                                <div
+                        className="font-medium text-gray-900 dark:text-white max-w-[30ch] line-clamp-2"
+                          title={item.product?.title} >
+                            {item.product?.title || `Product #${item.productId}`}
                                 </div>
+
                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                   {item.product?.category || "Unknown"}
                                 </div>
@@ -523,7 +501,7 @@ const CartDetails = () => {
               )}
 
               <Card.Footer>
-                <Link to={`/users/${user?.id}`}>
+                <Link to={`/admin/users/${user?.id}`}>
                   <Button variant="outline" fullWidth disabled={!user?.id}>
                     View Customer Profile
                   </Button>
@@ -546,8 +524,8 @@ const CartDetails = () => {
                       toast.success("Order processing started");
                     }
                   }}
+                  icon={<Truck className="h-4 w-4 mr-2" />}
                 >
-                  <Truck className="h-4 w-4 mr-2" />
                   Process Order
                 </Button>
 
@@ -559,8 +537,8 @@ const CartDetails = () => {
                       toast.info("Add products feature coming soon");
                     }
                   }}
+                  icon={<Plus className="h-4 w-4 mr-2" />}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
                   Add Products
                 </Button>
 
@@ -572,8 +550,8 @@ const CartDetails = () => {
                       toast.info("Discount feature coming soon");
                     }
                   }}
+                  icon={<DollarSign className="h-4 w-4 mr-2" />}
                 >
-                  <DollarSign className="h-4 w-4 mr-2" />
                   Apply Discount
                 </Button>
 
@@ -585,8 +563,8 @@ const CartDetails = () => {
                       toast.success("Cart cleared successfully");
                     }
                   }}
+                  icon={<Trash2 className="h-4 w-4 mr-2" />}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
                   Clear Cart
                 </Button>
               </div>

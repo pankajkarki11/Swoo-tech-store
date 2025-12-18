@@ -1,5 +1,5 @@
-// src/pages/Products.jsx
-import React, { useState, useEffect, useCallback } from "react";
+// src/pages/Products.jsx - OPTIMIZED VERSION
+import React, { useState, useEffect } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -24,8 +24,6 @@ const Products = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [hasFetched, setHasFetched] = useState(false);
-  const [categoriesFetched, setCategoriesFetched] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     price: "",
@@ -34,53 +32,47 @@ const Products = () => {
     image: "",
   });
 
-  // Fetch products
+  // OPTIMIZED: Single effect that fetches both products and categories
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (hasFetched) return;
+    fetchInitialData();
+  }, []); // Empty dependency array - only runs once on mount
 
-      try {
-        setLoading(true);
-        const response = await api.productAPI.getAll();
-        setProducts(response.data || []);
-        setHasFetched(true);
-      } catch (error) {
-        toast.error("Failed to load products");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch both at the same time - only 2 API calls total
+      const [productsResponse, categoriesResponse] = await Promise.all([
+        api.productAPI.getAll(),
+        api.productAPI.getCategories(),
+      ]);
 
-    fetchProducts();
-  }, [api.productAPI, toast, hasFetched]);
-
-  // Fetch categories - only once
-  useEffect(() => {
-    const fetchCategories = async () => {
-      if (categoriesFetched) return;
-
-      try {
-        const response = await api.productAPI.getCategories();
-        setCategories(response.data || []);
-        setCategoriesFetched(true);
-      } catch (error) {
-        toast.error("Failed to load categories");
-      }
-    };
-
-    fetchCategories();
-  }, [api.productAPI, toast, categoriesFetched]);
+      setProducts(productsResponse.data || []);
+      setCategories(categoriesResponse.data || []);
+    } catch (error) {
+      console.error("Error fetching initial data:", error);
+      toast.error("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter products when search or category changes
   useEffect(() => {
+    filterProducts();
+  }, [products, searchTerm, selectedCategory]);
+
+  const filterProducts = () => {
     let filtered = [...products];
 
     // Search filter
     if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (product) =>
-          product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchTerm.toLowerCase())
+          product.title.toLowerCase().includes(searchLower) ||
+          product.description.toLowerCase().includes(searchLower) ||
+          product.id.toString().includes(searchTerm)
       );
     }
 
@@ -92,7 +84,7 @@ const Products = () => {
     }
 
     setFilteredProducts(filtered);
-  }, [products, searchTerm, selectedCategory]);
+  };
 
   const handleDelete = async () => {
     if (!selectedProduct) return;
@@ -100,13 +92,16 @@ const Products = () => {
     try {
       await api.productAPI.delete(selectedProduct.id);
       toast.success("Product deleted successfully");
-      // Remove product from state instead of refetching
+      
+      // Remove product from state (no API refetch needed)
       setProducts((prev) =>
         prev.filter((product) => product.id !== selectedProduct.id)
       );
+      
       setIsDeleteModalOpen(false);
       setSelectedProduct(null);
     } catch (error) {
+      console.error("Error deleting product:", error);
       toast.error("Failed to delete product");
     }
   };
@@ -127,30 +122,29 @@ const Products = () => {
           productData
         );
         toast.success("Product updated successfully");
-        // Update product in state
+        
+        // Update product in state (no API refetch needed)
         setProducts((prev) =>
           prev.map((p) =>
-            p.id === selectedProduct.id ? { ...p, ...productData } : p
+            p.id === selectedProduct.id 
+              ? { ...p, ...response.data } 
+              : p
           )
         );
       } else {
         // Create new product
         const response = await api.productAPI.create(productData);
         toast.success("Product created successfully");
-        // Add new product to state
-        setProducts((prev) => [...prev, { ...productData, id: Date.now() }]);
+        
+        // Add new product to state (no API refetch needed)
+        setProducts((prev) => [...prev, response.data]);
       }
 
       setIsProductModalOpen(false);
       setSelectedProduct(null);
-      setFormData({
-        title: "",
-        price: "",
-        description: "",
-        category: "",
-        image: "",
-      });
+      resetForm();
     } catch (error) {
+      console.error("Error saving product:", error);
       toast.error(
         selectedProduct
           ? "Failed to update product"
@@ -173,6 +167,11 @@ const Products = () => {
 
   const handleAddNew = () => {
     setSelectedProduct(null);
+    resetForm();
+    setIsProductModalOpen(true);
+  };
+
+  const resetForm = () => {
     setFormData({
       title: "",
       price: "",
@@ -180,15 +179,19 @@ const Products = () => {
       category: "",
       image: "",
     });
-    setIsProductModalOpen(true);
   };
 
-  const handleRefresh = () => {
-    setHasFetched(false);
-    setCategoriesFetched(false);
+  const handleRefresh = async () => {
+    await fetchInitialData();
+    toast.success("Data refreshed");
   };
 
-  if (loading && products.length === 0) {
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("all");
+  };
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />
@@ -209,7 +212,7 @@ const Products = () => {
           </p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" onClick={handleRefresh}>
+          <Button variant="outline" onClick={handleRefresh} loading={loading}>
             Refresh
           </Button>
           <Button variant="primary" onClick={handleAddNew}>
@@ -217,6 +220,48 @@ const Products = () => {
             Add Product
           </Button>
         </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Total Products</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {products.length}
+            </p>
+          </div>
+        </Card>
+        
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Categories</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {categories.length}
+            </p>
+          </div>
+        </Card>
+        
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Avg. Price</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              ${products.length > 0 
+                ? (products.reduce((sum, p) => sum + parseFloat(p.price), 0) / products.length).toFixed(2)
+                : '0.00'
+              }
+            </p>
+          </div>
+        </Card>
+        
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Filtered</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {filteredProducts.length}
+            </p>
+          </div>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -250,10 +295,7 @@ const Products = () => {
             <Button
               variant="outline"
               fullWidth
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("all");
-              }}
+              onClick={clearFilters}
             >
               <Filter className="h-5 w-5 mr-2" />
               Clear Filters
@@ -307,7 +349,7 @@ const Products = () => {
 
                   <Table.Cell>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      ${product.price}
+                      ${parseFloat(product.price).toFixed(2)}
                     </span>
                   </Table.Cell>
 
@@ -368,12 +410,20 @@ const Products = () => {
                 ? "Try adjusting your search or filter to find what you're looking for."
                 : "Get started by creating a new product."}
             </p>
-            <div className="mt-6">
-              <Button variant="primary" onClick={handleAddNew}>
-                <Plus className="h-5 w-5 mr-2" />
-                Add Product
-              </Button>
-            </div>
+            {(searchTerm || selectedCategory !== "all") ? (
+              <div className="mt-6">
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear Filters
+                </Button>
+              </div>
+            ) : (
+              <div className="mt-6">
+                <Button variant="primary" onClick={handleAddNew}>
+                  <Plus className="h-5 w-5 mr-2" />
+                  Add Product
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Card>
@@ -415,6 +465,7 @@ const Products = () => {
         onClose={() => {
           setIsProductModalOpen(false);
           setSelectedProduct(null);
+          resetForm();
         }}
         title={selectedProduct ? "Edit Product" : "Add New Product"}
         size="large"
@@ -521,6 +572,7 @@ const Products = () => {
               onClick={() => {
                 setIsProductModalOpen(false);
                 setSelectedProduct(null);
+                resetForm();
               }}
             >
               Cancel

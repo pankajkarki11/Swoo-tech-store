@@ -239,16 +239,16 @@ const UserProfilePage = () => {
                               }}
                             />
                           <div className="flex-1">
-  <p className="font-medium text-gray-800 dark:text-white">
-    {product.title.length > 60
-      ? product.title.slice(0, 60) + "..."
-      : product.title}
-  </p>
+                          <p className="font-medium text-gray-800 dark:text-white">
+                               {product.title.length > 60
+                                 ? product.title.slice(0, 60) + "..."
+                                 : product.title}
+                                   </p>
 
-  <p className="text-sm text-gray-600 dark:text-white">
-    Quantity: {product.quantity} × ${product.price.toFixed(2)}
-  </p>
-</div>
+                              <p className="text-sm text-gray-600 dark:text-white">
+                                Quantity: {product.quantity} × ${product.price.toFixed(2)}
+                              </p>
+                            </div>
 
                             <div className="font-semibold text-gray-900 dark:text-white">
                               ${(product.price * product.quantity).toFixed(2)}

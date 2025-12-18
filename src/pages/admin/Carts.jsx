@@ -1,4 +1,4 @@
-// src/pages/Carts.jsx
+// src/pages/Carts.jsx - HIGHLY OPTIMIZED VERSION
 import React, { useState, useEffect } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import Card from "../../components/ui/Card";
@@ -25,6 +25,7 @@ const Carts = () => {
   const api = useApi();
 
   const [carts, setCarts] = useState([]);
+  const [cartsWithProducts, setCartsWithProducts] = useState([]);
   const [filteredCarts, setFilteredCarts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,20 +33,73 @@ const Carts = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCart, setSelectedCart] = useState(null);
 
+  // OPTIMIZED: Single effect that runs once
   useEffect(() => {
-    fetchCarts();
+    fetchCartsData();
   }, []);
 
   useEffect(() => {
     filterCarts();
-  }, [carts, searchTerm, selectedStatus]);
+  }, [cartsWithProducts, searchTerm, selectedStatus]);
 
-  const fetchCarts = async () => {
+  // OPTIMIZED: Fetch carts and products together, then enrich
+  const fetchCartsData = async () => {
     try {
       setLoading(true);
-      const response = await api.cartAPI.getAll();
-      setCarts(response.data || []);
+
+      // STEP 1: Fetch carts and all products in parallel (2 API calls only!)
+      const [cartsResponse, productsResponse] = await Promise.all([
+        api.cartAPI.getAll(),
+        api.productAPI.getAll(),
+      ]);
+
+      const cartsData = cartsResponse.data || [];
+      const productsData = productsResponse.data || [];
+
+      setCarts(cartsData);
+
+      // STEP 2: Create product lookup map for O(1) access
+      const productMap = new Map();
+      productsData.forEach(product => {
+        productMap.set(product.id, product);
+      });
+
+      // STEP 3: Enrich carts with product details (no additional API calls!)
+      const enrichedCarts = cartsData.map(cart => {
+        if (!cart.products || cart.products.length === 0) {
+          return { ...cart, products: [] };
+        }
+
+        const enrichedProducts = cart.products.map(item => {
+          const product = productMap.get(item.productId);
+          
+          if (product) {
+            return {
+              ...product,
+              quantity: item.quantity,
+              cartProductId: item.productId
+            };
+          } else {
+            // Fallback for missing products
+            return {
+              id: item.productId,
+              title: "Unknown Product",
+              price: 0,
+              quantity: item.quantity,
+              cartProductId: item.productId
+            };
+          }
+        });
+
+        return {
+          ...cart,
+          products: enrichedProducts
+        };
+      });
+
+      setCartsWithProducts(enrichedCarts);
     } catch (error) {
+      console.error("Error fetching carts data:", error);
       toast.error("Failed to load carts");
     } finally {
       setLoading(false);
@@ -53,7 +107,7 @@ const Carts = () => {
   };
 
   const filterCarts = () => {
-    let filtered = [...carts];
+    let filtered = [...cartsWithProducts];
 
     // Search filter
     if (searchTerm) {
@@ -67,13 +121,8 @@ const Carts = () => {
     // Status filter
     if (selectedStatus !== "all") {
       filtered = filtered.filter((cart) => {
-        const totalItems =
-          cart.products?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-        const totalPrice =
-          cart.products?.reduce(
-            (sum, item) => sum + item.price * item.quantity,
-            0
-          ) || 0;
+        const totalItems = calculateTotalItems(cart);
+        const totalPrice = calculateCartTotal(cart);
 
         switch (selectedStatus) {
           case "active":
@@ -91,27 +140,23 @@ const Carts = () => {
     setFilteredCarts(filtered);
   };
 
- const calculateCartTotal = (cart) => {
-  if (!cart.products) return 0;
+  const calculateCartTotal = (cart) => {
+    if (!cart.products || cart.products.length === 0) return 0;
 
-  let total = 0;
-  for (let item of cart.products) {
-    total += item.price * item.quantity;
-  }
-  return total;
-};
+    return cart.products.reduce((total, item) => {
+      const price = parseFloat(item.price) || 0;
+      const quantity = parseInt(item.quantity) || 0;
+      return total + (price * quantity);
+    }, 0);
+  };
 
+  const calculateTotalItems = (cart) => {
+    if (!cart.products || cart.products.length === 0) return 0;
 
-const calculateTotalItems = (cart) => {
-  if (!cart.products) return 0;
-
-  let total = 0;
-  for (let item of cart.products) {
-    total += item.quantity;
-  }
-  return total;
-};
-
+    return cart.products.reduce((total, item) => {
+      return total + (parseInt(item.quantity) || 0);
+    }, 0);
+  };
 
   const handleDelete = async () => {
     if (!selectedCart) return;
@@ -120,14 +165,21 @@ const calculateTotalItems = (cart) => {
       await api.cartAPI.delete(selectedCart.id);
       toast.success("Cart deleted successfully");
 
+      // Update both states (no refetch needed)
       setCarts((prev) => prev.filter((cart) => cart.id !== selectedCart.id));
+      setCartsWithProducts((prev) => prev.filter((cart) => cart.id !== selectedCart.id));
 
-      // fetchCarts(); // Refresh the list
       setIsDeleteModalOpen(false);
       setSelectedCart(null);
     } catch (error) {
+      console.error("Error deleting cart:", error);
       toast.error("Failed to delete cart");
     }
+  };
+
+  const handleRefresh = async () => {
+    await fetchCartsData();
+    toast.success("Data refreshed");
   };
 
   const formatDate = (dateString) => {
@@ -154,6 +206,27 @@ const calculateTotalItems = (cart) => {
     }
   };
 
+  const calculateActiveCartsCount = () => {
+    return cartsWithProducts.filter((cart) => calculateTotalItems(cart) > 0).length;
+  };
+
+  const calculateTotalRevenue = () => {
+    return cartsWithProducts.reduce((total, cart) => {
+      return total + calculateCartTotal(cart);
+    }, 0);
+  };
+
+  const calculateAverageCartValue = () => {
+    const activeCarts = cartsWithProducts.filter((cart) => calculateTotalItems(cart) > 0);
+    if (activeCarts.length === 0) return 0;
+    return calculateTotalRevenue() / activeCarts.length;
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedStatus("all");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -174,10 +247,15 @@ const calculateTotalItems = (cart) => {
             Manage customer shopping carts ({filteredCarts.length} carts)
           </p>
         </div>
-        <Button variant="primary">
-          <Plus className="h-5 w-5 mr-2" />
-          Create Cart
-        </Button>
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={handleRefresh} loading={loading}>
+            Refresh
+          </Button>
+          <Button variant="primary">
+            <Plus className="h-5 w-5 mr-2" />
+            Create Cart
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -205,11 +283,43 @@ const calculateTotalItems = (cart) => {
                 Active Carts
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                {carts.filter((c) => calculateTotalItems(c) > 0).length}
+                {calculateActiveCartsCount()}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
               <ShoppingCart className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Total Revenue
+              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                ${calculateTotalRevenue().toFixed(2)}
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/20">
+              <ShoppingCart className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Avg Cart Value
+              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                ${calculateAverageCartValue().toFixed(2)}
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-orange-100 dark:bg-orange-900/20">
+              <ShoppingCart className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </Card>
@@ -235,7 +345,7 @@ const calculateTotalItems = (cart) => {
             >
               <option value="all">All Status</option>
               <option value="active">Active Carts</option>
-              <option value="high-value">High Value</option>
+              <option value="high-value">High Value (&gt;$100)</option>
               <option value="empty">Empty Carts</option>
             </select>
           </div>
@@ -244,10 +354,7 @@ const calculateTotalItems = (cart) => {
             <Button
               variant="outline"
               fullWidth
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedStatus("all");
-              }}
+              onClick={clearFilters}
             >
               <Filter className="h-5 w-5 mr-2" />
               Clear Filters
@@ -282,9 +389,12 @@ const calculateTotalItems = (cart) => {
                   <Table.Cell>
                     <div className="flex items-center">
                       <Users className="h-4 w-4 text-gray-400 mr-2" />
-                      <span className="text-gray-900 dark:text-white">
-                        {cart.userId}
-                      </span>
+                      <Link 
+                        to={`/admin/users/${cart.userId}`}
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        User {cart.userId}
+                      </Link>
                     </div>
                   </Table.Cell>
 
@@ -306,7 +416,8 @@ const calculateTotalItems = (cart) => {
                   <Table.Cell>{getStatusBadge(cart)}</Table.Cell>
 
                   <Table.Cell>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <Calendar className="h-4 w-4 mr-1" />
                       {formatDate(cart.date || new Date().toISOString())}
                     </div>
                   </Table.Cell>
@@ -349,10 +460,16 @@ const calculateTotalItems = (cart) => {
                 : "No shopping carts have been created yet."}
             </p>
             <div className="mt-6">
-              <Button variant="primary">
-                <Plus className="h-5 w-5 mr-2" />
-                Create First Cart
-              </Button>
+              {searchTerm || selectedStatus !== "all" ? (
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear Filters
+                </Button>
+              ) : (
+                <Button variant="primary">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Create First Cart
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -376,19 +493,21 @@ const calculateTotalItems = (cart) => {
         {selectedCart && (
           <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              <div className="flex justify-between mb-1">
+              <div className="flex justify-between mb-2">
                 <span>User ID:</span>
-                <span className="font-medium">{selectedCart.userId}</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {selectedCart.userId}
+                </span>
               </div>
-              <div className="flex justify-between mb-1">
+              <div className="flex justify-between mb-2">
                 <span>Total Items:</span>
-                <span className="font-medium">
+                <span className="font-medium text-gray-900 dark:text-white">
                   {calculateTotalItems(selectedCart)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Total Value:</span>
-                <span className="font-medium">
+                <span className="font-medium text-green-600 dark:text-green-400">
                   ${calculateCartTotal(selectedCart).toFixed(2)}
                 </span>
               </div>

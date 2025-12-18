@@ -1,3 +1,4 @@
+// src/contexts/CartContext.jsx - OPTIMIZED VERSION
 import {
   createContext,
   useContext,
@@ -5,6 +6,7 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from "react";
 import { useAuth } from "./AuthContext";
 
@@ -23,43 +25,33 @@ export const CartProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [cartStats, setCartStats] = useState({
-    itemCount: 0,
-    uniqueProducts: 0,
-    totalValue: 0,
-    lastUpdated: null,
-  });
 
-  const { user, saveCartToAPI, loadUserCartsFromAPI, systemCartStats } =
-    useAuth();
+  const { user, saveCartToAPI } = useAuth();
 
   // Refs to prevent multiple operations
   const isAutoSyncing = useRef(false);
   const syncTimeoutRef = useRef(null);
-  const updateTimeoutRef = useRef(null);
 
-  // Initialize cart data
+  // ========== INITIALIZATION ==========
   useEffect(() => {
     const initializeCart = () => {
       try {
-        // Load from localStorage
         const savedCart = localStorage.getItem("swmart_cart");
         const savedWishlist = localStorage.getItem("swmart_wishlist");
 
         if (savedCart) {
           const parsedCart = JSON.parse(savedCart);
           setCart(parsedCart);
-          console.log("🛒 Loaded cart:", parsedCart.length, "items");
         }
 
         if (savedWishlist) {
           setWishlist(JSON.parse(savedWishlist));
         }
-
-        updateCartStats();
       } catch (error) {
-        console.error("❌ Cart init error:", error);
-        resetCartData();
+        console.error("Cart init error:", error);
+        // Clear corrupted data
+        localStorage.removeItem("swmart_cart");
+        localStorage.removeItem("swmart_wishlist");
       } finally {
         setIsInitialized(true);
       }
@@ -68,21 +60,9 @@ export const CartProvider = ({ children }) => {
     initializeCart();
   }, []);
 
-  // Update cart stats when cart changes
-  useEffect(() => {
-    if (!isInitialized) return;
-
-    // Debounce stats update
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-
-    updateTimeoutRef.current = setTimeout(() => {
-      updateCartStats();
-    }, 300);
-  }, [cart, isInitialized]);
-
-  // Save cart to localStorage when it changes
+  // ========== AUTO-SAVE & AUTO-SYNC ==========
+  
+  // Save cart to localStorage and auto-sync to API
   useEffect(() => {
     if (!isInitialized) return;
 
@@ -90,25 +70,25 @@ export const CartProvider = ({ children }) => {
       localStorage.setItem("swmart_cart", JSON.stringify(cart));
 
       // Auto-sync to API if user is logged in (debounced)
-      if (user && user.id && cart.length > 0) {
+      if (user?.id && cart.length > 0) {
+        // Clear existing timeout
         if (syncTimeoutRef.current) {
           clearTimeout(syncTimeoutRef.current);
         }
 
+        // Debounce sync for 5 seconds
         syncTimeoutRef.current = setTimeout(() => {
           autoSyncToAPI();
-        }, 5000); // 5 second debounce
+        }, 5000);
       }
     } catch (error) {
-      console.error("❌ Cart save error:", error);
+      console.error("Cart save error:", error);
     }
 
+    // Cleanup
     return () => {
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current);
-      }
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
       }
     };
   }, [cart, isInitialized, user]);
@@ -116,68 +96,40 @@ export const CartProvider = ({ children }) => {
   // Save wishlist to localStorage
   useEffect(() => {
     if (isInitialized) {
-      localStorage.setItem("swmart_wishlist", JSON.stringify(wishlist));
+      try {
+        localStorage.setItem("swmart_wishlist", JSON.stringify(wishlist));
+      } catch (error) {
+        console.error("Wishlist save error:", error);
+      }
     }
   }, [wishlist, isInitialized]);
 
-  // Auto-sync cart to API
+  // ========== AUTO-SYNC FUNCTION ==========
+  
   const autoSyncToAPI = useCallback(async () => {
-    if (
-      !user ||
-      !user.id ||
-      cart.length === 0 ||
-      isAutoSyncing.current ||
-      isSyncing
-    )
+    if (!user?.id || cart.length === 0 || isAutoSyncing.current || isSyncing) {
       return;
+    }
 
     try {
       isAutoSyncing.current = true;
       setIsSyncing(true);
       await saveCartToAPI(user.id, cart);
-      console.log("✅ Auto-sync completed");
     } catch (error) {
-      console.error("❌ Auto-sync failed:", error);
+      console.error("Auto-sync failed:", error);
     } finally {
       isAutoSyncing.current = false;
       setIsSyncing(false);
     }
   }, [user, cart, isSyncing, saveCartToAPI]);
 
-  // Update cart statistics
-  const updateCartStats = useCallback(() => {
-    const itemCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
-    const uniqueProducts = new Set(cart.map((item) => item.id)).size;
-    const totalValue = cart.reduce((sum, item) => {
-      const price = parseFloat(item.price) || 0;
-      const quantity = parseInt(item.quantity) || 0;
-      return sum + price * quantity;
-    }, 0);
+  // ========== CART OPERATIONS ==========
 
-    setCartStats({
-      itemCount,
-      uniqueProducts,
-      totalValue,
-      lastUpdated: new Date().toISOString(),
-    });
-  }, [cart]);
-
-  // Reset cart data
-  const resetCartData = () => {
-    setCart([]);
-    setWishlist([]);
-    localStorage.setItem("swmart_cart", JSON.stringify([]));
-    localStorage.setItem("swmart_wishlist", JSON.stringify([]));
-  };
-
-  // Cart operations
-  const addToCart = useCallback(async (product, quantity = 1) => {
+  const addToCart = useCallback((product, quantity = 1) => {
     if (!product) return;
 
     setCart((prevCart) => {
-      const existingIndex = prevCart.findIndex(
-        (item) => item.id === product.id
-      );
+      const existingIndex = prevCart.findIndex((item) => item.id === product.id);
 
       if (existingIndex > -1) {
         // Update existing item
@@ -190,53 +142,55 @@ export const CartProvider = ({ children }) => {
         return updatedCart;
       } else {
         // Add new item
-        const newItem = {
-          ...product,
-          quantity,
-          addedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        return [...prevCart, newItem];
+        return [
+          ...prevCart,
+          {
+            ...product,
+            quantity,
+            addedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
       }
     });
 
     window.dispatchEvent(new Event("cartUpdated"));
   }, []);
 
-  const removeFromCart = useCallback(async (productId) => {
+  const removeFromCart = useCallback((productId) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
     window.dispatchEvent(new Event("cartUpdated"));
   }, []);
 
-  const updateQuantity = useCallback(
-    async (productId, quantity) => {
-      if (quantity < 1) {
-        return await removeFromCart(productId);
-      }
+  const updateQuantity = useCallback((productId, quantity) => {
+    if (quantity < 1) {
+      removeFromCart(productId);
+      return;
+    }
 
-      setCart((prevCart) =>
-        prevCart.map((item) =>
-          item.id === productId
-            ? { ...item, quantity, updatedAt: new Date().toISOString() }
-            : item
-        )
-      );
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === productId
+          ? { ...item, quantity, updatedAt: new Date().toISOString() }
+          : item
+      )
+    );
 
-      window.dispatchEvent(new Event("cartUpdated"));
-    },
-    [removeFromCart]
-  );
+    window.dispatchEvent(new Event("cartUpdated"));
+  }, []);
 
-  const clearCart = useCallback(async () => {
+  const clearCart = useCallback(() => {
     setCart([]);
     window.dispatchEvent(new Event("cartUpdated"));
   }, []);
 
-  // Wishlist operations
+  // ========== WISHLIST OPERATIONS ==========
+
   const addToWishlist = useCallback((product) => {
     if (!product) return;
 
     setWishlist((prev) => {
+      // Avoid duplicates
       if (prev.find((item) => item.id === product.id)) {
         return prev;
       }
@@ -264,28 +218,117 @@ export const CartProvider = ({ children }) => {
     [addToWishlist, removeFromCart]
   );
 
-  // Calculations
-  const getCartTotal = useCallback(() => {
-    return cart.reduce((total, item) => {
-      const price = parseFloat(item.price) || 0;
-      const quantity = parseInt(item.quantity) || 0;
-      return total + price * quantity;
-    }, 0);
+  // ========== CART SYNC FUNCTIONS ==========
+
+  const manualSyncCart = useCallback(async () => {
+    if (!user?.id || isAutoSyncing.current) {
+      return { success: false, message: "Cannot sync now" };
+    }
+
+    try {
+      setIsSyncing(true);
+      await saveCartToAPI(user.id, cart);
+      return { success: true, message: "Cart synced successfully" };
+    } catch (error) {
+      console.error("Manual sync failed:", error);
+      return { success: false, message: "Sync failed" };
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [user, cart, saveCartToAPI]);
+
+  const loadUserCart = useCallback((userCartItems) => {
+    if (!userCartItems || !Array.isArray(userCartItems)) return;
+
+    try {
+      setCart(userCartItems);
+      localStorage.setItem("swmart_cart", JSON.stringify(userCartItems));
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      console.error("Error loading user cart:", error);
+    }
+  }, []);
+
+  const mergeWithUserCart = useCallback((userCartItems) => {
+    if (!userCartItems || !Array.isArray(userCartItems)) {
+      return cart;
+    }
+
+    try {
+      const mergedMap = new Map();
+
+      // Add user's items from API
+      userCartItems.forEach((item) => {
+        mergedMap.set(item.id, { ...item, source: "api" });
+      });
+
+      // Add/override with current local items
+      cart.forEach((currentItem) => {
+        const existingItem = mergedMap.get(currentItem.id);
+        if (existingItem) {
+          // Local quantity overrides API quantity
+          mergedMap.set(currentItem.id, {
+            ...existingItem,
+            quantity: currentItem.quantity,
+            updatedAt: new Date().toISOString(),
+            source: "local-override",
+          });
+        } else {
+          mergedMap.set(currentItem.id, {
+            ...currentItem,
+            source: "local",
+          });
+        }
+      });
+
+      const mergedCart = Array.from(mergedMap.values());
+      setCart(mergedCart);
+      localStorage.setItem("swmart_cart", JSON.stringify(mergedCart));
+      window.dispatchEvent(new Event("cartUpdated"));
+
+      return mergedCart;
+    } catch (error) {
+      console.error("Merge error:", error);
+      return cart;
+    }
   }, [cart]);
 
-  const getCartCount = useCallback(() => {
-    return cart.reduce(
-      (count, item) => count + (parseInt(item.quantity) || 0),
-      0
-    );
+  // ========== MEMOIZED CALCULATIONS ==========
+
+  // Calculate cart statistics (memoized for performance)
+  const cartStats = useMemo(() => {
+    const itemCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
+    const uniqueProducts = new Set(cart.map((item) => item.id)).size;
+    const totalValue = cart.reduce((sum, item) => {
+      const price = parseFloat(item.price) || 0;
+      const quantity = parseInt(item.quantity) || 0;
+      return sum + price * quantity;
+    }, 0);
+
+    return {
+      itemCount,
+      uniqueProducts,
+      totalValue,
+      lastUpdated: new Date().toISOString(),
+    };
   }, [cart]);
+
+  const getCartTotal = useCallback(() => cartStats.totalValue, [cartStats]);
+
+  const getCartCount = useCallback(() => cartStats.itemCount, [cartStats]);
 
   const getWishlistCount = useCallback(() => wishlist.length, [wishlist]);
 
-  // Queries
+  // ========== QUERY FUNCTIONS ==========
+
   const isInCart = useCallback(
     (productId) => cart.some((item) => item.id === productId),
     [cart]
+  );
+
+  const isInWishlist = useCallback(
+    (productId) => wishlist.some((item) => item.id === productId),
+    [wishlist]
   );
 
   const getCartItemQuantity = useCallback(
@@ -296,154 +339,82 @@ export const CartProvider = ({ children }) => {
     [cart]
   );
 
-  const getFormattedCart = useCallback(() => {
-    return cart.map((item) => ({
-      ...item,
-      formattedPrice: `$${parseFloat(item.price || 0).toFixed(2)}`,
-      formattedTotal: `$${(
-        parseFloat(item.price || 0) * parseInt(item.quantity || 0)
-      ).toFixed(2)}`,
-    }));
-  }, [cart]);
-
-  // Manual sync
-  const manualSyncCart = useCallback(async () => {
-    if (!user || !user.id || isAutoSyncing.current) {
-      console.warn("⚠️ Cannot sync now");
-      return false;
-    }
-
-    try {
-      setIsSyncing(true);
-      await saveCartToAPI(user.id, cart);
-      console.log("✅ Manual sync completed");
-      return true;
-    } catch (error) {
-      console.error("❌ Manual sync failed:", error);
-      return false;
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [user, cart, saveCartToAPI]);
-
-  // Load user's cart from AuthContext
-  const loadUserCart = useCallback(
-    (userCartItems) => {
-      if (!userCartItems || !Array.isArray(userCartItems)) return;
-
-      try {
-        setCart(userCartItems);
-        localStorage.setItem("swmart_cart", JSON.stringify(userCartItems));
-        console.log("✅ User cart loaded:", userCartItems.length, "items");
-        window.dispatchEvent(new Event("cartUpdated"));
-        updateCartStats();
-      } catch (error) {
-        console.error("❌ Error loading user cart:", error);
-      }
-    },
-    [updateCartStats]
+  const getCartItem = useCallback(
+    (productId) => cart.find((item) => item.id === productId),
+    [cart]
   );
 
-  // Merge carts
-  const mergeWithUserCart = useCallback(
-    (userCartItems) => {
-      if (!userCartItems || !Array.isArray(userCartItems)) {
-        return cart;
-      }
+  // ========== MEMOIZED PROVIDER VALUE ==========
 
-      try {
-        const mergedMap = new Map();
+  const value = useMemo(
+    () => ({
+      // State
+      cart,
+      wishlist,
+      isSyncing,
+      cartStats,
 
-        // Add user's items
-        userCartItems.forEach((item) => {
-          mergedMap.set(item.id, {
-            ...item,
-            source: "api",
-          });
-        });
+      // Cart operations
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
 
-        // Add/override with current items
-        cart.forEach((currentItem) => {
-          const existingItem = mergedMap.get(currentItem.id);
-          if (existingItem) {
-            mergedMap.set(currentItem.id, {
-              ...existingItem,
-              quantity: currentItem.quantity, // Current overrides
-              updatedAt: new Date().toISOString(),
-              source: "local-override",
-            });
-          } else {
-            mergedMap.set(currentItem.id, {
-              ...currentItem,
-              source: "local",
-            });
-          }
-        });
+      // Wishlist operations
+      addToWishlist,
+      removeFromWishlist,
+      moveToCart,
+      moveToWishlist,
 
-        const mergedCart = Array.from(mergedMap.values());
-        setCart(mergedCart);
-        localStorage.setItem("swmart_cart", JSON.stringify(mergedCart));
-        console.log("✅ Carts merged:", mergedCart.length, "items");
-        window.dispatchEvent(new Event("cartUpdated"));
-        updateCartStats();
+      // Calculations
+      getCartTotal,
+      getCartCount,
+      getWishlistCount,
 
-        return mergedCart;
-      } catch (error) {
-        console.error("❌ Merge error:", error);
-        return cart;
-      }
-    },
-    [cart, updateCartStats]
+      // Queries
+      isInCart,
+      isInWishlist,
+      getCartItemQuantity,
+      getCartItem,
+
+      // Cart management
+      manualSyncCart,
+      loadUserCart,
+      mergeWithUserCart,
+
+      // Computed values (for convenience)
+      cartItemCount: cartStats.itemCount,
+      cartTotalAmount: cartStats.totalValue,
+      isCartEmpty: cart.length === 0,
+      hasCartItems: cart.length > 0,
+      wishlistCount: wishlist.length,
+      isWishlistEmpty: wishlist.length === 0,
+    }),
+    [
+      cart,
+      wishlist,
+      isSyncing,
+      cartStats,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      addToWishlist,
+      removeFromWishlist,
+      moveToCart,
+      moveToWishlist,
+      getCartTotal,
+      getCartCount,
+      getWishlistCount,
+      isInCart,
+      isInWishlist,
+      getCartItemQuantity,
+      getCartItem,
+      manualSyncCart,
+      loadUserCart,
+      mergeWithUserCart,
+    ]
   );
-
-  // Get system statistics
-  const getSystemStatistics = useCallback(() => {
-    return systemCartStats;
-  }, [systemCartStats]);
-
-  const value = {
-    // State
-    cart,
-    wishlist,
-    isSyncing,
-    cartStats,
-
-    // Cart operations
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-
-    // Wishlist operations
-    addToWishlist,
-    removeFromWishlist,
-    moveToCart,
-    moveToWishlist,
-
-    // Calculations
-    getCartTotal,
-    getCartCount,
-    getWishlistCount,
-
-    // Queries
-    isInCart,
-    getCartItemQuantity,
-    getFormattedCart,
-
-    // Cart management
-    manualSyncCart,
-    loadUserCart,
-    mergeWithUserCart,
-
-    // Statistics
-    getSystemStatistics,
-    updateCartStats,
-
-    // Helpers
-    cartItemCount: getCartCount(),
-    cartTotalAmount: getCartTotal(),
-    isCartEmpty: cart.length === 0,
-  };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

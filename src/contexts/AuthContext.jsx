@@ -1,4 +1,4 @@
-// src/contexts/AuthContext.jsx
+// src/contexts/AuthContext.jsx - OPTIMIZED VERSION
 import {
   createContext,
   useState,
@@ -6,6 +6,7 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from "react";
 import useApi from "../services/AdminuseApi";
 
@@ -25,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
 
-  // Cart sync states (for client app)
+  // Cart sync states
   const [isSyncingCart, setIsSyncingCart] = useState(false);
   const [cartSyncMessage, setCartSyncMessage] = useState("");
   const [userCartsFromAPI, setUserCartsFromAPI] = useState([]);
@@ -38,25 +39,22 @@ export const AuthProvider = ({ children }) => {
 
   const api = useApi();
 
-  // Refs
+  // Refs to prevent duplicate operations
   const isInitializing = useRef(false);
   const isLoadingCarts = useRef(false);
+  const productCacheRef = useRef(new Map()); // NEW: Cache products globally
 
-  //  ADMIN USERNAME PATTERNS 
-
-  const ADMIN_USERNAME_PATTERNS = [ 
-    "john",    
-  ];
+  // Admin username patterns
+  const ADMIN_USERNAME_PATTERNS = ["john"];
 
   // Helper function to check if username qualifies for admin
-  const isAdminUsername = (username) => {
+  const isAdminUsername = useCallback((username) => {
     if (!username) return false;
-    
     const lowerUsername = username.toLowerCase();
     return ADMIN_USERNAME_PATTERNS.some(pattern => 
       lowerUsername.includes(pattern.toLowerCase())
     );
-  };
+  }, []);
 
   // ========== INITIALIZATION ==========
   useEffect(() => {
@@ -65,7 +63,6 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       isInitializing.current = true;
       try {
-        // Check for authentication data in unified format
         const storedUser = localStorage.getItem("swmart_user");
         const storedToken = localStorage.getItem("swmart_token");
 
@@ -74,15 +71,18 @@ export const AuthProvider = ({ children }) => {
           setUser(parsedUser);
           setToken(storedToken);
 
-          // Load carts for authenticated user
-          if (parsedUser.id) {
-            await loadUserCartsFromAPI(parsedUser.id);
-            await loadAllCartsFromAPI();
-            await calculateSystemCartStats();
+          // OPTIMIZED: Load data only for admin users
+          if (parsedUser.isAdmin) {
+            // Load all carts and calculate stats in parallel
+            await Promise.all([
+              loadAllCartsFromAPI(),
+              loadUserCartsFromAPI(parsedUser.id),
+            ]);
           }
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
+        clearAuthData();
       } finally {
         setLoading(false);
         isInitializing.current = false;
@@ -94,16 +94,17 @@ export const AuthProvider = ({ children }) => {
 
   // ========== CORE AUTH FUNCTIONS ==========
 
-  const clearAuthData = () => {
-    // Clear all auth storage
+  const clearAuthData = useCallback(() => {
     localStorage.removeItem("swmart_user");
     localStorage.removeItem("swmart_token");
     setUser(null);
     setToken(null);
     setUserCartsFromAPI([]);
-  };
+    setAllCarts([]);
+    productCacheRef.current.clear(); // Clear product cache
+  }, []);
 
-  // ========== LOGIN FUNCTION ==========
+  // ========== OPTIMIZED LOGIN FUNCTION ==========
   const login = useCallback(
     async (credentials) => {
       const { username, password } = credentials;
@@ -112,32 +113,19 @@ export const AuthProvider = ({ children }) => {
         setIsSyncingCart(true);
         setCartSyncMessage("Logging in...");
 
-        // Authenticate with API
-        let apiUser;
-        let apiToken;
+        // OPTIMIZED: Single parallel API call
+        const [authResponse, usersResponse] = await Promise.all([
+          api.authAPI.login({ username, password }),
+          api.userAPI.getAll(),
+        ]);
 
-        try {
-          // Authenticate with FakeStoreAPI
-          const { data: authData } = await api.authAPI.login({
-            username: username,
-            password: password,
-          });
+        const apiToken = authResponse.data.token;
+        const apiUser = usersResponse.data.find((u) => u.username === username);
 
-          apiToken = authData.token;
-
-          // Get user details from API
-          const { data: users } = await api.userAPI.getAll();
-          apiUser = users.find((u) => u.username === username);
-
-          if (!apiUser) {
-            throw new Error("User not found in API");
-          }
-        } catch (apiError) {
-          console.log("API login failed:", apiError);
-          throw new Error("Invalid username or password");
+        if (!apiUser) {
+          throw new Error("User not found in API");
         }
 
-        // Check if username qualifies for admin access
         const isAdminUser = isAdminUsername(username);
 
         // Format user data
@@ -146,9 +134,7 @@ export const AuthProvider = ({ children }) => {
           username: apiUser.username,
           email: apiUser.email,
           name:
-            `${apiUser.name?.firstname || ""} ${
-              apiUser.name?.lastname || ""
-            }`.trim() || username,
+            `${apiUser.name?.firstname || ""} ${apiUser.name?.lastname || ""}`.trim() || username,
           firstname: apiUser.name?.firstname || username,
           lastname: apiUser.name?.lastname || "",
           address: apiUser.address,
@@ -164,28 +150,22 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setToken(apiToken);
 
-        // Load user's carts if they have admin access
+        // Load user's carts if admin
+        let userCarts = [];
         if (isAdminUser) {
           setCartSyncMessage("🔄 Loading your cart history...");
-          const userCarts = await loadUserCartsFromAPI(userData.id, true);
-          setCartSyncMessage("✅ Login successful!");
-          return {
-            success: true,
-            user: userData,
-            token: apiToken,
-            isAdmin: true,
-            apiCarts: userCarts || [],
-          };
-        } else {
-          setCartSyncMessage("✅ Login successful!");
-          return {
-            success: true,
-            user: userData,
-            token: apiToken,
-            isAdmin: false,
-            apiCarts: [],
-          };
+          userCarts = await loadUserCartsFromAPI(userData.id, true);
         }
+
+        setCartSyncMessage("✅ Login successful!");
+        
+        return {
+          success: true,
+          user: userData,
+          token: apiToken,
+          isAdmin: isAdminUser,
+          apiCarts: userCarts,
+        };
       } catch (error) {
         console.error("Login error:", error);
         return {
@@ -199,20 +179,41 @@ export const AuthProvider = ({ children }) => {
         }, 1000);
       }
     },
-    [api.authAPI, api.userAPI]
+    [api, isAdminUsername]
   );
-  // ========== CART FUNCTIONS ==========
 
-  
+  // ========== OPTIMIZED CART FUNCTIONS ==========
 
+  // OPTIMIZED: Load all carts and calculate stats in one go
   const loadAllCartsFromAPI = useCallback(
     async (forceRefresh = false) => {
-      if (isLoadingCarts.current) return allCarts;
+      if (isLoadingCarts.current && !forceRefresh) return allCarts;
 
       try {
         isLoadingCarts.current = true;
         const { data: allCartsData } = await api.cartAPI.getAll(forceRefresh);
         setAllCarts(allCartsData || []);
+
+        // Calculate stats immediately without additional function call
+        let totalItems = 0;
+        const userSet = new Set();
+
+        (allCartsData || []).forEach((cart) => {
+          userSet.add(cart.userId);
+          if (cart.products && Array.isArray(cart.products)) {
+            totalItems += cart.products.reduce(
+              (sum, product) => sum + (product.quantity || 1),
+              0
+            );
+          }
+        });
+
+        setSystemCartStats({
+          totalCarts: allCartsData?.length || 0,
+          totalUsersWithCarts: userSet.size,
+          totalItemsInSystem: totalItems,
+        });
+
         return allCartsData || [];
       } catch (error) {
         console.error("Error loading all carts:", error);
@@ -224,40 +225,12 @@ export const AuthProvider = ({ children }) => {
     [api.cartAPI, allCarts]
   );
 
-  const calculateSystemCartStats = useCallback(async () => {
-    try {
-      const carts = await loadAllCartsFromAPI();
+  // REMOVED: calculateSystemCartStats - now done inside loadAllCartsFromAPI
 
-      let totalItems = 0;
-      const userSet = new Set();
-
-      carts.forEach((cart) => {
-        userSet.add(cart.userId);
-        if (cart.products && Array.isArray(cart.products)) {
-          totalItems += cart.products.reduce(
-            (sum, product) => sum + (product.quantity || 1),
-            0
-          );
-        }
-      });
-
-      const stats = {
-        totalCarts: carts.length,
-        totalUsersWithCarts: userSet.size,
-        totalItemsInSystem: totalItems,
-      };
-
-      setSystemCartStats(stats);
-      return stats;
-    } catch (error) {
-      console.error("Error calculating cart stats:", error);
-      return systemCartStats;
-    }
-  }, [loadAllCartsFromAPI, systemCartStats]);
-
+  // OPTIMIZED: Load user carts with product cache
   const loadUserCartsFromAPI = useCallback(
     async (userId, forceRefresh = false) => {
-      if (!userId || isLoadingCarts.current) return [];
+      if (!userId || (isLoadingCarts.current && !forceRefresh)) return [];
 
       try {
         isLoadingCarts.current = true;
@@ -271,7 +244,6 @@ export const AuthProvider = ({ children }) => {
         setUserCartsFromAPI(userCarts || []);
 
         if (userCarts?.length > 0) {
-          // Process and merge with local cart
           const apiCartItems = await convertAPICartsToLocalFormat(userCarts);
           const localCart = JSON.parse(
             localStorage.getItem("swmart_cart") || "[]"
@@ -304,29 +276,48 @@ export const AuthProvider = ({ children }) => {
     [api.cartAPI]
   );
 
+  // OPTIMIZED: Use product cache to avoid duplicate API calls
   const convertAPICartsToLocalFormat = useCallback(
     async (apiCarts) => {
       if (!apiCarts || apiCarts.length === 0) return [];
 
       const localCartItems = [];
-      const productCache = new Map();
+      const productCache = productCacheRef.current;
 
+      // Collect all unique product IDs
+      const productIds = new Set();
+      apiCarts.forEach(cart => {
+        cart.products?.forEach(item => {
+          if (!productCache.has(item.productId)) {
+            productIds.add(item.productId);
+          }
+        });
+      });
+
+      // OPTIMIZED: Fetch all missing products in parallel
+      if (productIds.size > 0) {
+        const productPromises = Array.from(productIds).map(async (productId) => {
+          try {
+            const { data: productData } = await api.productAPI.getById(productId);
+            productCache.set(productId, productData);
+            return productData;
+          } catch (error) {
+            console.error(`Error fetching product ${productId}:`, error);
+            return null;
+          }
+        });
+
+        await Promise.all(productPromises);
+      }
+
+      // Build cart items using cached products
       for (const cart of apiCarts) {
         if (!cart.products || !Array.isArray(cart.products)) continue;
 
         for (const apiProduct of cart.products) {
-          try {
-            let product;
-            if (productCache.has(apiProduct.productId)) {
-              product = productCache.get(apiProduct.productId);
-            } else {
-              const { data: productData } = await api.productAPI.getById(
-                apiProduct.productId
-              );
-              product = productData;
-              productCache.set(apiProduct.productId, productData);
-            }
-
+          const product = productCache.get(apiProduct.productId);
+          
+          if (product) {
             localCartItems.push({
               ...product,
               quantity: apiProduct.quantity || 1,
@@ -335,11 +326,6 @@ export const AuthProvider = ({ children }) => {
               userId: cart.userId,
               fromAPI: true,
             });
-          } catch (error) {
-            console.error(
-              `Error fetching product ${apiProduct.productId}:`,
-              error
-            );
           }
         }
       }
@@ -378,10 +364,8 @@ export const AuthProvider = ({ children }) => {
       if (!userId || !cartItems.length || isLoadingCarts.current) return null;
 
       try {
-        // Get user's existing carts
         const { data: existingCarts } = await api.cartAPI.getUserCarts(userId);
 
-        // Prepare cart data
         const apiCartData = {
           userId: userId,
           date: new Date().toISOString(),
@@ -394,12 +378,10 @@ export const AuthProvider = ({ children }) => {
         let savedCart;
 
         if (existingCarts?.length > 0) {
-          // Update most recent cart
           const latestCart = existingCarts[0];
           const { data } = await api.cartAPI.update(latestCart.id, apiCartData);
           savedCart = data;
         } else {
-          // Create new cart
           const { data } = await api.cartAPI.create(apiCartData);
           savedCart = data;
         }
@@ -448,19 +430,18 @@ export const AuthProvider = ({ children }) => {
   // ========== OTHER FUNCTIONS ==========
 
   const logout = useCallback(() => {
-    // Save cart before logout
+    // Save cart before logout (non-blocking)
     if (user) {
       const currentCart = JSON.parse(
         localStorage.getItem("swmart_cart") || "[]"
       );
       if (currentCart.length > 0) {
-        // Attempt to save, but don't block logout on error
         saveCartToAPI(user.id, currentCart).catch(console.error);
       }
     }
 
     clearAuthData();
-  }, [user, saveCartToAPI]);
+  }, [user, saveCartToAPI, clearAuthData]);
 
   const updateUser = useCallback(
     (updatedData) => {
@@ -475,6 +456,7 @@ export const AuthProvider = ({ children }) => {
     [user]
   );
 
+  // OPTIMIZED: Refresh all data efficiently
   const refreshAllData = useCallback(async () => {
     try {
       setIsSyncingCart(true);
@@ -483,13 +465,23 @@ export const AuthProvider = ({ children }) => {
       // Clear API cache
       api.clearCache && api.clearCache();
 
-      const results = await Promise.allSettled([
-        loadAllCartsFromAPI(true),
-        calculateSystemCartStats(),
-        user ? loadUserCartsFromAPI(user.id, true) : Promise.resolve([]),
-      ]);
+      // OPTIMIZED: Parallel refresh with proper error handling
+      const tasks = [loadAllCartsFromAPI(true)];
+      
+      if (user) {
+        tasks.push(loadUserCartsFromAPI(user.id, true));
+      }
 
-      setCartSyncMessage("✅ Data refreshed!");
+      const results = await Promise.allSettled(tasks);
+
+      const hasErrors = results.some(r => r.status === 'rejected');
+      
+      if (hasErrors) {
+        setCartSyncMessage("⚠️ Data refreshed with some errors");
+      } else {
+        setCartSyncMessage("✅ Data refreshed!");
+      }
+
       return results;
     } catch (error) {
       console.error("Refresh error:", error);
@@ -501,17 +493,20 @@ export const AuthProvider = ({ children }) => {
         setCartSyncMessage("");
       }, 1000);
     }
-  }, [
-    api,
-    loadAllCartsFromAPI,
-    calculateSystemCartStats,
-    loadUserCartsFromAPI,
-    user,
-  ]);
+  }, [api, loadAllCartsFromAPI, loadUserCartsFromAPI, user]);
 
-  // ========== PROVIDER VALUE ==========
+  // OPTIMIZED: Memoize helper function
+  const hasCartItems = useCallback(() => {
+    try {
+      const cart = JSON.parse(localStorage.getItem("swmart_cart") || "[]");
+      return cart.length > 0;
+    } catch {
+      return false;
+    }
+  }, []);
 
-  const value = {
+  // ========== MEMOIZED PROVIDER VALUE ==========
+  const value = useMemo(() => ({
     // State
     user,
     token,
@@ -538,19 +533,32 @@ export const AuthProvider = ({ children }) => {
 
     // Data functions
     loadAllCartsFromAPI,
-    calculateSystemCartStats,
     refreshAllData,
 
     // Helpers
-    hasCartItems: () => {
-      const cart = JSON.parse(localStorage.getItem("swmart_cart") || "[]");
-      return cart.length > 0;
-    },
-
-    // Admin pattern checking
+    hasCartItems,
     isAdminUsername,
     ADMIN_USERNAME_PATTERNS,
-  };
+  }), [
+    user,
+    token,
+    loading,
+    isSyncingCart,
+    cartSyncMessage,
+    userCartsFromAPI,
+    allCarts,
+    systemCartStats,
+    login,
+    logout,
+    updateUser,
+    syncCartToAPI,
+    loadUserCartsFromAPI,
+    saveCartToAPI,
+    loadAllCartsFromAPI,
+    refreshAllData,
+    hasCartItems,
+    isAdminUsername,
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

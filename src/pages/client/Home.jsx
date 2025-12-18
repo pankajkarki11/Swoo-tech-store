@@ -285,20 +285,15 @@ const EcommerceHomepage = () => {
               </div>
             </div>
             
-            <Button
-            
-            size="medium"
-              onClick={handleRefreshStats}
-              disabled={isRefreshingStats}
-              
-            >
-              {isRefreshingStats ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <RefreshCw size={16} className="mr-2" />
-              )}
-              <span> Refresh Stats</span>
-            </Button>
+           <Button
+  size="small"
+  onClick={handleRefreshStats}
+  disabled={isRefreshingStats}
+  loading={isRefreshingStats}
+  icon={<RefreshCw size={16} />}
+>
+  Refresh Stats
+</Button>
           </div>
         </div>
       </div>
