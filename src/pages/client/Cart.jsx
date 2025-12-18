@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import Button from "../../components/ui/Button";
 import {
   ArrowRight,
   Heart,
@@ -241,30 +242,31 @@ const CartPage = () => {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <button
+              <Button
+              variant="secondary"
                 onClick={continueShopping}
-                className="flex items-center text-[#01A49E] hover:text-[#01857F] transition"
+              
               >
                 <ArrowLeft size={20} className="mr-2" />
                 Continue Shopping
-              </button>
+              </Button>
             </div>
 
             <div className="flex items-center gap-3 ">
-              <button
+              <Button
                 onClick={refreshCartData}
                 disabled={isRefreshing}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50"
+                
               >
                 <RefreshCw
                   size={16}
                   className={isRefreshing ? "animate-spin" : ""}
                 />
                 {isRefreshing ? "Refreshing..." : "Refresh Data"}
-              </button>
+              </Button>
             </div>
           </div>
-
+ 
           <div className="flex items-center gap-3 mb-2">
             <div className="bg-gradient-to-r from-[#01A49E] to-[#01857F] p-3 rounded-xl">
               <ShoppingBag className="text-white" size={28} />
@@ -320,6 +322,7 @@ const CartPage = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
+          
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Current Cart */}
@@ -334,12 +337,13 @@ const CartPage = () => {
                 <p className="text-gray-600 mb-6 dark:text-white">
                   Add some items to your cart to see them here.
                 </p>
-                <button
+                <Button
+                variant="home"
                   onClick={continueShopping}
-                  className="bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition"
+                  
                 >
                   Start Shopping
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="space-y-6">
@@ -350,7 +354,7 @@ const CartPage = () => {
                     </h2>
                     <div className="flex items-center gap-2">
                       {user && (
-                        <button
+                        <Button
                           onClick={async () => {
                             try {
                               const result = await manualSyncCart();
@@ -362,20 +366,97 @@ const CartPage = () => {
                             }
                           }}
                           disabled={isSyncingCart}
-                          className="flex items-center gap-2 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                         
                         >
-                          <Upload size={14} />
+                          <Upload size={14} className="mr-2"  />
                           Sync to Account
-                        </button>
+                        </Button>
                       )}
-                      <button
+                      <Button
+                      variant="danger"
                         onClick={clearCartHandler}
-                        className="text-sm border border-red-300 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition dark:bg-red-500 dark:text-white dark:hover:bg-red-700"
+                        
                       >
                         Clear Cart
-                      </button>
+                      </Button>
+
+    {/* Cart History */}
+            {user && apiCarts.length > 0 && (
+              <div className="">
+                <div className="flex items-center justify-between mb-6">
+                  
+                  <Button
+                  variant="success"
+                    onClick={() => setShowCartHistory(!showCartHistory)}
+                    
+                  >
+                    {showCartHistory ? "Hide" : "Show"} History
+                  </Button>
+                </div>
+
+                {showCartHistory && (
+                  <div className="space-y-4">
+                    {isLoadingAPICarts ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-[#01A49E]" />
+                      </div>
+                    ) : (
+                      apiCarts.slice(0, 5).map((apiCart) => (
+                        <div
+                          key={apiCart.id}
+                          className="border border-gray-200 rounded-xl p-4 hover:border-purple-300 transition"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Package className="h-4 w-4 text-gray-500 dark:text-white" />
+                                <span className="font-medium text-gray-900 dark:text-white">
+                                  Cart #{apiCart.id}
+                                </span>
+                                <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                                  {apiCart.products?.length || 0} items
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-white">
+                                <Clock size={14} />
+                                <span>{formatDate(apiCart.date)}</span>
+                              </div>
+                            
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Button
+                               variant="home"
+                                onClick={() =>
+                                 
+                                  loadAPICartIntoCurrentCart(apiCart)
+                                }
+                                disabled={isLoadingAPICarts}
+                                
+                              >
+                                <Download size={14} />
+                                Load to Cart
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+
+
+
                     </div>
                   </div>
+
+
+
+
+                  
 
                   {cart.map((item) => (
                     <div
@@ -468,81 +549,7 @@ const CartPage = () => {
               </div>
             )}
 
-            {/* Cart History */}
-            {user && apiCarts.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-r from-purple-100 to-purple-200 rounded-lg">
-                      <History className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                        Your Cart History
-                      </h2>
-                      <p className="text-gray-600 text-sm dark:text-white">
-                        {apiCarts.length} saved carts from your account
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowCartHistory(!showCartHistory)}
-                    className="text-sm text-[#01A49E] hover:text-[#01857F] transition dark:text-white dark:hover:text-gray-300"
-                  >
-                    {showCartHistory ? "Hide" : "Show"} History
-                  </button>
-                </div>
-
-                {showCartHistory && (
-                  <div className="space-y-4">
-                    {isLoadingAPICarts ? (
-                      <div className="flex justify-center py-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-[#01A49E]" />
-                      </div>
-                    ) : (
-                      apiCarts.slice(0, 5).map((apiCart) => (
-                        <div
-                          key={apiCart.id}
-                          className="border border-gray-200 rounded-xl p-4 hover:border-purple-300 transition"
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
-                            <div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <Package className="h-4 w-4 text-gray-500 dark:text-white" />
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  Cart #{apiCart.id}
-                                </span>
-                                <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
-                                  {apiCart.products?.length || 0} items
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-white">
-                                <Clock size={14} />
-                                <span>{formatDate(apiCart.date)}</span>
-                              </div>
-                            
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() =>
-                                  loadAPICartIntoCurrentCart(apiCart)
-                                }
-                                disabled={isLoadingAPICarts}
-                                className="flex items-center gap-2 text-sm bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white px-3 py-1.5 rounded-lg hover:shadow-lg transition disabled:opacity-50"
-                              >
-                                <Download size={14} />
-                                Load to Cart
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+       
           </div>
 
           {/* Right Column */}

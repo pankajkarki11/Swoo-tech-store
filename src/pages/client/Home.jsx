@@ -286,17 +286,17 @@ const EcommerceHomepage = () => {
             </div>
             
             <Button
-            variants="primary"
+            variant="home"
               onClick={handleRefreshStats}
               disabled={isRefreshingStats}
-              className="flex items-center gap-2  px-4 py-2 rounded-lg transition-all backdrop-blur-sm disabled:opacity-50"
+              
             >
               {isRefreshingStats ? (
                 <Loader2 size={16} className="animate-spin" />
               ) : (
-                <RefreshCw size={16} />
+                <RefreshCw size={16} className="mr-2" />
               )}
-              <span>Refresh Stats</span>
+              <span> Refresh Stats</span>
             </Button>
           </div>
         </div>
@@ -337,12 +337,12 @@ const EcommerceHomepage = () => {
                       <p className="text-lg md:text-xl text-white/90 mb-8">
                         {slide.description}
                       </p>
-                      <button
-                        onClick={() => navigate("/products")}
-                        className={`${slide.buttonColor} text-white px-8 py-3 rounded-full font-semibold hover:shadow-2xl transition-all hover:scale-105 flex items-center gap-2`}
+                      <Button
+                        onClick={() => navigate("/product")}
+                        className={`${slide.buttonColor} hover:shadow-2xl transition-all hover:scale-105 flex items-center gap-2`}
                       >
                         Shop Now <ArrowRight className="ml-2" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -492,10 +492,11 @@ const EcommerceHomepage = () => {
                 </div>
 
                 {hasMoreProducts ? (
-                  <button
+                  <Button
+                  variant="home"
                     onClick={loadMoreProducts}
                     disabled={isLoadingMore}
-                    className="group bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white px-8 py-4 rounded-full font-semibold hover:shadow-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto shadow-lg"
+                    
                   >
                     {isLoadingMore ? (
                       <>
@@ -508,7 +509,7 @@ const EcommerceHomepage = () => {
                         <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
-                  </button>
+                  </Button>
                 ) : (
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 border border-green-200 dark:border-green-800 rounded-2xl p-6 max-w-md mx-auto">
                     <div className="flex items-center justify-center gap-3 mb-3">
