@@ -10,6 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
+import Switch from "./ui/Switch";
 
 const HeaderAdmin = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
@@ -131,17 +132,9 @@ const HeaderAdmin = ({ onMenuClick }) => {
               <Search className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </button>
 
-            {/* Dark mode toggle */}
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              {darkMode ? (
-                <Sun className="h-5 w-5 text-yellow-500" />
-              ) : (
-                <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-              )}
-            </button>
+           <div className="flex items-center">
+              <Switch checked={darkMode} onChange={toggleDarkMode} />
+            </div>
 
             {/* Notifications */}
             <div className="relative">

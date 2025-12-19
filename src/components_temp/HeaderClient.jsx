@@ -1,4 +1,3 @@
-// src/components/HeaderClient.jsx
 import React, { useState, useEffect } from "react";
 import {
   Search,
@@ -28,6 +27,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
+import Switch from "./ui/Switch";
 import toast from "react-hot-toast";
 
 const HeaderClient = () => {
@@ -117,7 +117,7 @@ const HeaderClient = () => {
       <div className="w-full px-4 py-4">
         {/* Top Bar */}
         <div className="flex items-center justify-between mb-4">
-          {/* Logo and Mobile  Menu Button */}
+          {/* Logo and Mobile Menu Button */}
           <div className="flex items-center space-x-3">
             <button
               className="lg:hidden text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors"
@@ -163,19 +163,10 @@ const HeaderClient = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-full bg-white/10 dark:bg-gray-800 hover:bg-white/20 dark:hover:bg-gray-700 transition-colors group"
-              aria-label={
-                darkMode ? "Switch to light mode" : "Switch to dark mode"
-              }
-            >
-              {darkMode ? (
-                <Sun className="h-5 w-5 text-yellow-300 group-hover:text-yellow-200 transition-colors" />
-              ) : (
-                <Moon className="h-5 w-5 text-blue-300 group-hover:text-blue-200 transition-colors" />
-              )}
-            </button>
+           
+            <div className="flex items-center">
+              <Switch checked={darkMode} onChange={toggleDarkMode} />
+            </div>
 
             <div className="hidden lg:flex items-center space-x-2">
               {isAuthenticated ? (
@@ -454,17 +445,9 @@ const HeaderClient = () => {
               {/* Dark Mode Toggle in Mobile Menu */}
               <div className="flex items-center justify-between px-4 py-2">
                 <span className="text-gray-900 dark:text-gray-100">Theme</span>
-                <button
-                  onClick={toggleDarkMode}
-                  className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  aria-label="Toggle dark mode"
-                >
-                  {darkMode ? (
-                    <Sun className="h-5 w-5 text-yellow-500" />
-                  ) : (
-                    <Moon className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-                  )}
-                </button>
+                <div className="scale-75">
+                  <Switch checked={darkMode} onChange={toggleDarkMode} />
+                </div>
               </div>
 
               <Link
