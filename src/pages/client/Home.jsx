@@ -1,6 +1,12 @@
 // src/pages/Home.jsx
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   ChevronLeft,
@@ -8,19 +14,14 @@ import {
   Check,
   Loader2,
   Sparkles,
-  RefreshCw,
-  ShoppingCart,
   Package,
 } from "lucide-react";
 import useApi from "../../services/AdminuseApi";
-import ProductCard from "../../components/ProductCard";
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import Button from "../../components/ui/Button";
+import ProductCard from "../../components_temp/ProductCard";
+import Button from "../../components_temp/ui/Button";
 
 const EcommerceHomepage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [wishlist, setWishlist] = useState(new Set());
   const [activeCategory, setActiveCategory] = useState("All");
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
@@ -29,279 +30,307 @@ const EcommerceHomepage = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [visibleCount, setVisibleCount] = useState(8);
-  const [systemStats, setSystemStats] = useState({
-    totalProducts: 0,
-    totalCarts: 0,
-    totalItems: 0,
-  });
-  const [isRefreshingStats, setIsRefreshingStats] = useState(false);
 
   const api = useApi();
   const navigate = useNavigate();
-  const { allCarts, refreshAllData, calculateSystemCartStats } = useAuth();
   const autoSlideTimerRef = useRef(null);
-  const hasLoadedData = useRef(false);
 
-  const heroSlides = [
-    {
-      id: 1,
-      title: "New Collection 2026",
-      description: "Discover the latest trends in technology and fashion",
-      image:
-        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600",
-      color: "from-blue-900 to-blue-700",
-      discount: "Up to 30% OFF",
-      buttonColor: "bg-blue-600 hover:bg-blue-700",
-    },
-    {
-      id: 2,
-      title: "Smart Home Devices",
-      description: "Transform your home with intelligent technology",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600",
-      color: "from-purple-900 to-purple-700",
-      discount: "Free Installation",
-      buttonColor: "bg-purple-600 hover:bg-purple-700",
-    },
-    {
-      id: 3,
-      title: "Summer Sale",
-      description: "Massive discounts on all categories",
-      image:
-        "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600",
-      color: "from-orange-900 to-orange-700",
-      discount: "Up to 50% OFF",
-      buttonColor: "bg-orange-600 hover:bg-orange-700",
-    },
-    {
-      id: 4,
-      title: "Premium Electronics",
-      description: "High-end gadgets and devices",
-      image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=1600",
-      color: "from-emerald-900 to-emerald-700",
-      discount: "Limited Time Offer",
-      buttonColor: "bg-emerald-600 hover:bg-emerald-700",
-    },
-  ];
+  // Use refs to track state without triggering re-renders
+  const isLoadingRef = useRef(false);
+  const hasLoadedDataRef = useRef(false);
+  const abortControllerRef = useRef(null);
+
+  const heroSlides = useMemo(
+    () => [
+      {
+        id: 1,
+        title: "New Collection 2026",
+        description: "Discover the latest trends in technology and fashion",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600",
+        color: "from-blue-900 to-blue-700",
+        discount: "Up to 30% OFF",
+        buttonColor: "bg-blue-600 hover:bg-blue-700",
+      },
+      {
+        id: 2,
+        title: "Smart Home Devices",
+        description: "Transform your home with intelligent technology",
+        image:
+          "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600",
+        color: "from-purple-900 to-purple-700",
+        discount: "Free Installation",
+        buttonColor: "bg-purple-600 hover:bg-purple-700",
+      },
+      {
+        id: 3,
+        title: "Summer Sale",
+        description: "Massive discounts on all categories",
+        image:
+          "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600",
+        color: "from-orange-900 to-orange-700",
+        discount: "Up to 50% OFF",
+        buttonColor: "bg-orange-600 hover:bg-orange-700",
+      },
+      {
+        id: 4,
+        title: "Premium Electronics",
+        description: "High-end gadgets and devices",
+        image:
+          "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=1600",
+        color: "from-emerald-900 to-emerald-700",
+        discount: "Limited Time Offer",
+        buttonColor: "bg-emerald-600 hover:bg-emerald-700",
+      },
+    ],
+    []
+  );
 
   // Start auto slide
-  const startAutoSlide = () => {
+  const startAutoSlide = useCallback(() => {
     if (autoSlideTimerRef.current) {
       clearInterval(autoSlideTimerRef.current);
     }
-    
+
     autoSlideTimerRef.current = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
-  };
+  }, [heroSlides.length]);
 
   // Handle slide change with resetting auto slide timer
-  const handleSlideChange = (index) => {
-    setCurrentSlide(index);
-    
-    // Reset auto slide timer
-    if (autoSlideTimerRef.current) {
-      clearInterval(autoSlideTimerRef.current);
-    }
-    startAutoSlide();
-  };
+  const handleSlideChange = useCallback(
+    (index) => {
+      setCurrentSlide(index);
+
+      // Reset auto slide timer
+      if (autoSlideTimerRef.current) {
+        clearInterval(autoSlideTimerRef.current);
+      }
+      startAutoSlide();
+    },
+    [startAutoSlide]
+  );
 
   // Handle next slide
-  const handleNextSlide = () => {
+  const handleNextSlide = useCallback(() => {
     const nextSlide = (currentSlide + 1) % heroSlides.length;
     handleSlideChange(nextSlide);
-  };
+  }, [currentSlide, handleSlideChange, heroSlides.length]);
 
   // Handle previous slide
-  const handlePrevSlide = () => {
-    const prevSlide = (currentSlide - 1 + heroSlides.length) % heroSlides.length;
+  const handlePrevSlide = useCallback(() => {
+    const prevSlide =
+      (currentSlide - 1 + heroSlides.length) % heroSlides.length;
     handleSlideChange(prevSlide);
-  };
+  }, [currentSlide, handleSlideChange, heroSlides.length]);
 
+  // Effect for auto-slide
   useEffect(() => {
-    loadInitialData();
     startAutoSlide();
 
     return () => {
       if (autoSlideTimerRef.current) {
         clearInterval(autoSlideTimerRef.current);
       }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
+  }, [startAutoSlide]);
+
+  // Effect for initial data load - runs only once
+  useEffect(() => {
+    if (!hasLoadedDataRef.current) {
+      loadInitialData();
+    }
   }, []);
 
-  // Load initial data with caching
-  const loadInitialData = async () => {
-    if (hasLoadedData.current && !isRefreshingStats) return;
+  // Load initial data - fixed to run only once
+  const loadInitialData = useCallback(async () => {
+    // Prevent multiple calls
+    if (isLoadingRef.current || hasLoadedDataRef.current) {
+      return;
+    }
 
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
+    isLoadingRef.current = true;
     setIsLoading(true);
     setError(null);
 
     try {
       const [productsResponse, categoriesResponse] = await Promise.all([
-        api.productAPI.getAll(),
-        api.productAPI.getCategories(),
+        api.productAPI.getAll({ signal }),
+        api.productAPI.getCategories({ signal }),
       ]);
 
-      setAllProducts(productsResponse.data);
-      setProducts(productsResponse.data.slice(0, 12));
-      setCategories(categoriesResponse.data);
+      // Check if component is still mounted
+      if (signal.aborted) return;
 
-      // Load system stats
-      await loadSystemStats();
+      const allProductsData = productsResponse.data;
+      const categoriesData = categoriesResponse.data;
 
-      hasLoadedData.current = true;
+      setAllProducts(allProductsData);
+      setProducts(allProductsData.slice(0, 12));
+      setCategories(categoriesData);
+
+      hasLoadedDataRef.current = true;
     } catch (err) {
+      // Don't set error for aborted requests
+      if (err.name === "AbortError") return;
+
       setError("Failed to load data. Please try again.");
-      console.error(err);
+      console.error("Load data error:", err);
+
+      // Reset flags on error to allow retry
+      hasLoadedDataRef.current = false;
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Load system statistics with caching
-  const loadSystemStats = async (forceRefresh = false) => {
-    try {
-      // Get system cart stats
-      const stats = await calculateSystemCartStats(forceRefresh);
-
-      // Calculate additional stats from all carts
-      if (allCarts && allCarts.length > 0) {
-        let totalItems = 0;
-
-        // Get all products for price calculation
-        const { data: allProductsData } = await api.productAPI.getAll(forceRefresh);
-
-        allCarts.forEach((cart) => {
-          if (cart.products && Array.isArray(cart.products)) {
-            cart.products.forEach((item) => {
-              const product = allProductsData.find((p) => p.id === item.productId);
-              if (product) {
-                totalItems += item.quantity;
-              }
-            });
-          }
-        });
-
-        setSystemStats({
-          totalProducts: allProductsData.length,
-          totalCarts: allCarts.length,
-          totalItems: totalItems,
-        });
-      }
-    } catch (error) {
-      console.error("Error loading system stats:", error);
-    }
-  };
-
-  // Handle refresh stats
-  const handleRefreshStats = async () => {
-    setIsRefreshingStats(true);
-    try {
-      await refreshAllData();
-      await loadSystemStats(true);
-    } catch (error) {
-      console.error("Error refreshing stats:", error);
-    } finally {
-      setIsRefreshingStats(false);
-    }
-  };
-
-  const handleCategoryClick = async (category) => {
-    setActiveCategory(category);
-    setVisibleCount(12);
-    setProducts([]);
-
-    if (category === "All") {
-      setIsLoading(true);
-      try {
-        const { data: allProductsData } = await api.productAPI.getAll();
-        const initialProducts = allProductsData.slice(0, 12);
-        setProducts(initialProducts);
-      } catch (err) {
-        setError("Failed to load products.");
-      } finally {
+      if (!signal.aborted) {
+        isLoadingRef.current = false;
         setIsLoading(false);
       }
-      return;
     }
+  }, [api.productAPI]);
 
-    setIsLoading(true);
-    try {
-      const { data: categoryProducts } = await api.productAPI.getByCategory(
-        category
-      );
-      const initialProducts = categoryProducts.slice(0, 12);
-      setProducts(initialProducts);
-    } catch (err) {
-      setError(`Failed to load ${category} products.`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Handle category click - FIXED: No API calls, uses cached data
+  const handleCategoryClick = useCallback(
+    (category) => {
+      setActiveCategory(category);
+      setVisibleCount(12); // Reset visible count
 
-  const loadMoreProducts = () => {
+      if (category === "All") {
+        // Show all products from cached data
+        setProducts(allProducts.slice(0, 12));
+      } else {
+        // Filter from cached allProducts
+        const filteredProducts = allProducts.filter(
+          (product) =>
+            product.category?.toLowerCase() === category.toLowerCase()
+        );
+        setProducts(filteredProducts.slice(0, 12));
+      }
+    },
+    [allProducts]
+  );
+
+  // Load more products - FIXED: Uses cached data
+  const loadMoreProducts = useCallback(() => {
     setIsLoadingMore(true);
+
     setTimeout(() => {
       const nextCount = visibleCount + 6;
-      const nextProducts = allProducts.slice(0, nextCount);
-      setProducts(nextProducts);
+      let productsToShow = [];
+
+      if (activeCategory === "All") {
+        productsToShow = allProducts.slice(0, nextCount);
+      } else {
+        const filteredProducts = allProducts.filter(
+          (product) =>
+            product.category?.toLowerCase() === activeCategory.toLowerCase()
+        );
+        productsToShow = filteredProducts.slice(0, nextCount);
+      }
+
+      setProducts(productsToShow);
       setVisibleCount(nextCount);
       setIsLoadingMore(false);
     }, 800);
-  };
+  }, [visibleCount, allProducts, activeCategory]);
 
-  const toggleWishlist = useCallback((productId) => {
-    setWishlist((prev) => {
-      const newSet = new Set(prev);
-      newSet.has(productId) ? newSet.delete(productId) : newSet.add(productId);
-      return newSet;
-    });
-  }, []);
+  // Calculate hasMoreProducts based on filtered data
+  const hasMoreProducts = useMemo(() => {
+    if (activeCategory === "All") {
+      return visibleCount < allProducts.length;
+    }
 
-  const hasMoreProducts = visibleCount < allProducts.length;
+    const filteredProducts = allProducts.filter(
+      (product) =>
+        product.category?.toLowerCase() === activeCategory.toLowerCase()
+    );
+    return visibleCount < filteredProducts.length;
+  }, [visibleCount, allProducts, activeCategory]);
+
+  // Calculate total products in current category
+  const currentCategoryProductCount = useMemo(() => {
+    if (activeCategory === "All") {
+      return allProducts.length;
+    }
+
+    return allProducts.filter(
+      (product) =>
+        product.category?.toLowerCase() === activeCategory.toLowerCase()
+    ).length;
+  }, [allProducts, activeCategory]);
+
+  // Handle retry loading
+  const handleRetry = useCallback(() => {
+    hasLoadedDataRef.current = false;
+    loadInitialData();
+  }, [loadInitialData]);
+
+  // Render loading state
+  const renderLoadingState = () => (
+    <div className="flex justify-center items-center h-96">
+      <div className="text-center">
+        <Loader2 className="h-12 w-12 animate-spin text-[#01A49E] mx-auto mb-4" />
+        <p className="text-gray-600 dark:text-gray-300">
+          Loading amazing products...
+        </p>
+      </div>
+    </div>
+  );
+
+  // Render error state
+  const renderErrorState = () => (
+    <div className="flex justify-center items-center h-64">
+      <div className="text-center">
+        <div className="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/10 dark:to-pink-900/10 text-red-800 dark:text-red-300 p-8 rounded-2xl max-w-md border border-red-200 dark:border-red-800">
+          <p className="font-semibold mb-2">Oops! Something went wrong</p>
+          <p className="mb-6">{error}</p>
+          <Button
+            variant="primary"
+            onClick={handleRetry}
+            className="px-6 py-3 rounded-lg hover:shadow-lg transition"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Render empty state
+  const renderEmptyState = () => (
+    <div className="flex justify-center items-center h-64">
+      <div className="text-center">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl">
+          <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
+            No products found in this category
+          </p>
+          <Button
+            variant="ghost"
+            onClick={handleRetry}
+            className="text-[#01A49E] hover:text-[#01857F] dark:text-[#01A49E] dark:hover:text-[#00c9b7] transition font-medium"
+          >
+            Refresh Products
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-white font-sans dark:bg-gray-900">
-      {/* Stats Banner */}
-      <div className="bg-gradient-to-r from-[#01A49E]/10 to-[#01857F]/10 dark:from-[#01A49E]/20 dark:to-[#01857F]/20 rounded-2xl p-2 text-center mb-1">
-        <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Package size={20} className="dark:text-white" />
-                <span className="font-semibold dark:text-white">
-                  {systemStats.totalProducts} Products
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ShoppingCart size={20} className="dark:text-white"/>
-                <span className="font-semibold dark:text-white">
-                  {systemStats.totalCarts} Carts
-                </span>
-              </div>
-              <div className="hidden lg:flex items-center gap-2">
-                <span className="font-semibold dark:text-white">
-                  {systemStats.totalItems} Items in Carts
-                </span>
-              </div>
-            </div>
-            
-           <Button
-  size="small"
-  onClick={handleRefreshStats}
-  disabled={isRefreshingStats}
-  loading={isRefreshingStats}
-  icon={<RefreshCw size={16} />}
->
-  Refresh Stats
-</Button>
-          </div>
-        </div>
-      </div>
-
-      <main className="container mx-auto px-4 py-8 dark:bg-gray-900">
+      <main className="container mx-auto px-4 py-8">
         {/* Hero Carousel */}
-        <div className="relative mb-12 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="relative h-[300px] md:h-[400px] lg:h-[500px]">
+        <div className="relative mb-12 rounded-3xl overflow-hidden shadow-2xl dark:bg-gray-500">
+          <div className="relative h-[300px] md:h-[400px] lg:h-[500px] bg-gray-300">
             {heroSlides.map((slide, index) => (
               <div
                 key={slide.id}
@@ -311,14 +340,22 @@ const EcommerceHomepage = () => {
                     : "opacity-0 translate-x-full"
                 }`}
                 style={{
-                  transform: `translateX(${index === currentSlide ? '0%' : index < currentSlide ? '-100%' : '100%'})`,
-                  transition: 'all 700ms ease-in-out'
+                  transform: `translateX(${
+                    index === currentSlide
+                      ? "0%"
+                      : index < currentSlide
+                      ? "-100%"
+                      : "100%"
+                  })`,
+                  transition: "all 700ms ease-in-out",
                 }}
               >
                 <div
                   className={`absolute inset-0 bg-gradient-to-r ${slide.color} bg-cover bg-center`}
+
                   style={{ backgroundImage: `url(${slide.image})` }}
                 >
+                   <div className="absolute inset-0 bg-black/20 dark:bg-black/30"></div>
                   <div className="absolute inset-0 bg-black/40"></div>
                 </div>
                 <div className="relative h-full flex items-center">
@@ -349,12 +386,14 @@ const EcommerceHomepage = () => {
           <button
             onClick={handlePrevSlide}
             className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-full transition-all hover:scale-110 z-10"
+            aria-label="Previous slide"
           >
             <ChevronLeft size={24} />
           </button>
           <button
             onClick={handleNextSlide}
             className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-full transition-all hover:scale-110 z-10"
+            aria-label="Next slide"
           >
             <ChevronRight size={24} />
           </button>
@@ -376,7 +415,7 @@ const EcommerceHomepage = () => {
         </div>
 
         {/* Products Section */}
-        <div className="mb-12 dark:bg-gray-900">
+        <div className="mb-12">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
             <div className="mb-6 lg:mb-0">
               <div className="flex items-center gap-3 mb-3">
@@ -388,7 +427,8 @@ const EcommerceHomepage = () => {
                     Featured Products
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    From our vast collection of {systemStats.totalProducts} items
+                    From our vast collection of {currentCategoryProductCount}{" "}
+                    items
                   </p>
                 </div>
               </div>
@@ -408,7 +448,6 @@ const EcommerceHomepage = () => {
                 </button>
                 {categories.map((category) => (
                   <button
-                 
                     key={category}
                     onClick={() => handleCategoryClick(category)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap ${
@@ -425,55 +464,16 @@ const EcommerceHomepage = () => {
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center items-center h-96">
-              <div className="text-center">
-                <Loader2 className="h-12 w-12 animate-spin text-[#01A49E] mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-300">Loading amazing products...</p>
-              </div>
-            </div>
+            renderLoadingState()
           ) : error ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="text-center">
-                <div className="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/10 dark:to-pink-900/10 text-red-800 dark:text-red-300 p-8 rounded-2xl max-w-md border border-red-200 dark:border-red-800">
-                  <p className="font-semibold mb-2">
-                    Oops! Something went wrong
-                  </p>
-                  <p className="mb-6">{error}</p>
-                  <button
-                    onClick={loadInitialData}
-                    className="bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white px-6 py-3 rounded-lg hover:shadow-lg transition"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              </div>
-            </div>
+            renderErrorState()
           ) : products.length === 0 ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="text-center">
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl">
-                  <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
-                    No products found
-                  </p>
-                  <button
-                    onClick={loadInitialData}
-                    className="text-[#01A49E] hover:text-[#01857F] dark:text-[#01A49E] dark:hover:text-[#00c9b7] transition font-medium"
-                  >
-                    Refresh Products
-                  </button>
-                </div>
-              </div>
-            </div>
+            renderEmptyState()
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
                 {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onWishlistToggle={toggleWishlist}
-                    isInWishlist={wishlist.has(product.id)}
-                  />
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 
@@ -481,19 +481,18 @@ const EcommerceHomepage = () => {
                 <div className="text-gray-600 dark:text-gray-300 mb-6 flex items-center justify-center gap-2">
                   <div className="h-1 w-12 bg-gradient-to-r from-[#01A49E] to-[#01857F] rounded-full"></div>
                   <span>
-                    Showing {Math.min(visibleCount, allProducts.length)} of{" "}
-                    {allProducts.length} products
+                    Showing {products.length} of {currentCategoryProductCount}{" "}
+                    products
                   </span>
                   <div className="h-1 w-12 bg-gradient-to-r from-[#01A49E] to-[#01857F] rounded-full"></div>
                 </div>
 
                 {hasMoreProducts ? (
                   <Button
-                  variant="teal"
-                  size="xlarge"
+                    variant="teal"
+                    size="xlarge"
                     onClick={loadMoreProducts}
                     disabled={isLoadingMore}
-                    
                   >
                     {isLoadingMore ? (
                       <>
@@ -512,7 +511,7 @@ const EcommerceHomepage = () => {
                     <div className="flex items-center justify-center gap-3 mb-3">
                       <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
                       <p className="text-green-800 dark:text-green-300 font-medium">
-                        You've seen all {allProducts.length} products!
+                        You've seen all {currentCategoryProductCount} products!
                       </p>
                     </div>
                     <p className="text-green-600 dark:text-green-400 text-sm">
@@ -530,9 +529,14 @@ const EcommerceHomepage = () => {
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 p-6 rounded-2xl border border-blue-100 dark:border-blue-800">
             <div className="flex items-center gap-4 mb-4">
               <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-xl">
-                <Package className="text-blue-600 dark:text-blue-400" size={24} />
+                <Package
+                  className="text-blue-600 dark:text-blue-400"
+                  size={24}
+                />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Free Shipping</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Free Shipping
+              </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-300">
               Free delivery on orders above $100. No hidden charges.
@@ -542,9 +546,14 @@ const EcommerceHomepage = () => {
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 p-6 rounded-2xl border border-green-100 dark:border-green-800">
             <div className="flex items-center gap-4 mb-4">
               <div className="bg-green-100 dark:bg-green-900 p-3 rounded-xl">
-                <Check className="text-green-600 dark:text-green-400" size={24} />
+                <Check
+                  className="text-green-600 dark:text-green-400"
+                  size={24}
+                />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Quality Guarantee</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Quality Guarantee
+              </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-300">
               30-day return policy. Your satisfaction is our priority.
@@ -554,9 +563,14 @@ const EcommerceHomepage = () => {
           <div className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/10 dark:to-violet-900/10 p-6 rounded-2xl border border-purple-100 dark:border-purple-800">
             <div className="flex items-center gap-4 mb-4">
               <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-xl">
-                <Sparkles className="text-purple-600 dark:text-purple-400" size={24} />
+                <Sparkles
+                  className="text-purple-600 dark:text-purple-400"
+                  size={24}
+                />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Secure Payment</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Secure Payment
+              </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-300">
               Your payments are secure with our encrypted payment system.
@@ -574,14 +588,14 @@ const EcommerceHomepage = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input
-              type="text"
+              type="email"
               placeholder="Enter your email"
-              className="flex-grow px-20 py-3 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-red focus:ring-2 focus:ring-[#01A49E]"
+              className="flex-grow px-6 py-3 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#01A49E]"
             />
-            <Link to ="/subscribe">
-          <Button variant="teal" size="xlarge">
-              Subscribe
-            </Button>
+            <Link to="/subscribe">
+              <Button variant="teal" size="xlarge">
+                Subscribe
+              </Button>
             </Link>
           </div>
         </div>

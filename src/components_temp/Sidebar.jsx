@@ -33,12 +33,12 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Create a custom toast component
+    // Created a custom toast component
     const LogoutConfirmation = ({ t }) => (
       <div
         className={`${
           t.visible ? "animate-enter" : "animate-leave"
-        } max-w-md w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg pointer-events-auto flex flex-col ring-1 ring-black dark:ring-gray-700 ring-opacity-5`}
+        } max-w-md w-full bg-gray-300 dark:bg-gray-600 shadow-lg rounded-lg pointer-events-auto flex flex-col ring-1 ring-black dark:ring-gray-700 ring-opacity-5`}
       >
         {/* Toast Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -62,8 +62,8 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Action Buttons */}
         <div className="flex p-4 gap-3">
           <button
-            onClick={() => toast.dismiss(t.id)}
-            className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+            onClick={() => {toast.dismiss(t.id)}}
+            className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Cancel
           </button>
@@ -85,10 +85,10 @@ const Sidebar = ({ isOpen, onClose }) => {
       </div>
     );
 
-    // Show the centered toast
+    
     toast.custom((t) => <LogoutConfirmation t={t} />, {
-      // Won't auto-dismiss
-      position: "top-center", // Changed from top-right to top-center
+     
+      position: "top-center", 
       style: {
         maxWidth: "28rem",
         margin: "0 auto",

@@ -1,11 +1,11 @@
 // src/pages/CartDetails.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Table from "../../components/ui/Table";
-import Badge from "../../components/ui/Badge";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Card from "../../components_temp/ui/Card";
+import Button from "../../components_temp/ui/Button";
+import Table from "../../components_temp/ui/Table";
+import Badge from "../../components_temp/ui/Badge";
+import LoadingSpinner from "../../components_temp/ui/LoadingSpinner";
 import useApi from "../../services/AdminuseApi";
 import { useToast } from "../../contexts/ToastContext"; // Add this import
 import {
@@ -209,8 +209,7 @@ const CartDetails = () => {
           </div>
 
           <div className="flex space-x-3">
-            <Button variant="primary"
-            onClick={()=>navigate("/processorder")}>
+            <Button variant="primary" onClick={() => navigate("/processorder")}>
               <Truck className="h-5 w-5 mr-2" />
               Process Order
             </Button>
@@ -263,9 +262,11 @@ const CartDetails = () => {
                               </div>
                               <div className="ml-4">
                                 <div
-                        className="font-medium text-gray-900 dark:text-white max-w-[30ch] line-clamp-2"
-                          title={item.product?.title} >
-                            {item.product?.title || `Product #${item.productId}`}
+                                  className="font-medium text-gray-900 dark:text-white max-w-[30ch] line-clamp-2"
+                                  title={item.product?.title}
+                                >
+                                  {item.product?.title ||
+                                    `Product #${item.productId}`}
                                 </div>
 
                                 <div className="text-sm text-gray-500 dark:text-gray-400">

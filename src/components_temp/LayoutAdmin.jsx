@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import Header from "./HeaderAdmin";
+import HeaderAdmin from "./HeaderAdmin";
 import Toast from "./ui/Toast";
 import useToast from "../hooks/useToast";
 
@@ -19,7 +19,7 @@ const LayoutAdmin = ({ setIsAuthenticated }) => {
       />
 
       <div className="lg:pl-64">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <HeaderAdmin onMenuClick={() => setSidebarOpen(true)} />
 
         <main className="py-6 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">

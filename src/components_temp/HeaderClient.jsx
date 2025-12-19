@@ -427,15 +427,13 @@ const HeaderClient = () => {
             </Link>
 
             <div className="flex items-center space-x-6">
-              
-                <Link
-                  to="/contact"
-                  className="flex items-center space-x-2 hover:opacity-80 transition-opacity text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-300"
-                >
-                  <PhoneCall size={20} />
-                  <span className="font-medium">Helpline</span>
-                </Link>
-              
+              <Link
+                to="/contact"
+                className="flex items-center space-x-2 hover:opacity-80 transition-opacity text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-300"
+              >
+                <PhoneCall size={20} />
+                <span className="font-medium">Helpline</span>
+              </Link>
             </div>
 
             <div className="flex items-center space-x-3 text-white dark:text-gray-200">
@@ -582,7 +580,7 @@ const HeaderClient = () => {
                   </span>
                 )}
                 {isAdmin && (
-                  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full text-xs">
+                  <span className="px-2 py-0.5 bg-blue-500 text-white-300 rounded-full text-xs dark:bg-blue-900">
                     Admin
                   </span>
                 )}

@@ -1,8 +1,7 @@
-// src/pages/CartPage.jsx - FIXED CART HISTORY LOADING
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import Button from "../../components/ui/Button";
+import Button from "../../components_temp/ui/Button";
 import {
   ArrowRight,
   Heart,
@@ -31,7 +30,7 @@ const CartPage = () => {
   const [apiCarts, setApiCarts] = useState([]);
   const [showCartHistory, setShowCartHistory] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasLoadedCarts, setHasLoadedCarts] = useState(false); // NEW: Track if carts loaded
+  const [hasLoadedCarts, setHasLoadedCarts] = useState(false);
 
   const {
     cart,
@@ -45,7 +44,8 @@ const CartPage = () => {
     cartStats,
   } = useCart();
 
-  const { user, loadUserCartsFromAPI, refreshAllData, isSyncingCart } = useAuth();
+  const { user, loadUserCartsFromAPI, refreshAllData, isSyncingCart } =
+    useAuth();
   const api = useApi();
 
   // Scroll to top on mount
@@ -53,56 +53,47 @@ const CartPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // FIXED: Load user carts when user is available
   useEffect(() => {
-    // Only load if:
-    // 1. User is logged in
-    // 2. Not currently loading
-    // 3. Haven't loaded yet OR user changed
     if (user?.id && !isLoadingAPICarts) {
       loadUserAPICarts();
     }
-  }, [user?.id]); // Dependency on user.id only
+  }, [user?.id]);
 
-  // FIXED: Load user carts with proper error handling and state management
   const loadUserAPICarts = useCallback(async () => {
     // Prevent duplicate calls
     if (!user?.id || isLoadingAPICarts) {
-      console.log("⏸️ Skipping cart load:", { 
-        hasUser: !!user?.id, 
-        isLoading: isLoadingAPICarts 
+      console.log("⏸️ Skipping cart load:", {
+        hasUser: !!user?.id,
+        isLoading: isLoadingAPICarts,
       });
       return;
     }
 
     console.log("🔄 Loading user carts for user:", user.id);
-    
+
     try {
       setIsLoadingAPICarts(true);
-      
+
       // Call the API
       const carts = await loadUserCartsFromAPI(user.id, false); // false = use cache
-      
+
       console.log("✅ Loaded carts:", carts?.length || 0);
-      
+
       // Set the carts (with fallback to empty array)
       setApiCarts(Array.isArray(carts) ? carts : []);
       setHasLoadedCarts(true);
-      
     } catch (error) {
       console.error("❌ Error loading API carts:", error);
       toast.error("Failed to load cart history");
-      
+
       // Set empty array on error
       setApiCarts([]);
       setHasLoadedCarts(true);
-      
     } finally {
       setIsLoadingAPICarts(false);
     }
-  }, [user?.id, loadUserCartsFromAPI]); // Remove isLoadingAPICarts from deps
+  }, [user?.id, loadUserCartsFromAPI]);
 
-  // OPTIMIZED: Calculate totals with memoization
   const totals = useMemo(() => {
     const subtotal = cartStats.totalValue;
     const shipping = subtotal > 100 ? 0 : 9.99;
@@ -134,7 +125,6 @@ const CartPage = () => {
     }
   }, [clearCart]);
 
-  // FIXED: Load API cart with better error handling
   const loadAPICartIntoCurrentCart = useCallback(
     async (apiCart) => {
       if (isLoadingAPICarts) {
@@ -159,7 +149,10 @@ const CartPage = () => {
             );
             return { product, quantity: apiProduct.quantity };
           } catch (error) {
-            console.error(`Error fetching product ${apiProduct.productId}:`, error);
+            console.error(
+              `Error fetching product ${apiProduct.productId}:`,
+              error
+            );
             return null;
           }
         });
@@ -168,7 +161,9 @@ const CartPage = () => {
         const validProducts = products.filter((p) => p !== null);
 
         if (validProducts.length === 0) {
-          toast.error("Failed to load any products from this cart", { id: "load-cart" });
+          toast.error("Failed to load any products from this cart", {
+            id: "load-cart",
+          });
           return;
         }
 
@@ -177,10 +172,9 @@ const CartPage = () => {
           addToCart(product, quantity);
         });
 
-        toast.success(
-          `Loaded ${validProducts.length} items from saved cart!`,
-          { id: "load-cart" }
-        );
+        toast.success(`Loaded ${validProducts.length} items from saved cart!`, {
+          id: "load-cart",
+        });
       } catch (error) {
         console.error("Error loading API cart:", error);
         toast.error("Failed to load saved cart", { id: "load-cart" });
@@ -191,7 +185,6 @@ const CartPage = () => {
     [api.productAPI, addToCart]
   );
 
-  // Format date helper
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "";
     try {
@@ -207,7 +200,6 @@ const CartPage = () => {
     }
   }, []);
 
-  // FIXED: Refresh data handler with forced reload
   const refreshCartData = useCallback(async () => {
     if (isRefreshing) return;
 
@@ -217,10 +209,9 @@ const CartPage = () => {
 
       // Force reload with fresh data
       const tasks = [refreshAllData()];
-      
+
       if (user?.id) {
-        // Force fresh load from API
-        const freshCarts = await loadUserCartsFromAPI(user.id, true); // true = force refresh
+        const freshCarts = await loadUserCartsFromAPI(user.id, true);
         setApiCarts(Array.isArray(freshCarts) ? freshCarts : []);
       }
 
@@ -240,10 +231,10 @@ const CartPage = () => {
     try {
       toast.loading("Syncing cart...", { id: "sync" });
       const result = await manualSyncCart();
-      
+
       if (result.success) {
         toast.success("Cart synced!", { id: "sync" });
-        
+
         // Reload cart history after successful sync
         if (user?.id) {
           const freshCarts = await loadUserCartsFromAPI(user.id, true);
@@ -257,10 +248,8 @@ const CartPage = () => {
     }
   }, [manualSyncCart, user?.id, loadUserCartsFromAPI]);
 
-  // FIXED: Toggle cart history with loading
   const toggleCartHistory = useCallback(() => {
     if (!showCartHistory && !hasLoadedCarts && user?.id) {
-      // If showing history for first time and haven't loaded, load now
       loadUserAPICarts();
     }
     setShowCartHistory(!showCartHistory);
@@ -296,7 +285,8 @@ const CartPage = () => {
                 Shopping Cart
               </h1>
               <p className="text-gray-600 dark:text-white">
-                {cartItemCount} {cartItemCount === 1 ? "item" : "items"} in your cart
+                {cartItemCount} {cartItemCount === 1 ? "item" : "items"} in your
+                cart
                 {isSyncing && (
                   <span className="ml-2 text-gray-500 animate-pulse">
                     (syncing...)
@@ -445,7 +435,9 @@ const CartPage = () => {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center bg-gray-100 rounded-lg dark:bg-gray-300">
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity - 1)
+                            }
                             className="p-2 hover:bg-gray-200 transition rounded-l-lg disabled:opacity-50"
                             disabled={item.quantity <= 1}
                             aria-label="Decrease quantity"
@@ -456,7 +448,9 @@ const CartPage = () => {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity + 1)
+                            }
                             className="p-2 hover:bg-gray-200 transition rounded-r-lg"
                             aria-label="Increase quantity"
                           >
@@ -522,7 +516,8 @@ const CartPage = () => {
                           No saved carts found
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-500">
-                          Your cart history will appear here once you sync your cart
+                          Your cart history will appear here once you sync your
+                          cart
                         </p>
                       </div>
                     ) : (
@@ -551,7 +546,9 @@ const CartPage = () => {
                             <Button
                               size="small"
                               variant="teal"
-                              onClick={() => loadAPICartIntoCurrentCart(apiCart)}
+                              onClick={() =>
+                                loadAPICartIntoCurrentCart(apiCart)
+                              }
                               disabled={isLoadingAPICarts}
                             >
                               <Download size={14} className="mr-2" />
@@ -577,12 +574,18 @@ const CartPage = () => {
               {/* Order Details */}
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-white">Subtotal</span>
-                  <span className="font-medium dark:text-white">${totals.subtotal}</span>
+                  <span className="text-gray-600 dark:text-white">
+                    Subtotal
+                  </span>
+                  <span className="font-medium dark:text-white">
+                    ${totals.subtotal}
+                  </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-white">Shipping</span>
+                  <span className="text-gray-600 dark:text-white">
+                    Shipping
+                  </span>
                   <span
                     className={
                       totals.shipping === "0.00"
@@ -590,13 +593,19 @@ const CartPage = () => {
                         : "font-medium dark:text-white"
                     }
                   >
-                    {totals.shipping === "0.00" ? "FREE" : `$${totals.shipping}`}
+                    {totals.shipping === "0.00"
+                      ? "FREE"
+                      : `$${totals.shipping}`}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-white">Tax (8%)</span>
-                  <span className="font-medium dark:text-white">${totals.tax}</span>
+                  <span className="text-gray-600 dark:text-white">
+                    Tax (8%)
+                  </span>
+                  <span className="font-medium dark:text-white">
+                    ${totals.tax}
+                  </span>
                 </div>
 
                 <div className="border-t pt-4">

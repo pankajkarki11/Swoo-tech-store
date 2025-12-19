@@ -1,12 +1,17 @@
 // src/pages/ProductDetails.jsx
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate, useOutletContext } from "react-router-dom";
-import Card from "../../components/ui/Card";
-import Input from "../../components/ui/Input";
-import Button from "../../components/ui/Button";
-import Badge from "../../components/ui/Badge";
-import Modal from "../../components/ui/Modal";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import {
+  useParams,
+  Link,
+  useNavigate,
+  useOutletContext,
+} from "react-router-dom";
+import Card from "../../components_temp/ui/Card";
+import Input from "../../components_temp/ui/Input";
+import Button from "../../components_temp/ui/Button";
+import Badge from "../../components_temp/ui/Badge";
+import Modal from "../../components_temp/ui/Modal";
+import LoadingSpinner from "../../components_temp/ui/LoadingSpinner";
 import useApi from "../../services/AdminuseApi";
 import {
   ArrowLeft,
@@ -28,7 +33,7 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const[seletedProduct,setSelectedProduct] = useState("");
+  const [seletedProduct, setSelectedProduct] = useState("");
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
@@ -86,12 +91,12 @@ const ProductDetails = () => {
       await api.productAPI.delete(product.id);
       toast.success("Product deleted successfully");
       navigate("/admin/dashboard");
-     setRelatedProducts((prev) =>
-    prev.filter((product) => product.id !== selectedProduct.id));
-     setIsDeleteModalOpen(false);
-     setSelectedProduct(null);
-     navigate("/admin/delete");
-
+      setRelatedProducts((prev) =>
+        prev.filter((product) => product.id !== selectedProduct.id)
+      );
+      setIsDeleteModalOpen(false);
+      setSelectedProduct(null);
+      navigate("/admin/delete");
     } catch (error) {
       toast.error("Failed to delete product");
       console.error("Error deleting product:", error);
@@ -114,11 +119,10 @@ const ProductDetails = () => {
         // Refresh product details
         // fetchProductDetails();
         //to show updated changes in the state
-       setProduct((prev) => ({
-  ...prev,
-  ...productData,
-}));
-
+        setProduct((prev) => ({
+          ...prev,
+          ...productData,
+        }));
       } else {
         // Create new product - this shouldn't happen on details page but handle it anyway
         const response = await api.productAPI.create(productData);
@@ -533,15 +537,12 @@ const ProductDetails = () => {
         size="small"
       >
         <p className="text-gray-600 dark:text-gray-400">
-          Are you sure you want to delete "{product?.title}"? This
-          action cannot be undone.
+          Are you sure you want to delete "{product?.title}"? This action cannot
+          be undone.
         </p>
 
         <div className="mt-6 flex justify-end space-x-3">
-          <Button
-            variant="outline"
-            onClick={() => setIsDeleteModalOpen(false)}
-          >
+          <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
             Cancel
           </Button>
           <Button variant="danger" onClick={handleDelete}>

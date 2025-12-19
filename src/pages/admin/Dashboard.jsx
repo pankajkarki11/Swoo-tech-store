@@ -1,10 +1,10 @@
 // src/pages/Dashboard.jsx - OPTIMIZED VERSION
 import React, { useState, useEffect } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Badge from "../../components/ui/Badge";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Card from "../../components_temp/ui/Card";
+import Button from "../../components_temp/ui/Button";
+import Badge from "../../components_temp/ui/Badge";
+import LoadingSpinner from "../../components_temp/ui/LoadingSpinner";
 import useApi from "../../services/AdminuseApi";
 import {
   ShoppingCart,
@@ -19,7 +19,7 @@ const Dashboard = () => {
   const { toast } = useOutletContext();
   const api = useApi();
   const navigate = useNavigate();
-  
+
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalCarts: 0,
@@ -55,7 +55,7 @@ const Dashboard = () => {
 
       // Create a product price lookup map (O(1) lookup instead of API calls)
       const productPriceMap = new Map();
-      products.forEach(product => {
+      products.forEach((product) => {
         productPriceMap.set(product.id, parseFloat(product.price) || 0);
       });
 
@@ -98,14 +98,14 @@ const Dashboard = () => {
       cart.products.forEach((item) => {
         const quantity = parseInt(item.quantity) || 0;
         const price = productPriceMap.get(item.productId) || 0;
-        
+
         cartItemCount += quantity;
         cartValue += price * quantity;
       });
 
       totalItems += cartItemCount;
       totalRevenue += cartValue;
-      
+
       if (cartItemCount > 0) {
         activeCartsCount++;
       }
@@ -177,7 +177,11 @@ const Dashboard = () => {
             Welcome back! Here's what's happening with your store today.
           </p>
         </div>
-        <Button variant="primary" onClick={fetchDashboardData} loading={loading}>
+        <Button
+          variant="primary"
+          onClick={fetchDashboardData}
+          loading={loading}
+        >
           Refresh Data
         </Button>
       </div>
@@ -226,9 +230,10 @@ const Dashboard = () => {
               Average Cart Value
             </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-              ${stats.activeCartsCount > 0 
-                ? (stats.totalRevenue / stats.activeCartsCount).toFixed(2) 
-                : '0.00'}
+              $
+              {stats.activeCartsCount > 0
+                ? (stats.totalRevenue / stats.activeCartsCount).toFixed(2)
+                : "0.00"}
             </p>
           </div>
         </Card>
@@ -239,9 +244,9 @@ const Dashboard = () => {
               Items per Cart
             </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-              {stats.activeCartsCount > 0 
-                ? (stats.totalItems / stats.activeCartsCount).toFixed(1) 
-                : '0'}
+              {stats.activeCartsCount > 0
+                ? (stats.totalItems / stats.activeCartsCount).toFixed(1)
+                : "0"}
             </p>
           </div>
         </Card>
@@ -252,9 +257,10 @@ const Dashboard = () => {
               Conversion Rate
             </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-              {stats.totalUsers > 0 
-                ? ((stats.activeCartsCount / stats.totalUsers) * 100).toFixed(1) 
-                : '0'}%
+              {stats.totalUsers > 0
+                ? ((stats.activeCartsCount / stats.totalUsers) * 100).toFixed(1)
+                : "0"}
+              %
             </p>
           </div>
         </Card>
@@ -306,7 +312,8 @@ const Dashboard = () => {
                             src={product.image}
                             alt={product.title}
                             onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+                              e.target.src =
+                                "https://via.placeholder.com/100?text=No+Image";
                             }}
                           />
                         </div>
@@ -323,9 +330,7 @@ const Dashboard = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant="secondary">
-                        {product.category}
-                      </Badge>
+                      <Badge variant="secondary">{product.category}</Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-medium text-gray-900 dark:text-white">
@@ -335,7 +340,7 @@ const Dashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <span className="text-sm text-gray-900 dark:text-white">
-                          {product.rating?.rate || 'N/A'}
+                          {product.rating?.rate || "N/A"}
                         </span>
                         {product.rating?.rate && (
                           <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
@@ -365,9 +370,9 @@ const Dashboard = () => {
         )}
 
         <Card.Footer>
-          <Button 
+          <Button
             onClick={() => navigate("/admin/products")}
-            variant="outline" 
+            variant="outline"
             fullWidth
           >
             View All Products
@@ -436,9 +441,7 @@ const Dashboard = () => {
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">
-                Database
-              </span>
+              <span className="text-gray-600 dark:text-gray-400">Database</span>
               <Badge variant="success">Connected</Badge>
             </div>
 

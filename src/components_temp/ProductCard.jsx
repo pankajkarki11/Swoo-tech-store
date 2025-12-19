@@ -74,7 +74,7 @@ const ProductCard = ({
     [compact]
   );
 
-  // add to cart with API sync
+ 
   const handleAddToCart = useCallback(
     async (e) => {
       if (!product || isAddingToCart) return;
@@ -83,7 +83,7 @@ const ProductCard = ({
       setIsAddingToCart(true);
 
       try {
-        // First, add to local cart using CartContext
+       
         await addToCart(product, 1);
 
         toast.success(

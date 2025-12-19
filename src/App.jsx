@@ -1,13 +1,11 @@
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
-import { CartProvider } from "./contexts/CartContext";
 import { Toaster } from "react-hot-toast";
 import NotFound from "./pages/admin/NotFound";
 import NotFound404 from "./pages/NotFound404";
 
 // Client Components
-import LayoutClient from "./components/LayoutClient";
+import LayoutClient from "./components_temp/LayoutClient";
 import ClientLogin from "./pages/client/ClientLogin";
 import HomePage from "./pages/client/Home";
 import CartPage from "./pages/client/Cart";
@@ -17,7 +15,7 @@ import AddProductPage from "./pages/client/AddProductPage";
 import ProductsPage from "./pages/client/ProductPage";
 
 // Admin Components
-import LayoutAdmin from "./components/LayoutAdmin";
+import LayoutAdmin from "./components_temp/LayoutAdmin";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import Products from "./pages/admin/Products";
@@ -28,82 +26,73 @@ import UsersPage from "./pages/admin/Users";
 import UserDetails from "./pages/admin/UserDetails";
 
 // Protected Route Components
-import ProtectedRoute from "./components/ProtectedRoute";
-import PublicOnlyRoute from "./components/PublicOnlyRoute";
-import Button from "./components/ui/Button";
+import ProtectedRoute from "./components_temp/ProtectedRoute";
+import PublicOnlyRoute from "./components_temp/PublicOnlyRoute";
+import Button from "./components_temp/ui/Button";
 import AccessDenied from "./pages/AccessDenied";
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 1000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+          success: {
             duration: 1000,
-            style: {
-              background: "#363636",
-              color: "#fff",
+            iconTheme: {
+              primary: "#01A49E",
+              secondary: "#fff",
             },
-            success: {
-              duration: 1000,
-              iconTheme: {
-                primary: "#01A49E",
-                secondary: "#fff",
-              },
+          },
+          error: {
+            duration: 1000,
+            iconTheme: {
+              primary: "#ff4d4d",
+              secondary: "#fff",
             },
-            error: {
-              duration: 1000,
-              iconTheme: {
-                primary: "#ff4d4d",
-                secondary: "#fff",
-              },
-            },
-          }}
-        />
+          },
+        }}
+      />
 
-        <Routes>
-      
-          <Route element={<LayoutClient />}>
-            {/* Public Routes */}
-            <Route index element={<HomePage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/products/:id" element={<ProductDetailPage />} />
-            <Route path="/notfound" element = {<NotFound/>}/>
+      <Routes>
+        <Route element={<LayoutClient />}>
+          {/* Public Routes */}
+          <Route index element={<HomePage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route path="/notfound" element={<NotFound />} />
 
-            {/* Protected Routes (Require Login) */}
-            <Route
-              path="/cart"
-              element={
-                
-                  <CartPage />
-           
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <UserProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/addproduct"
-              element={
-                <ProtectedRoute>
-                  <AddProductPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/addedproduct"
-              element={
-                <ProtectedRoute>
-                  <ProductsPage />
-                </ProtectedRoute>
-              }
-            />
+          {/* Protected Routes (Require Login) */}
+          <Route path="/cart" element={<CartPage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/addproduct"
+            element={
+              <ProtectedRoute>
+                <AddProductPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/addedproduct"
+            element={
+              <ProtectedRoute>
+                <ProductsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/login"
             element={
@@ -112,51 +101,36 @@ function App() {
               </PublicOnlyRoute>
             }
           />
-          </Route>
+        </Route>
 
-        
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-          
-          <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute requireAdmin>
+              <LayoutAdmin />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="products" element={<Products />} />
+          <Route path="products/:id" element={<ProductDetails />} />
+          <Route path="carts" element={<Carts />} />
+          <Route path="carts/:id" element={<CartDetails />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="users/:id" element={<UserDetails />} />
+          <Route path="delete" element={<NotFound />} />
+        </Route>
 
-         
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute requireAdmin>
-                <LayoutAdmin />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="dashboard" />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="products" element={<Products />} />
-            <Route path="products/:id" element={<ProductDetails />} />
-            <Route path="carts" element={<Carts />} />
-            <Route path="carts/:id" element={<CartDetails />} />
-            <Route path="users" element={<UsersPage />} />
-            <Route path="users/:id" element={<UserDetails />} />
-             <Route path="delete" element = {<NotFound/>}/>
-          </Route>
+        <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
 
-       
-          <Route
-            path="/admin"
-            element={<Navigate to="/admin/login" replace />}
-          />
+        <Route path="/unauthorized" element={<AccessDenied />} />
 
-        
-          <Route
-            path="/unauthorized"
-            element={<AccessDenied/>}/>
-
-          <Route
-            path="*"
-            element={<NotFound404/>}/>
-              
-        </Routes>
-      </CartProvider>
-    </AuthProvider>
+        <Route path="*" element={<NotFound404 />} />
+      </Routes>
+    </>
   );
 }
 

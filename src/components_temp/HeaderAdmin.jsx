@@ -22,8 +22,8 @@ const HeaderAdmin = ({ onMenuClick }) => {
 
   const [notifications] = useState([
     { id: 1, message: "New order received", time: "2 min ago", read: false },
-    { id: 2, message: "Product out of stock", time: "1 hour ago", read: true },
-    { id: 3, message: "Monthly report ready", time: "2 hours ago", read: true },
+    { id: 2, message: "Product out of stock", time: "2 hour ago", read: false },
+    { id: 3, message: "Monthly report ready", time: "12 hours ago", read: true },
   ]);
 
   // Initialize dark mode
@@ -111,6 +111,7 @@ const HeaderAdmin = ({ onMenuClick }) => {
                   />
                 </div>
               </div>
+              
             ) : (
               <div className="hidden md:block">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">

@@ -1,13 +1,13 @@
 // src/pages/Products.jsx - OPTIMIZED VERSION
 import React, { useState, useEffect } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import Table from "../../components/ui/Table";
-import Badge from "../../components/ui/Badge";
-import Modal from "../../components/ui/Modal";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Card from "../../components_temp/ui/Card";
+import Button from "../../components_temp/ui/Button";
+import Input from "../../components_temp/ui/Input";
+import Table from "../../components_temp/ui/Table";
+import Badge from "../../components_temp/ui/Badge";
+import Modal from "../../components_temp/ui/Modal";
+import LoadingSpinner from "../../components_temp/ui/LoadingSpinner";
 import useApi from "../../services/AdminuseApi";
 import { Search, Filter, Plus, Edit, Trash2, Eye, Package } from "lucide-react";
 
@@ -40,7 +40,7 @@ const Products = () => {
   const fetchInitialData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch both at the same time - only 2 API calls total
       const [productsResponse, categoriesResponse] = await Promise.all([
         api.productAPI.getAll(),
@@ -92,12 +92,12 @@ const Products = () => {
     try {
       await api.productAPI.delete(selectedProduct.id);
       toast.success("Product deleted successfully");
-      
+
       // Remove product from state (no API refetch needed)
       setProducts((prev) =>
         prev.filter((product) => product.id !== selectedProduct.id)
       );
-      
+
       setIsDeleteModalOpen(false);
       setSelectedProduct(null);
     } catch (error) {
@@ -122,20 +122,18 @@ const Products = () => {
           productData
         );
         toast.success("Product updated successfully");
-        
+
         // Update product in state (no API refetch needed)
         setProducts((prev) =>
           prev.map((p) =>
-            p.id === selectedProduct.id 
-              ? { ...p, ...response.data } 
-              : p
+            p.id === selectedProduct.id ? { ...p, ...response.data } : p
           )
         );
       } else {
         // Create new product
         const response = await api.productAPI.create(productData);
         toast.success("Product created successfully");
-        
+
         // Add new product to state (no API refetch needed)
         setProducts((prev) => [...prev, response.data]);
       }
@@ -226,34 +224,43 @@ const Products = () => {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card>
           <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total Products</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Total Products
+            </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
               {products.length}
             </p>
           </div>
         </Card>
-        
+
         <Card>
           <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Categories</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Categories
+            </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
               {categories.length}
             </p>
           </div>
         </Card>
-        
+
         <Card>
           <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Avg. Price</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Avg. Price
+            </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              ${products.length > 0 
-                ? (products.reduce((sum, p) => sum + parseFloat(p.price), 0) / products.length).toFixed(2)
-                : '0.00'
-              }
+              $
+              {products.length > 0
+                ? (
+                    products.reduce((sum, p) => sum + parseFloat(p.price), 0) /
+                    products.length
+                  ).toFixed(2)
+                : "0.00"}
             </p>
           </div>
         </Card>
-        
+
         <Card>
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">Filtered</p>
@@ -292,11 +299,7 @@ const Products = () => {
           </div>
 
           <div>
-            <Button
-              variant="outline"
-              fullWidth
-              onClick={clearFilters}
-            >
+            <Button variant="outline" fullWidth onClick={clearFilters}>
               <Filter className="h-5 w-5 mr-2" />
               Clear Filters
             </Button>
@@ -410,7 +413,7 @@ const Products = () => {
                 ? "Try adjusting your search or filter to find what you're looking for."
                 : "Get started by creating a new product."}
             </p>
-            {(searchTerm || selectedCategory !== "all") ? (
+            {searchTerm || selectedCategory !== "all" ? (
               <div className="mt-6">
                 <Button variant="outline" onClick={clearFilters}>
                   Clear Filters

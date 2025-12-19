@@ -1,13 +1,13 @@
 // src/pages/Carts.jsx - HIGHLY OPTIMIZED VERSION
 import React, { useState, useEffect } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import Table from "../../components/ui/Table";
-import Badge from "../../components/ui/Badge";
-import Modal from "../../components/ui/Modal";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Card from "../../components_temp/ui/Card";
+import Button from "../../components_temp/ui/Button";
+import Input from "../../components_temp/ui/Input";
+import Table from "../../components_temp/ui/Table";
+import Badge from "../../components_temp/ui/Badge";
+import Modal from "../../components_temp/ui/Modal";
+import LoadingSpinner from "../../components_temp/ui/LoadingSpinner";
 import useApi from "../../services/AdminuseApi";
 import {
   Search,
@@ -33,7 +33,6 @@ const Carts = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCart, setSelectedCart] = useState(null);
 
-  // OPTIMIZED: Single effect that runs once
   useEffect(() => {
     fetchCartsData();
   }, []);
@@ -42,12 +41,10 @@ const Carts = () => {
     filterCarts();
   }, [cartsWithProducts, searchTerm, selectedStatus]);
 
-  // OPTIMIZED: Fetch carts and products together, then enrich
   const fetchCartsData = async () => {
     try {
       setLoading(true);
 
-      // STEP 1: Fetch carts and all products in parallel (2 API calls only!)
       const [cartsResponse, productsResponse] = await Promise.all([
         api.cartAPI.getAll(),
         api.productAPI.getAll(),
@@ -58,42 +55,39 @@ const Carts = () => {
 
       setCarts(cartsData);
 
-      // STEP 2: Create product lookup map for O(1) access
       const productMap = new Map();
-      productsData.forEach(product => {
+      productsData.forEach((product) => {
         productMap.set(product.id, product);
       });
 
-      // STEP 3: Enrich carts with product details (no additional API calls!)
-      const enrichedCarts = cartsData.map(cart => {
+      const enrichedCarts = cartsData.map((cart) => {
         if (!cart.products || cart.products.length === 0) {
           return { ...cart, products: [] };
         }
 
-        const enrichedProducts = cart.products.map(item => {
+        const enrichedProducts = cart.products.map((item) => {
           const product = productMap.get(item.productId);
-          
+
           if (product) {
             return {
               ...product,
               quantity: item.quantity,
-              cartProductId: item.productId
+              cartProductId: item.productId,
             };
           } else {
-            // Fallback for missing products
             return {
               id: item.productId,
               title: "Unknown Product",
               price: 0,
               quantity: item.quantity,
-              cartProductId: item.productId
+              cartProductId: item.productId,
             };
           }
         });
 
         return {
           ...cart,
-          products: enrichedProducts
+          products: enrichedProducts,
         };
       });
 
@@ -146,7 +140,7 @@ const Carts = () => {
     return cart.products.reduce((total, item) => {
       const price = parseFloat(item.price) || 0;
       const quantity = parseInt(item.quantity) || 0;
-      return total + (price * quantity);
+      return total + price * quantity;
     }, 0);
   };
 
@@ -167,7 +161,9 @@ const Carts = () => {
 
       // Update both states (no refetch needed)
       setCarts((prev) => prev.filter((cart) => cart.id !== selectedCart.id));
-      setCartsWithProducts((prev) => prev.filter((cart) => cart.id !== selectedCart.id));
+      setCartsWithProducts((prev) =>
+        prev.filter((cart) => cart.id !== selectedCart.id)
+      );
 
       setIsDeleteModalOpen(false);
       setSelectedCart(null);
@@ -207,7 +203,8 @@ const Carts = () => {
   };
 
   const calculateActiveCartsCount = () => {
-    return cartsWithProducts.filter((cart) => calculateTotalItems(cart) > 0).length;
+    return cartsWithProducts.filter((cart) => calculateTotalItems(cart) > 0)
+      .length;
   };
 
   const calculateTotalRevenue = () => {
@@ -217,7 +214,9 @@ const Carts = () => {
   };
 
   const calculateAverageCartValue = () => {
-    const activeCarts = cartsWithProducts.filter((cart) => calculateTotalItems(cart) > 0);
+    const activeCarts = cartsWithProducts.filter(
+      (cart) => calculateTotalItems(cart) > 0
+    );
     if (activeCarts.length === 0) return 0;
     return calculateTotalRevenue() / activeCarts.length;
   };
@@ -351,11 +350,7 @@ const Carts = () => {
           </div>
 
           <div>
-            <Button
-              variant="outline"
-              fullWidth
-              onClick={clearFilters}
-            >
+            <Button variant="outline" fullWidth onClick={clearFilters}>
               <Filter className="h-5 w-5 mr-2" />
               Clear Filters
             </Button>
@@ -389,7 +384,7 @@ const Carts = () => {
                   <Table.Cell>
                     <div className="flex items-center">
                       <Users className="h-4 w-4 text-gray-400 mr-2" />
-                      <Link 
+                      <Link
                         to={`/admin/users/${cart.userId}`}
                         className="text-blue-600 dark:text-blue-400 hover:underline"
                       >

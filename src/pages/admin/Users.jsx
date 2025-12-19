@@ -1,13 +1,13 @@
 // src/pages/Users.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import Table from "../../components/ui/Table";
-import Badge from "../../components/ui/Badge";
-import Modal from "../../components/ui/Modal";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Card from "../../components_temp/ui/Card";
+import Button from "../../components_temp/ui/Button";
+import Input from "../../components_temp/ui/Input";
+import Table from "../../components_temp/ui/Table";
+import Badge from "../../components_temp/ui/Badge";
+import Modal from "../../components_temp/ui/Modal";
+import LoadingSpinner from "../../components_temp/ui/LoadingSpinner";
 import useApi from "../../services/AdminuseApi";
 import {
   Search,
@@ -48,7 +48,7 @@ const UsersPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [api.userAPI, toast, hasFetched, loading]);
+  }, [api.userAPI, toast, hasFetched]);
 
   useEffect(() => {
     fetchUsers();

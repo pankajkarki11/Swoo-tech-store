@@ -1,13 +1,13 @@
 // src/pages/admin/SimpleLogin.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Card from "../../components_temp/ui/Card";
+import Button from "../../components_temp/ui/Button";
+import Input from "../../components_temp/ui/Input";
+import LoadingSpinner from "../../components_temp/ui/LoadingSpinner";
 import { Lock, Mail, ShoppingBag, Shield, Info } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import{Link} from "react-router-dom"
+import { Link } from "react-router-dom";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ const AdminLogin = () => {
 
     const username = formData.username.toLowerCase();
     const patterns = ["admin", "adm", "tech", "swoo", "mart"];
-    const matchingPatterns = patterns.filter(pattern => 
+    const matchingPatterns = patterns.filter((pattern) =>
       username.includes(pattern.toLowerCase())
     );
 
@@ -89,14 +89,15 @@ const AdminLogin = () => {
         const from = location.state?.from || "/admin/dashboard";
         navigate(from, { replace: true });
       } else {
-        setErrors({ 
-          submit: "Access denied. Username does'nt have admin access" 
+        setErrors({
+          submit: "Access denied. Username does'nt have admin access",
         });
       }
     } catch (error) {
       console.error("Login error:", error);
-      setErrors({ 
-        submit: error.message || "Invalid username or password. Please try again." 
+      setErrors({
+        submit:
+          error.message || "Invalid username or password. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -106,13 +107,13 @@ const AdminLogin = () => {
   // Demo logins with different patterns
   const handleAdminPatternLogin = (pattern) => {
     let username, password;
-    
-    switch(pattern) {
+
+    switch (pattern) {
       case "john":
         username = "johnd";
         password = "m38rmF$";
         break;
-        
+
       default:
         username = "mor_2314";
         password = "83r5^_";
@@ -122,7 +123,6 @@ const AdminLogin = () => {
       username: username,
       password: password,
     });
-
   };
 
   if (loading) {
@@ -150,8 +150,6 @@ const AdminLogin = () => {
         </div>
 
         <Card>
-      
-
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
@@ -169,7 +167,13 @@ const AdminLogin = () => {
                   disabled={isLoading}
                 />
                 {adminHint && (
-                  <p className={`text-xs mt-1 ml-1 ${adminHint.startsWith("✓") ? "text-green-600" : "text-amber-600"}`}>
+                  <p
+                    className={`text-xs mt-1 ml-1 ${
+                      adminHint.startsWith("✓")
+                        ? "text-green-600"
+                        : "text-amber-600"
+                    }`}
+                  >
                     {adminHint}
                   </p>
                 )}
@@ -231,20 +235,19 @@ const AdminLogin = () => {
               </div>
             </div>
           </form>
-
         </Card>
 
         <div className="text-center pt-2">
-                    <p className="text-gray-600 dark:text-white">
-                      Don't have admin access? {" "}
-                      <Link
-                        to="/login"
-                        className="text-[#01A49E] font-semibold hover:text-[#016F6B] transition"
-                      >
-                      Try Client Login
-                      </Link>
-                    </p>
-                  </div>
+          <p className="text-gray-600 dark:text-white">
+            Don't have admin access?{" "}
+            <Link
+              to="/login"
+              className="text-[#01A49E] font-semibold hover:text-[#016F6B] transition"
+            >
+              Try Client Login
+            </Link>
+          </p>
+        </div>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">

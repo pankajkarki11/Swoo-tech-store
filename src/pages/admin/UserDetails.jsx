@@ -1,12 +1,17 @@
 // src/pages/UserDetails.jsx
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useOutletContext,useNavigate } from "react-router-dom";
+import {
+  useParams,
+  Link,
+  useOutletContext,
+  useNavigate,
+} from "react-router-dom";
 
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Table from "../../components/ui/Table";
-import Badge from "../../components/ui/Badge";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Card from "../../components_temp/ui/Card";
+import Button from "../../components_temp/ui/Button";
+import Table from "../../components_temp/ui/Table";
+import Badge from "../../components_temp/ui/Badge";
+import LoadingSpinner from "../../components_temp/ui/LoadingSpinner";
 import useApi from "../../services/AdminuseApi";
 
 import {
@@ -31,7 +36,7 @@ const UserDetails = () => {
   const [loading, setLoading] = useState(true);
   const [userCarts, setUserCarts] = useState([]);
   const [cartsWithProducts, setCartsWithProducts] = useState([]); // NEW: Store carts with full product details
-const navigate=useNavigate();
+  const navigate = useNavigate();
   useEffect(() => {
     fetchUserDetails();
   }, [id]);
@@ -72,21 +77,26 @@ const navigate=useNavigate();
           const productsWithDetails = await Promise.all(
             cart.products.map(async (item) => {
               try {
-                const productResponse = await api.productAPI.getById(item.productId);
+                const productResponse = await api.productAPI.getById(
+                  item.productId
+                );
                 return {
                   ...productResponse.data,
                   quantity: item.quantity,
-                  cartProductId: item.productId
+                  cartProductId: item.productId,
                 };
               } catch (error) {
-                console.error(`Error fetching product ${item.productId}:`, error);
+                console.error(
+                  `Error fetching product ${item.productId}:`,
+                  error
+                );
                 // Return a fallback if product fetch fails
                 return {
                   id: item.productId,
                   title: "Unknown Product",
                   price: 0,
                   quantity: item.quantity,
-                  cartProductId: item.productId
+                  cartProductId: item.productId,
                 };
               }
             })
@@ -94,7 +104,7 @@ const navigate=useNavigate();
 
           return {
             ...cart,
-            products: productsWithDetails
+            products: productsWithDetails,
           };
         })
       );
@@ -110,14 +120,14 @@ const navigate=useNavigate();
   // FIXED: Calculate total spent using cartsWithProducts
   const calculateTotalSpent = () => {
     if (cartsWithProducts.length === 0) return 0;
-    
+
     return cartsWithProducts.reduce((total, cart) => {
       return (
         total +
         (cart.products?.reduce((cartTotal, item) => {
           const price = parseFloat(item.price) || 0;
           const quantity = parseInt(item.quantity) || 0;
-          return cartTotal + (price * quantity);
+          return cartTotal + price * quantity;
         }, 0) || 0)
       );
     }, 0);
@@ -126,11 +136,14 @@ const navigate=useNavigate();
   // FIXED: Calculate total orders using cartsWithProducts
   const calculateTotalOrders = () => {
     if (cartsWithProducts.length === 0) return 0;
-    
+
     return cartsWithProducts.reduce((total, cart) => {
-      return total + (cart.products?.reduce((sum, item) => {
-        return sum + (parseInt(item.quantity) || 0);
-      }, 0) || 0);
+      return (
+        total +
+        (cart.products?.reduce((sum, item) => {
+          return sum + (parseInt(item.quantity) || 0);
+        }, 0) || 0)
+      );
     }, 0);
   };
 
@@ -229,15 +242,19 @@ const navigate=useNavigate();
 
                 {/* Quick Actions */}
                 <div className="mt-4 space-y-2">
-                  <Button 
-                  onClick={()=>navigate("/sentemail")}
-                  variant="outline" fullWidth>
+                  <Button
+                    onClick={() => navigate("/sentemail")}
+                    variant="outline"
+                    fullWidth
+                  >
                     <Mail className="h-4 w-4 mr-2" />
                     Send Email
                   </Button>
-                  <Button 
-                  onClick={()=>navigate("/vieworder")}
-                  variant="primary" fullWidth>
+                  <Button
+                    onClick={() => navigate("/vieworder")}
+                    variant="primary"
+                    fullWidth
+                  >
                     <CreditCard className="h-4 w-4 mr-2" />
                     View Orders
                   </Button>
@@ -308,7 +325,7 @@ const navigate=useNavigate();
 
                 {/* User Stats */}
                 <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-                       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                     <div className="flex items-center justify-center h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg mb-3 mx-auto">
                       <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                     </div>
@@ -321,10 +338,9 @@ const navigate=useNavigate();
                       </div>
                     </div>
                   </div>
-                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                     <div className="flex items-center justify-center h-10 w-10 bg-green-100 dark:bg-green-900/30 rounded-lg mb-3 mx-auto">
-                    <User className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      
+                      <User className="h-5 w-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -348,10 +364,6 @@ const navigate=useNavigate();
                       </div>
                     </div>
                   </div>
-
-                 
-
-             
 
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                     <div className="flex items-center justify-center h-10 w-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg mb-3 mx-auto">
@@ -395,14 +407,18 @@ const navigate=useNavigate();
                     {cartsWithProducts.slice(0, 5).map((cart) => {
                       const total =
                         cart.products?.reduce(
-                          (sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 0),
+                          (sum, item) =>
+                            sum +
+                            (parseFloat(item.price) || 0) *
+                              (parseInt(item.quantity) || 0),
                           0
                         ) || 0;
 
-                      const itemCount = cart.products?.reduce(
-                        (sum, item) => sum + (parseInt(item.quantity) || 0),
-                        0
-                      ) || 0;
+                      const itemCount =
+                        cart.products?.reduce(
+                          (sum, item) => sum + (parseInt(item.quantity) || 0),
+                          0
+                        ) || 0;
 
                       return (
                         <Table.Row key={cart.id}>
@@ -445,8 +461,7 @@ const navigate=useNavigate();
 
                           <Table.Cell>
                             <Link to={`/admin/carts/${cart.id}`}>
-                              <Button size="small"
-                              className="hover:underline">
+                              <Button size="small" className="hover:underline">
                                 View
                               </Button>
                             </Link>
