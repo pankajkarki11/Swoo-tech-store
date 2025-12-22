@@ -1,4 +1,4 @@
-// src/components/ProductCard.jsx
+// src/components/ProductCard.jsx - UPDATED FOR NEW CART CONTEXT
 import React, { useState, useEffect, useCallback } from "react";
 import {
   ShoppingCart,
@@ -8,10 +8,11 @@ import {
   Zap,
   ChevronRight,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
-import useApi from "../services/AdminuseApi";
+import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
 import Button from "./ui/Button";
 
@@ -30,8 +31,8 @@ const ProductCard = ({
   });
 
   const navigate = useNavigate();
-  const { addToCart, isInCart, getCartItemQuantity } = useCart();
-  const api = useApi();
+  const { addToCart, isInCart, getCartItemQuantity, isSyncing } = useCart();
+  const { user } = useAuth();
 
   // Update cart status when product or cart changes
   useEffect(() => {
@@ -74,7 +75,7 @@ const ProductCard = ({
     [compact]
   );
 
- 
+
   const handleAddToCart = useCallback(
     async (e) => {
       if (!product || isAddingToCart) return;
@@ -85,7 +86,7 @@ const ProductCard = ({
       try {
        
         await addToCart(product, 1);
-
+       
         toast.success(
           <div className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-500" />
@@ -99,45 +100,19 @@ const ProductCard = ({
           }
         );
 
-        // If user is logged in, sync to API in background
-        const user = JSON.parse(localStorage.getItem("swmart_user") || "null");
-        const token = localStorage.getItem("swmart_token");
-
-        if (user && token) {
-          // Get current cart from localStorage
-          const currentCart = JSON.parse(
-            localStorage.getItem("swmart_cart") || "[]"
-          );
-
-          // Find user's existing carts
-          try {
-            const { data: existingCarts } = await api.cartAPI.getUserCarts(
-              user.id
-            );
-
-            // Prepare cart data for API
-            const apiCartData = {
-              userId: user.id,
-              date: new Date().toISOString(),
-              products: currentCart.map((item) => ({
-                productId: item.id,
-                quantity: item.quantity || 1,
-              })),
-            };
-
-            if (existingCarts?.length > 0) {
-              // Update most recent cart
-              const latestCart = existingCarts[0];
-              await api.cartAPI.update(latestCart.id, apiCartData);
-            } else {
-              // Create new cart
-              await api.cartAPI.create(apiCartData);
+        
+        if (user) {
+          toast.success(
+            <div className="flex items-center gap-2 text-sm">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Syncing to server...</span>
+            </div>,
+            {
+              duration: 1000,
+              id: "cart-sync",
+              icon: "☁️",
             }
-
-            console.log("✅ Cart synced to API after adding item");
-          } catch (apiError) {
-            console.error("❌ Error syncing to API (background):", apiError);
-          }
+          );
         }
       } catch (error) {
         console.error("Failed to add to cart:", error);
@@ -150,7 +125,7 @@ const ProductCard = ({
         setTimeout(() => setIsAddingToCart(false), 500);
       }
     },
-    [product, isAddingToCart, addToCart, api.cartAPI]
+    [product, isAddingToCart, addToCart, user]
   );
 
   // Quick view handler
@@ -216,13 +191,23 @@ const ProductCard = ({
         </div>
       )}
 
+     
+      {isSyncing && cartStatus.isInCart && (
+        <div className="absolute top-12 left-3 z-20 animate-fade-in">
+          <span className="bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
+            <Loader2 size={10} className="animate-spin" />
+            Syncing...
+          </span>
+        </div>
+      )}
+
       {/* Product Image */}
       <div className="relative h-64 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden dark:bg-gray-800">
         <img
           src={product?.image}
           alt={product?.title || "Product"}
-          className={`w-full  h-full object-contain p-4 transition-transform duration-500 dark:bg-gray-800 ${
-            isHovered ? "scale-110" : "scale-100   dark:bg-gray-700"
+          className={`w-full h-full object-contain p-4 transition-transform duration-500 dark:bg-gray-800 ${
+            isHovered ? "scale-110" : "scale-100 dark:bg-gray-700"
           }`}
           loading="lazy"
         />
@@ -249,11 +234,10 @@ const ProductCard = ({
             isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <Button
+          <Button 
           variant="overlay"
-            onClick={handleQuickView}
-        
-          >
+           onClick={handleQuickView}
+           >
             <Eye size={16} />
             Quick View
           </Button>
@@ -352,19 +336,35 @@ const ProductCard = ({
             </>
           )}
         </button>
+
+      
+        {user && cartStatus.isInCart && (
+          <div className="mt-2 text-center">
+            {isSyncing ? (
+              <span className="text-xs text-blue-600 flex items-center justify-center gap-1">
+                <Loader2 size={10} className="animate-spin" />
+                Syncing to server...
+              </span>
+            ) : (
+              <span className="text-xs text-green-600 flex items-center justify-center gap-1">
+                <CheckCircle size={10} />
+                Synced to server
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Hover Indicator */}
+     
       <div
-  className={`
-    absolute bottom-0 left-0 right-0 h-1
-    bg-gradient-to-r from-[#01A49E] to-[#01857F]
-    dark:bg-gradient-to-r dark:from-white dark:to-gray-300
-    transform origin-left transition-transform duration-300
-    ${isHovered ? "scale-x-100" : "scale-x-0"}
-  `}
-></div>
-
+        className={`
+          absolute bottom-0 left-0 right-0 h-1
+          bg-gradient-to-r from-[#01A49E] to-[#01857F]
+          dark:bg-gradient-to-r dark:from-white dark:to-gray-300
+          transform origin-left transition-transform duration-300
+          ${isHovered ? "scale-x-100" : "scale-x-0"}
+        `}
+      ></div>
     </div>
   );
 };

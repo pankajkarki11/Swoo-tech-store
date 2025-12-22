@@ -32,7 +32,7 @@ const ClientLogin = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isSyncingCart, cartSyncMessage, isAuthenticated, isDemoUser } =
+  const { login, isAuthenticated, } =
     useAuth();
 
   // Redirect if already authenticated
@@ -221,7 +221,7 @@ const ClientLogin = () => {
                         className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#01A49E]/30 focus:border-[#01A49E] transition text-base bg-gray-50/50 dark:bg-white"
                         placeholder="Enter your username"
                         required
-                        disabled={isLoading || isSyncingCart}
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -242,13 +242,13 @@ const ClientLogin = () => {
                           className="w-full pl-12 pr-12 py-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#01A49E]/30 focus:border-[#01A49E] transition text-base bg-gray-50/50 dark:bg-white"
                           placeholder="Enter your password"
                           required
-                          disabled={isLoading || isSyncingCart}
+                          disabled={isLoading}
                         />
                         <button
                           type="button"
                           className="absolute inset-y-0 right-0 pr-4 flex items-center"
                           onClick={() => setShowPassword(!showPassword)}
-                          disabled={isLoading || isSyncingCart}
+                          disabled={isLoading}
                         >
                           {showPassword ? (
                             <EyeOff className="h-5 w-5 text-gray-500 hover:text-[#01A49E] transition" />
@@ -263,19 +263,14 @@ const ClientLogin = () => {
                   <button
                     type="submit"
                     className="w-full bg-gradient-to-r from-[#01A49E] to-[#01857F] hover:from-[#01857F] hover:to-[#016F6B] text-white py-3.5 px-4 rounded-xl font-semibold hover:shadow-xl transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-[1.02] group disabled:opacity-70 disabled:cursor-not-allowed"
-                    disabled={isLoading || isSyncingCart}
+                    disabled={isLoading}
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
                         Signing in...
                       </>
-                    ) : isSyncingCart ? (
-                      <>
-                        <RefreshCw className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-                        Signing in...
-                      </>
-                    ) : (
+                    )  : (
                       <>
                         Sign In
                         <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -316,7 +311,7 @@ const ClientLogin = () => {
                           onClick={() =>
                             useDemoAccount(cred.username, cred.password)
                           }
-                          disabled={isLoading || isSyncingCart}
+                          disabled={isLoading}
                           className="w-full text-left bg-white hover:from-gray-100 hover:to-gray-200 text-gray-800 py-3 px-4 rounded-lg transition text-sm font-medium border border-gray-200 hover:border-gray-300 disabled:opacity-50 group dark:bg-gray-400 dark:hover:bg-gray-500 "
                         >
                           <div className="flex items-center gap-3">

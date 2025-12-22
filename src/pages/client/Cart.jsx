@@ -15,10 +15,12 @@ import {
   Loader2,
   Calendar,
   Download,
-  Upload,
   Package,
   Archive,
   ShoppingCart as CartIcon,
+  CalendarSync,
+  
+  AlertCircle,
 } from "lucide-react";
 import useApi from "../../services/AdminuseApi";
 import { useCart } from "../../contexts/CartContext";
@@ -29,7 +31,6 @@ const CartPage = () => {
   const [isLoadingAPICarts, setIsLoadingAPICarts] = useState(false);
   const [apiCarts, setApiCarts] = useState([]);
   const [showCartHistory, setShowCartHistory] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasLoadedCarts, setHasLoadedCarts] = useState(false);
 
   const {
@@ -39,13 +40,14 @@ const CartPage = () => {
     updateQuantity,
     clearCart,
     cartItemCount,
-    isSyncing,
-    manualSyncCart,
     cartStats,
+    isSyncing,
+    syncCartToAPI,
+    loadUserCartFromAPI,
+    apiCartId,
   } = useCart();
 
-  const { user, loadUserCartsFromAPI, refreshAllData, isSyncingCart } =
-    useAuth();
+  const { user, getUserCarts } = useAuth();
   const api = useApi();
 
   // Scroll to top on mount
@@ -53,14 +55,15 @@ const CartPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+
   useEffect(() => {
-    if (user?.id && !isLoadingAPICarts) {
+    if (user?.id && !hasLoadedCarts) {
       loadUserAPICarts();
     }
   }, [user?.id]);
 
+
   const loadUserAPICarts = useCallback(async () => {
-    // Prevent duplicate calls
     if (!user?.id || isLoadingAPICarts) {
       console.log("⏸️ Skipping cart load:", {
         hasUser: !!user?.id,
@@ -69,30 +72,33 @@ const CartPage = () => {
       return;
     }
 
-    console.log("🔄 Loading user carts for user:", user.id);
+    console.log("📥 Loading cart history for user:", user.id);
 
     try {
       setIsLoadingAPICarts(true);
 
-      // Call the API
-      const carts = await loadUserCartsFromAPI(user.id, false); // false = use cache
+     
+      const result = await getUserCarts(user.id);
 
-      console.log("✅ Loaded carts:", carts?.length || 0);
+      if (result.success && result.data) {
+        console.log("✅ Loaded cart history:", result.data.length);
+        setApiCarts(Array.isArray(result.data) ? result.data : []);
+      } else {
+        console.log("ℹ️ No cart history found");
+        setApiCarts([]);
+      }
 
-      // Set the carts (with fallback to empty array)
-      setApiCarts(Array.isArray(carts) ? carts : []);
       setHasLoadedCarts(true);
     } catch (error) {
-      console.error("❌ Error loading API carts:", error);
+      console.error("❌ Error loading cart history:", error);
       toast.error("Failed to load cart history");
-
-      // Set empty array on error
       setApiCarts([]);
       setHasLoadedCarts(true);
     } finally {
       setIsLoadingAPICarts(false);
     }
-  }, [user?.id, loadUserCartsFromAPI]);
+  }, [user?.id, getUserCarts, isLoadingAPICarts]);
+
 
   const totals = useMemo(() => {
     const subtotal = cartStats.totalValue;
@@ -108,7 +114,7 @@ const CartPage = () => {
     };
   }, [cartStats.totalValue]);
 
-  // Navigation handlers
+ 
   const proceedToCheckout = useCallback(() => {
     if (cart.length === 0) return;
     toast.success("Proceeding to checkout!");
@@ -117,13 +123,14 @@ const CartPage = () => {
 
   const continueShopping = useCallback(() => navigate("/"), [navigate]);
 
-  // Clear cart handler
+
   const clearCartHandler = useCallback(() => {
     if (window.confirm("Are you sure you want to clear your cart?")) {
       clearCart();
       toast.success("Cart cleared!");
     }
   }, [clearCart]);
+
 
   const loadAPICartIntoCurrentCart = useCallback(
     async (apiCart) => {
@@ -141,7 +148,7 @@ const CartPage = () => {
         setIsLoadingAPICarts(true);
         toast.loading("Loading cart items...", { id: "load-cart" });
 
-        // Fetch all products in parallel
+    
         const productPromises = apiCart.products.map(async (apiProduct) => {
           try {
             const { data: product } = await api.productAPI.getById(
@@ -167,14 +174,29 @@ const CartPage = () => {
           return;
         }
 
-        // Add all products to cart
+     
+        // const shouldReplace = window.confirm(
+        //   cart.length > 0
+        //     ? "Replace current cart with saved cart? (Cancel to merge instead)"
+        //     : "Load this cart?"
+        // );
+
+        // if (shouldReplace && cart.length > 0) {
+         
+        //   clearCart();
+        // }
+
+      
         validProducts.forEach(({ product, quantity }) => {
           addToCart(product, quantity);
         });
 
-        toast.success(`Loaded ${validProducts.length} items from saved cart!`, {
-          id: "load-cart",
-        });
+        toast.success(
+          `Loaded ${validProducts.length} items from saved cart!`,
+          {
+            id: "load-cart",
+          }
+        );
       } catch (error) {
         console.error("Error loading API cart:", error);
         toast.error("Failed to load saved cart", { id: "load-cart" });
@@ -182,9 +204,10 @@ const CartPage = () => {
         setIsLoadingAPICarts(false);
       }
     },
-    [api.productAPI, addToCart]
+    [api.productAPI, addToCart, clearCart, cart.length, isLoadingAPICarts]
   );
 
+  // Format date
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "";
     try {
@@ -192,6 +215,7 @@ const CartPage = () => {
       return date.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
+        year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
       });
@@ -200,54 +224,42 @@ const CartPage = () => {
     }
   }, []);
 
-  const refreshCartData = useCallback(async () => {
-    if (isRefreshing) return;
+  // Force sync current cart to API
+  const handleForceSyncToAPI = useCallback(async () => {
+    if (cart.length === 0) {
+      toast.error("Cart is empty, nothing to sync");
+      return;
+    }
 
     try {
-      setIsRefreshing(true);
-      toast.loading("Refreshing...", { id: "refresh" });
+      toast.loading("Syncing cart to server...", { id: "sync" });
+      await syncCartToAPI();
+      toast.success("Cart synced successfully!", { id: "sync" });
+      
+      // Reload cart history
+      await loadUserAPICarts();
+    } catch (error) {
+      console.error("Sync failed:", error);
+      toast.error("Failed to sync cart", { id: "sync" });
+    }
+  }, [cart.length, syncCartToAPI, loadUserAPICarts]);
 
-      // Force reload with fresh data
-      const tasks = [refreshAllData()];
+  // Refresh all data
+  const refreshCartData = useCallback(async () => {
+    try {
+      toast.loading("Refreshing cart history...", { id: "refresh" });
 
-      if (user?.id) {
-        const freshCarts = await loadUserCartsFromAPI(user.id, true);
-        setApiCarts(Array.isArray(freshCarts) ? freshCarts : []);
-      }
+      // Reload cart history from API
+      await loadUserAPICarts();
 
-      await Promise.all(tasks);
-
-      toast.success("Cart data refreshed!", { id: "refresh" });
+      toast.success("Cart history refreshed!", { id: "refresh" });
     } catch (error) {
       console.error("Refresh failed:", error);
       toast.error("Refresh failed", { id: "refresh" });
-    } finally {
-      setIsRefreshing(false);
     }
-  }, [refreshAllData, user?.id, loadUserCartsFromAPI, isRefreshing]);
+  }, [loadUserAPICarts]);
 
-  // Sync cart handler
-  const handleSyncCart = useCallback(async () => {
-    try {
-      toast.loading("Syncing cart...", { id: "sync" });
-      const result = await manualSyncCart();
-
-      if (result.success) {
-        toast.success("Cart synced!", { id: "sync" });
-
-        // Reload cart history after successful sync
-        if (user?.id) {
-          const freshCarts = await loadUserCartsFromAPI(user.id, true);
-          setApiCarts(Array.isArray(freshCarts) ? freshCarts : []);
-        }
-      } else {
-        toast.error(result.message || "Failed to sync cart", { id: "sync" });
-      }
-    } catch (error) {
-      toast.error("Failed to sync cart", { id: "sync" });
-    }
-  }, [manualSyncCart, user?.id, loadUserCartsFromAPI]);
-
+ 
   const toggleCartHistory = useCallback(() => {
     if (!showCartHistory && !hasLoadedCarts && user?.id) {
       loadUserAPICarts();
@@ -266,14 +278,28 @@ const CartPage = () => {
               Continue Shopping
             </Button>
 
-            <Button
-              onClick={refreshCartData}
-              disabled={isRefreshing}
-              loading={isRefreshing}
-              icon={!isRefreshing && <RefreshCw size={16} />}
-            >
-              {isRefreshing ? "Refreshing..." : "Refresh Data"}
-            </Button>
+            <div className="flex gap-2">
+              {user && cart.length > 0 && (
+                <Button
+                  onClick={handleForceSyncToAPI}
+                  disabled={isSyncing}
+                  loading={isSyncing}
+                  variant="success"
+                  icon={!isSyncing && <CalendarSync size={16} />}
+                >
+                  {isSyncing ? "Syncing..." : "Save to Server"}
+                </Button>
+              )}
+
+              <Button
+                onClick={refreshCartData}
+                disabled={isLoadingAPICarts}
+                loading={isLoadingAPICarts}
+                icon={!isLoadingAPICarts && <RefreshCw size={16} />}
+              >
+                {isLoadingAPICarts ? "Refreshing..." : "Refresh"}
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 mb-2">
@@ -284,17 +310,43 @@ const CartPage = () => {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 Shopping Cart
               </h1>
-              <p className="text-gray-600 dark:text-white">
-                {cartItemCount} {cartItemCount === 1 ? "item" : "items"} in your
-                cart
+              <div className="flex items-center gap-3">
+                <p className="text-gray-600 dark:text-white">
+                  {cartItemCount} {cartItemCount === 1 ? "item" : "items"} in
+                  your cart
+                </p>
                 {isSyncing && (
-                  <span className="ml-2 text-gray-500 animate-pulse">
-                    (syncing...)
+                  <span className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Syncing...
                   </span>
                 )}
-              </p>
+                {apiCartId && !isSyncing && (
+                  <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                    <CalendarSync className="h-3 w-3" />
+                    Cart #{apiCartId}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Auto-Sync Info Banner */}
+          {user && cart.length > 0 && (
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/20 dark:border-blue-800">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-800 dark:text-blue-300">
+                  <p className="font-medium">Auto-sync enabled</p>
+                  <p className="text-blue-600 dark:text-blue-400">
+                    Your cart will automatically sync to the server after 3
+                    seconds of inactivity. Click "Save to Server" to sync
+                    immediately.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Stats Banner */}
           <div className="mt-6 bg-white rounded-2xl shadow-lg p-6 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
@@ -322,7 +374,9 @@ const CartPage = () => {
                     <div className="text-2xl font-bold text-gray-900">
                       ${cartStats.totalValue?.toFixed(2) || "0.00"}
                     </div>
-                    <div className="text-gray-600 text-sm">Your Cart Value</div>
+                    <div className="text-gray-600 text-sm">
+                      Your Cart Value
+                    </div>
                   </div>
                 </div>
               </div>
@@ -357,16 +411,6 @@ const CartPage = () => {
                     Current Cart Items
                   </h2>
                   <div className="flex items-center gap-2">
-                    {user && (
-                      <Button
-                        onClick={handleSyncCart}
-                        disabled={isSyncingCart}
-                        size="small"
-                      >
-                        <Upload size={14} className="mr-2" />
-                        Sync to Account
-                      </Button>
-                    )}
                     <Button
                       variant="danger"
                       onClick={clearCartHandler}
@@ -410,6 +454,11 @@ const CartPage = () => {
                               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded flex items-center gap-1">
                                 <Archive size={10} />
                                 From Saved
+                              </span>
+                            )}
+                            {item.source && (
+                              <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-800 rounded">
+                                {item.source}
                               </span>
                             )}
                           </div>
@@ -473,7 +522,7 @@ const CartPage = () => {
               </div>
             )}
 
-            {/* FIXED: Cart History Section */}
+            {/* Cart History Section */}
             {user && (
               <div>
                 <Button
@@ -521,13 +570,13 @@ const CartPage = () => {
                         </p>
                       </div>
                     ) : (
-                      apiCarts.slice(0, 5).map((apiCart) => (
+                      apiCarts.map((apiCart) => (
                         <div
                           key={apiCart.id}
                           className="border border-gray-200 rounded-xl p-4 hover:border-purple-300 transition bg-white dark:bg-gray-800"
                         >
                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                            <div>
+                            <div className="flex-grow">
                               <div className="flex items-center gap-2 mb-2">
                                 <Package className="h-4 w-4 text-gray-500 dark:text-white" />
                                 <span className="font-medium text-gray-900 dark:text-white">
@@ -536,10 +585,18 @@ const CartPage = () => {
                                 <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
                                   {apiCart.products?.length || 0} items
                                 </span>
+                                {apiCartId === apiCart.id && (
+                                  <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                    Current
+                                  </span>
+                                )}
                               </div>
                               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-white">
                                 <Clock size={14} />
                                 <span>{formatDate(apiCart.date)}</span>
+                              </div>
+                              <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                User ID: {apiCart.userId}
                               </div>
                             </div>
 
@@ -552,9 +609,33 @@ const CartPage = () => {
                               disabled={isLoadingAPICarts}
                             >
                               <Download size={14} className="mr-2" />
-                              Load to Cart
+                              Load Cart
                             </Button>
                           </div>
+
+                          {/* Show products preview */}
+                          {apiCart.products && apiCart.products.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                Items:
+                              </p>
+                              <div className="flex flex-wrap gap-1">
+                                {apiCart.products.slice(0, 5).map((p, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded"
+                                  >
+                                    Product #{p.productId} (×{p.quantity})
+                                  </span>
+                                ))}
+                                {apiCart.products.length > 5 && (
+                                  <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">
+                                    +{apiCart.products.length - 5} more
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
@@ -647,6 +728,32 @@ const CartPage = () => {
                 <p className="text-center text-sm text-gray-500 mt-3 dark:text-gray-400">
                   Add items to your cart to checkout
                 </p>
+              )}
+
+              {/* Sync Status */}
+              {user && cart.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Sync Status:
+                    </span>
+                    {isSyncing ? (
+                      <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Syncing...
+                      </span>
+                    ) : apiCartId ? (
+                      <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                        <CalendarSync className="h-3 w-3" />
+                        Synced
+                      </span>
+                    ) : (
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Not synced
+                      </span>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>

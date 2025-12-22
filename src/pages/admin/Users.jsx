@@ -1,5 +1,5 @@
-// src/pages/Users.jsx
-import React, { useState, useEffect, useCallback } from "react";
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import Card from "../../components_temp/ui/Card";
 import Button from "../../components_temp/ui/Button";
@@ -31,30 +31,31 @@ const UsersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [hasFetched, setHasFetched] = useState(false);
-
-  // Memoized fetch function
-  const fetchUsers = useCallback(async () => {
-    if (hasFetched && !loading) return;
+  const [selectedUser, setSelectedUser] = useState(null); 
+  const hasFetchedRef = useRef(false);
+    const fetchUsers = useCallback(async () => { 
+    if (hasFetchedRef.current) {
+      console.log("⏸️ Users already fetched, skipping...");
+      return; }
+    console.log("📥 Fetching users from API...");
 
     try {
       setLoading(true);
       const response = await api.userAPI.getAll();
       setUsers(response.data || []);
-      setHasFetched(true);
+      hasFetchedRef.current = true; 
+      console.log("✅ Users loaded:", response.data?.length || 0);
     } catch (error) {
+      console.error("❌ Error loading users:", error);
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
     }
-  }, [api.userAPI, toast, hasFetched]);
-
+  }, [api.userAPI, toast]); 
+  
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
-
-  // Filter users when search or role changes
+  }, []);
   useEffect(() => {
     let filtered = [...users];
 
@@ -122,10 +123,11 @@ const UsersPage = () => {
     return (first + last).toUpperCase();
   };
 
-  const handleRefresh = () => {
-    setHasFetched(false);
+  const handleRefresh = useCallback(() => {
+    console.log("🔄 Manual refresh triggered");
+    hasFetchedRef.current = false; 
     fetchUsers();
-  };
+  }, [fetchUsers]);
 
   if (loading && users.length === 0) {
     return (
