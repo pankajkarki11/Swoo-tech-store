@@ -29,7 +29,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: "/admin/users", icon: Users, label: "Users" },
   ];
 
-  const { user, logout, isDemoUser } = useAuth();
+  const { user, logout, } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -201,10 +201,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {user?.name || user?.username || "Admin User"}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {user?.isAdmin ? "Administrator" : "User"}
-                  {isDemoUser && " • Demo"}
-                </p>
+                
               </div>
             </div>
           ) : (

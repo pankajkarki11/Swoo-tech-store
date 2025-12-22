@@ -34,8 +34,8 @@ import Switch from "./ui/Switch";
 import toast from "react-hot-toast";
 
 const HeaderClient = () => {
-  const { user, logout, isAuthenticated, isAdmin, isDemoUser } = useAuth();
-  const { getCartCount, isSyncing } = useCart();
+  const { user, logout, isAuthenticated, isAdmin, } = useAuth();
+  const { getCartCount, } = useCart();
   const [showDropdown, setShowDropdown] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -160,11 +160,7 @@ const HeaderClient = () => {
                 <h1 className="text-2xl font-bold text-white dark:text-gray-100 bg-gradient-to-r from-white to-gray-300 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
                   SWOO TECH MART
                 </h1>
-                <p className="text-white/80 dark:text-gray-300 text-sm">
-                  {isDemoUser
-                    ? "Demo Mode • Offline"
-                    : "KTM's Prime Tech Store"}
-                </p>
+               
               </div>
             </Link>
           </div>
@@ -286,11 +282,7 @@ const HeaderClient = () => {
                                   Admin
                                 </span>
                               )}
-                              {isDemoUser && (
-                                <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full">
-                                  Demo
-                                </span>
-                              )}
+                           
                             </div>
                           </div>
                         </div>
@@ -414,9 +406,7 @@ const HeaderClient = () => {
                     </span>
                   )}
                 </div>
-                {isSyncing && (
-                  <div className="absolute -bottom-1 right-0 w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
-                )}
+               
               </button>
 
               {/* Shop Now Button */}
@@ -754,11 +744,7 @@ const HeaderClient = () => {
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                {isDemoUser && (
-                  <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs font-medium">
-                    Demo Mode
-                  </span>
-                )}
+               
                 {isAdmin && (
                   <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full text-xs font-medium">
                     Admin

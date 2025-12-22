@@ -18,7 +18,7 @@ const HeaderAdmin = ({ onMenuClick }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const { user, logout, isDemoUser } = useAuth();
+  const { user, logout,} = useAuth();
   const navigate = useNavigate();
 
   const [notifications] = useState([
@@ -205,11 +205,7 @@ const HeaderAdmin = ({ onMenuClick }) => {
                     <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
                       {user?.role || "Admin"}
                     </span>
-                    {isDemoUser && (
-                      <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full">
-                        Demo
-                      </span>
-                    )}
+                   
                   </div>
                 </div>
               </button>

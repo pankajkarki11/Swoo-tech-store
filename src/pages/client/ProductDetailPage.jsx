@@ -33,7 +33,6 @@ const ProductDetailPage = () => {
     updateQuantity,
     isInCart,
     getCartItemQuantity,
-    isSyncing,
   } = useCart();
 
   // Scroll to top when component mounts or id changes
@@ -79,7 +78,7 @@ const ProductDetailPage = () => {
   };
 
   const handleAddToCart = async () => {
-    if (isAddingToCart || !product || isSyncing) return;
+    if (isAddingToCart || !product) return;
 
     setIsAddingToCart(true);
     try {
@@ -94,7 +93,7 @@ const ProductDetailPage = () => {
   };
 
   const handleUpdateCartQuantity = async (change) => {
-    if (!product || isSyncing) return;
+    if (!product) return;
 
     const newQty = cartStatus.quantity + change;
 
@@ -116,7 +115,7 @@ const ProductDetailPage = () => {
   };
 
   const handleRemoveFromCart = async () => {
-    if (!product || isSyncing) return;
+    if (!product) return;
 
     try {
       await removeFromCart(product.id);
@@ -127,7 +126,7 @@ const ProductDetailPage = () => {
   };
 
   const buyNow = async () => {
-    if (!product || isSyncing) return;
+    if (!product ) return;
 
     try {
       // Add to cart first (if not already in cart)
@@ -239,13 +238,7 @@ const ProductDetailPage = () => {
                   </span>
                 </div>
               )}
-              {isSyncing && (
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm">
-                  <span className="animate-pulse text-gray-600">
-                    Syncing...
-                  </span>
-                </div>
-              )}
+             
             </div>
 
             {/* Thumbnail Gallery */}
@@ -350,7 +343,7 @@ const ProductDetailPage = () => {
                   <button
                     onClick={() => handleQuantityChange(-1)}
                     className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-gray-700"
-                    disabled={quantity <= 1 || isSyncing}
+                    disabled={quantity <= 1}
                   >
                     −
                   </button>
@@ -360,7 +353,7 @@ const ProductDetailPage = () => {
                   <button
                     onClick={() => handleQuantityChange(1)}
                     className="px-5 py-3 text-xl text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-gray-700"
-                    disabled={quantity >= 10 || isSyncing}
+                    disabled={quantity >= 10}
                   >
                     +
                   </button>
@@ -386,21 +379,21 @@ const ProductDetailPage = () => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleUpdateCartQuantity(-1)}
-                      disabled={isSyncing}
+                      
                       className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50"
                     >
                       -
                     </button>
                     <button
                       onClick={() => handleUpdateCartQuantity(1)}
-                      disabled={isSyncing}
+                     
                       className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50"
                     >
                       +
                     </button>
                     <button
                       onClick={handleRemoveFromCart}
-                      disabled={isSyncing}
+                      
                       className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
                     >
                       Remove
@@ -420,7 +413,7 @@ const ProductDetailPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <button
                 onClick={handleAddToCart}
-                disabled={isAddingToCart || isSyncing}
+                disabled={isAddingToCart}
                 className={`flex-1 py-4 rounded-xl transition-all duration-300 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 ${
                   cartStatus.isInCart
                     ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border border-green-200"
@@ -446,7 +439,7 @@ const ProductDetailPage = () => {
               </button>
               <button
                 onClick={buyNow}
-                disabled={isSyncing}
+               
                 className="flex-1 px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 transition-all duration-300 hover:shadow-xl font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-70"
               >
                 ⚡ Buy Now
