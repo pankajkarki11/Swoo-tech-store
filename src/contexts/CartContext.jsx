@@ -1,4 +1,4 @@
-// src/contexts/CartContext.jsx - OPTIMIZED VERSION
+
 import {
   createContext,
   useContext,
@@ -21,281 +21,350 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
+  // State
   const [cart, setCart] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [apiCartId, setApiCartId] = useState(null); // Store the API cart ID
 
-  const { user, saveCartToAPI } = useAuth();
+  const { user, getUserCarts, createCart, updateCart, deleteCart } = useAuth();
 
-  // Refs to prevent multiple operations
-  const isAutoSyncing = useRef(false);
+  // Refs
   const syncTimeoutRef = useRef(null);
+  const productCacheRef = useRef(new Map());
 
-  // ========== INITIALIZATION ==========
+
   useEffect(() => {
-    const initializeCart = () => {
+    const initializeCart = async () => {
       try {
         const savedCart = localStorage.getItem("swmart_cart");
-        const savedWishlist = localStorage.getItem("swmart_wishlist");
+        const savedCartId = localStorage.getItem("swmart_cart_id");
 
         if (savedCart) {
           const parsedCart = JSON.parse(savedCart);
           setCart(parsedCart);
         }
 
-        if (savedWishlist) {
-          setWishlist(JSON.parse(savedWishlist));
+        if (savedCartId) {
+          setApiCartId(parseInt(savedCartId));
         }
+
+      
       } catch (error) {
         console.error("Cart init error:", error);
-        // Clear corrupted data
         localStorage.removeItem("swmart_cart");
-        localStorage.removeItem("swmart_wishlist");
+        localStorage.removeItem("swmart_cart_id");
       } finally {
         setIsInitialized(true);
       }
     };
 
     initializeCart();
-  }, []);
+  }, [user]); 
 
-  // ========== AUTO-SAVE & AUTO-SYNC ==========
-  
-  // Save cart to localStorage and auto-sync to API
+
   useEffect(() => {
     if (!isInitialized) return;
 
     try {
       localStorage.setItem("swmart_cart", JSON.stringify(cart));
 
-      // Auto-sync to API if user is logged in (debounced)
+      // Debounced auto-sync to FakeStore API
       if (user?.id && cart.length > 0) {
-        // Clear existing timeout
         if (syncTimeoutRef.current) {
           clearTimeout(syncTimeoutRef.current);
         }
 
-        // Debounce sync for 5 seconds
         syncTimeoutRef.current = setTimeout(() => {
-          autoSyncToAPI();
-        }, 5000);
+          syncCartToAPI();
+        }, 100);
       }
     } catch (error) {
       console.error("Cart save error:", error);
     }
 
-    // Cleanup
     return () => {
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [cart, isInitialized, user]);
+  }, [cart, isInitialized, user]); 
 
-  // Save wishlist to localStorage
-  useEffect(() => {
-    if (isInitialized) {
+
+  const loadUserCartFromAPI = useCallback(
+    async (userId) => {
+      if (!userId) return;
+
       try {
-        localStorage.setItem("swmart_wishlist", JSON.stringify(wishlist));
-      } catch (error) {
-        console.error("Wishlist save error:", error);
-      }
-    }
-  }, [wishlist, isInitialized]);
+        setIsSyncing(true);
+        console.log("📥 Loading cart from FakeStore API for user:", userId);
 
-  // ========== AUTO-SYNC FUNCTION ==========
-  
-  const autoSyncToAPI = useCallback(async () => {
-    if (!user?.id || cart.length === 0 || isAutoSyncing.current || isSyncing) {
-      return;
-    }
+        const result = await getUserCarts(userId);
 
-    try {
-      isAutoSyncing.current = true;
-      setIsSyncing(true);
-      await saveCartToAPI(user.id, cart);
-    } catch (error) {
-      console.error("Auto-sync failed:", error);
-    } finally {
-      isAutoSyncing.current = false;
-      setIsSyncing(false);
-    }
-  }, [user, cart, isSyncing, saveCartToAPI]);
+        if (result.success && result.data && result.data.length > 0) {
+          // Get the latest cart
+          const latestCart = result.data[0];
+          console.log("✅ Found cart:", latestCart);
 
-  // ========== CART OPERATIONS ==========
+          setApiCartId(latestCart.id);
+          localStorage.setItem("swmart_cart_id", latestCart.id.toString());
 
-  const addToCart = useCallback((product, quantity = 1) => {
-    if (!product) return;
+          
+          const cartItems = await convertAPICartToLocal(latestCart);
 
-    setCart((prevCart) => {
-      const existingIndex = prevCart.findIndex((item) => item.id === product.id);
+   
+          const localCart = [...cart];
+          const mergedCart = mergeCartItems(cartItems, localCart);
 
-      if (existingIndex > -1) {
-        // Update existing item
-        const updatedCart = [...prevCart];
-        updatedCart[existingIndex] = {
-          ...updatedCart[existingIndex],
-          quantity: updatedCart[existingIndex].quantity + quantity,
-          updatedAt: new Date().toISOString(),
-        };
-        return updatedCart;
-      } else {
-        // Add new item
-        return [
-          ...prevCart,
-          {
-            ...product,
-            quantity,
-            addedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ];
-      }
-    });
+          setCart(mergedCart);
+          localStorage.setItem("swmart_cart", JSON.stringify(mergedCart));
+          window.dispatchEvent(new Event("cartUpdated"));
 
-    window.dispatchEvent(new Event("cartUpdated"));
-  }, []);
-
-  const removeFromCart = useCallback((productId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
-    window.dispatchEvent(new Event("cartUpdated"));
-  }, []);
-
-  const updateQuantity = useCallback((productId, quantity) => {
-    if (quantity < 1) {
-      removeFromCart(productId);
-      return;
-    }
-
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.id === productId
-          ? { ...item, quantity, updatedAt: new Date().toISOString() }
-          : item
-      )
-    );
-
-    window.dispatchEvent(new Event("cartUpdated"));
-  }, []);
-
-  const clearCart = useCallback(() => {
-    setCart([]);
-    window.dispatchEvent(new Event("cartUpdated"));
-  }, []);
-
-  // ========== WISHLIST OPERATIONS ==========
-
-  const addToWishlist = useCallback((product) => {
-    if (!product) return;
-
-    setWishlist((prev) => {
-      // Avoid duplicates
-      if (prev.find((item) => item.id === product.id)) {
-        return prev;
-      }
-      return [...prev, { ...product, addedAt: new Date().toISOString() }];
-    });
-  }, []);
-
-  const removeFromWishlist = useCallback((productId) => {
-    setWishlist((prev) => prev.filter((item) => item.id !== productId));
-  }, []);
-
-  const moveToCart = useCallback(
-    (product) => {
-      addToCart(product);
-      removeFromWishlist(product.id);
-    },
-    [addToCart, removeFromWishlist]
-  );
-
-  const moveToWishlist = useCallback(
-    (product) => {
-      addToWishlist(product);
-      removeFromCart(product.id);
-    },
-    [addToWishlist, removeFromCart]
-  );
-
-  // ========== CART SYNC FUNCTIONS ==========
-
-  const manualSyncCart = useCallback(async () => {
-    if (!user?.id || isAutoSyncing.current) {
-      return { success: false, message: "Cannot sync now" };
-    }
-
-    try {
-      setIsSyncing(true);
-      await saveCartToAPI(user.id, cart);
-      return { success: true, message: "Cart synced successfully" };
-    } catch (error) {
-      console.error("Manual sync failed:", error);
-      return { success: false, message: "Sync failed" };
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [user, cart, saveCartToAPI]);
-
-  const loadUserCart = useCallback((userCartItems) => {
-    if (!userCartItems || !Array.isArray(userCartItems)) return;
-
-    try {
-      setCart(userCartItems);
-      localStorage.setItem("swmart_cart", JSON.stringify(userCartItems));
-      window.dispatchEvent(new Event("cartUpdated"));
-    } catch (error) {
-      console.error("Error loading user cart:", error);
-    }
-  }, []);
-
-  const mergeWithUserCart = useCallback((userCartItems) => {
-    if (!userCartItems || !Array.isArray(userCartItems)) {
-      return cart;
-    }
-
-    try {
-      const mergedMap = new Map();
-
-      // Add user's items from API
-      userCartItems.forEach((item) => {
-        mergedMap.set(item.id, { ...item, source: "api" });
-      });
-
-      // Add/override with current local items
-      cart.forEach((currentItem) => {
-        const existingItem = mergedMap.get(currentItem.id);
-        if (existingItem) {
-          // Local quantity overrides API quantity
-          mergedMap.set(currentItem.id, {
-            ...existingItem,
-            quantity: currentItem.quantity,
-            updatedAt: new Date().toISOString(),
-            source: "local-override",
-          });
+          console.log("✅ Cart loaded and merged:", mergedCart);
         } else {
-          mergedMap.set(currentItem.id, {
-            ...currentItem,
-            source: "local",
-          });
+          console.log("ℹ️ No carts found for user");
         }
+      } catch (error) {
+        console.error("Error loading cart from API:", error);
+      } finally {
+        setIsSyncing(false);
+      }
+    },
+    [cart, getUserCarts]
+  );
+
+ 
+  const convertAPICartToLocal = useCallback(
+    async (apiCart) => {
+      if (!apiCart || !apiCart.products) return [];
+
+      const cartItems = [];
+      const productCache = productCacheRef.current;
+
+    
+      for (const item of apiCart.products) {
+        try {
+          let product = productCache.get(item.productId);
+
+      
+          if (!product) {
+            const response = await fetch(
+              `https://fakestoreapi.com/products/${item.productId}`
+            );
+            product = await response.json();
+            productCache.set(item.productId, product);
+          }
+
+          cartItems.push({
+            ...product,
+            quantity: item.quantity,
+            addedAt: apiCart.date,
+            fromAPI: true,
+          });
+        } catch (error) {
+          console.error(
+            `Error fetching product ${item.productId}:`,
+            error
+          );
+        }
+      }
+
+      return cartItems;
+    },
+    []
+  );
+
+  
+  const mergeCartItems = useCallback((apiItems, localItems) => {
+    const mergedMap = new Map();
+
+    s
+    apiItems.forEach((item) => {
+      mergedMap.set(item.id, { ...item, source: "api" });
+    });
+
+  
+    localItems.forEach((item) => {
+      const existing = mergedMap.get(item.id);
+      if (existing) {
+        mergedMap.set(item.id, {
+          ...existing,
+          quantity: item.quantity,
+          source: "merged",
+        });
+      } else {
+        mergedMap.set(item.id, { ...item, source: "local" });
+      }
+    });
+
+    return Array.from(mergedMap.values());
+  }, []);
+
+ 
+  const syncCartToAPI = useCallback(async () => {
+    if (!user?.id || cart.length === 0) return;
+
+    try {
+      setIsSyncing(true);
+      console.log("📤 Syncing cart to FakeStore API...");
+
+      const apiCartData = {
+        userId: user.id,
+        date: new Date().toISOString(),
+        products: cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity || 1,
+        })),
+      };
+
+      let result;
+
+      if (apiCartId) {
+        // Update existing cart
+        console.log(`🔄 Updating cart ${apiCartId}...`);
+        result = await updateCart(apiCartId, apiCartData);
+      } else {
+        // Create new cart
+        console.log("➕ Creating new cart...");
+        result = await createCart(apiCartData);
+        
+        if (result.success && result.data?.id) {
+          setApiCartId(result.data.id);
+          localStorage.setItem("swmart_cart_id", result.data.id.toString());
+        }
+      }
+
+      if (result.success) {
+        console.log("✅ Cart synced successfully:", result.data);
+      }
+    } catch (error) {
+      console.error("Error syncing cart to API:", error);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [user, cart, apiCartId, createCart, updateCart]);
+
+  const deleteCartFromAPI = useCallback(async () => {
+    if (!apiCartId) return;
+
+    try {
+      setIsSyncing(true);
+      console.log(`🗑️ Deleting cart ${apiCartId}...`);
+
+      const result = await deleteCart(apiCartId);
+
+      if (result.success) {
+        console.log("✅ Cart deleted:", result.data);
+        setApiCartId(null);
+        localStorage.removeItem("swmart_cart_id");
+      }
+    } catch (error) {
+      console.error("Error deleting cart:", error);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [apiCartId, deleteCart]);
+
+  
+  const addToCart = useCallback(
+    async (product, quantity = 1) => {
+      if (!product) return;
+
+      setCart((prevCart) => {
+        const existingIndex = prevCart.findIndex(
+          (item) => item.id === product.id
+        );
+
+        let updatedCart;
+
+        if (existingIndex > -1) {
+          // Update existing item
+          updatedCart = [...prevCart];
+          updatedCart[existingIndex] = {
+            ...updatedCart[existingIndex],
+            quantity: updatedCart[existingIndex].quantity + quantity,
+            updatedAt: new Date().toISOString(),
+          };
+        } else {
+          // Add new item
+          updatedCart = [
+            ...prevCart,
+            {
+              ...product,
+              quantity,
+              addedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          ];
+        }
+
+        return updatedCart;
       });
 
-      const mergedCart = Array.from(mergedMap.values());
-      setCart(mergedCart);
-      localStorage.setItem("swmart_cart", JSON.stringify(mergedCart));
       window.dispatchEvent(new Event("cartUpdated"));
 
-      return mergedCart;
-    } catch (error) {
-      console.error("Merge error:", error);
-      return cart;
+      
+    
+    },
+    [user]
+  );
+
+  
+  const removeFromCart = useCallback(
+    async (productId) => {
+      setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+      window.dispatchEvent(new Event("cartUpdated"));
+
+      // Trigger sync
+      if (user?.id) {
+        console.log("⏳ Cart will sync to API in 3 seconds...");
+      }
+    },
+    [user]
+  );
+
+ 
+  const updateQuantity = useCallback(
+    async (productId, quantity) => {
+      if (quantity < 1) {
+        removeFromCart(productId);
+        return;
+      }
+
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.id === productId
+            ? { ...item, quantity, updatedAt: new Date().toISOString() }
+            : item
+        )
+      );
+
+      window.dispatchEvent(new Event("cartUpdated"));
+
+    
+     
+    },
+    [user, removeFromCart]
+  );
+
+
+  const clearCart = useCallback(async () => {
+    setCart([]);
+    localStorage.removeItem("swmart_cart");
+    window.dispatchEvent(new Event("cartUpdated"));
+
+   
+    if (user?.id && apiCartId) {
+      await deleteCartFromAPI();
     }
-  }, [cart]);
+  }, [user, apiCartId, deleteCartFromAPI]);
 
-  // ========== MEMOIZED CALCULATIONS ==========
+ 
+  const forceSyncToAPI = useCallback(async () => {
+    await syncCartToAPI();
+  }, [syncCartToAPI]);
 
-  // Calculate cart statistics (memoized for performance)
+
   const cartStats = useMemo(() => {
     const itemCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
     const uniqueProducts = new Set(cart.map((item) => item.id)).size;
@@ -313,22 +382,13 @@ export const CartProvider = ({ children }) => {
     };
   }, [cart]);
 
+  
   const getCartTotal = useCallback(() => cartStats.totalValue, [cartStats]);
-
   const getCartCount = useCallback(() => cartStats.itemCount, [cartStats]);
-
-  const getWishlistCount = useCallback(() => wishlist.length, [wishlist]);
-
-  // ========== QUERY FUNCTIONS ==========
 
   const isInCart = useCallback(
     (productId) => cart.some((item) => item.id === productId),
     [cart]
-  );
-
-  const isInWishlist = useCallback(
-    (productId) => wishlist.some((item) => item.id === productId),
-    [wishlist]
   );
 
   const getCartItemQuantity = useCallback(
@@ -344,15 +404,14 @@ export const CartProvider = ({ children }) => {
     [cart]
   );
 
-  // ========== MEMOIZED PROVIDER VALUE ==========
 
   const value = useMemo(
     () => ({
       // State
       cart,
-      wishlist,
-      isSyncing,
       cartStats,
+      isSyncing,
+      apiCartId,
 
       // Cart operations
       addToCart,
@@ -360,59 +419,43 @@ export const CartProvider = ({ children }) => {
       updateQuantity,
       clearCart,
 
-      // Wishlist operations
-      addToWishlist,
-      removeFromWishlist,
-      moveToCart,
-      moveToWishlist,
+      // API operations
+      loadUserCartFromAPI,
+      syncCartToAPI: forceSyncToAPI,
+      deleteCartFromAPI,
 
       // Calculations
       getCartTotal,
       getCartCount,
-      getWishlistCount,
 
       // Queries
       isInCart,
-      isInWishlist,
       getCartItemQuantity,
       getCartItem,
 
-      // Cart management
-      manualSyncCart,
-      loadUserCart,
-      mergeWithUserCart,
-
-      // Computed values (for convenience)
+      // Computed values
       cartItemCount: cartStats.itemCount,
       cartTotalAmount: cartStats.totalValue,
       isCartEmpty: cart.length === 0,
       hasCartItems: cart.length > 0,
-      wishlistCount: wishlist.length,
-      isWishlistEmpty: wishlist.length === 0,
     }),
     [
       cart,
-      wishlist,
-      isSyncing,
       cartStats,
+      isSyncing,
+      apiCartId,
       addToCart,
       removeFromCart,
       updateQuantity,
       clearCart,
-      addToWishlist,
-      removeFromWishlist,
-      moveToCart,
-      moveToWishlist,
+      loadUserCartFromAPI,
+      forceSyncToAPI,
+      deleteCartFromAPI,
       getCartTotal,
       getCartCount,
-      getWishlistCount,
       isInCart,
-      isInWishlist,
       getCartItemQuantity,
       getCartItem,
-      manualSyncCart,
-      loadUserCart,
-      mergeWithUserCart,
     ]
   );
 
