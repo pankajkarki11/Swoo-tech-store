@@ -1,7 +1,12 @@
 import React from 'react';
 import Loader from './Loader';
+import Button from './ui/Button';
+import {ArrowLeft} from 'lucide-react'
+import{useNavigate} from "react-router-dom"
 
 const NotFound404 = () => {
+
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4 dark:bg-gray-900">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center dark:bg-gray-900">
@@ -24,18 +29,20 @@ const NotFound404 = () => {
        
         
         <div className="space-y-3">
-          <a
-            href="/"
-            className="block w-full bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all"
+ <Button variant="outline" onClick={() => window.history.back()}>
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Go Back
+          </Button>
+
+          
+          <Button variant="primary"
+          className=" w-full mt-4"
+          onClick={() => navigate("/")}
           >
             Go to Homepage
-          </a>
-          <a
-            href="/admin/login"
-            className="block w-full  bg-gray-200 border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-semibold hover:bg-gray-50 transition-all dark:border-gray-700 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800"
-          >
-            Go to Admin Login
-          </a>
+           
+          </Button>
+         
         </div>
       </div>
     </div>

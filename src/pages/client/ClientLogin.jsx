@@ -25,10 +25,7 @@ const ClientLogin = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showToast, setShowToast] = useState(false);
-
   const navigate = useNavigate();
-
   const { login, isAuthenticated } = useAuth();
 
   // Redirect if already authenticated
@@ -77,13 +74,15 @@ const ClientLogin = () => {
 
       const result = await login(credentials);
       if (!result.success) {
+        toast.error("wrong username or password");
         throw new Error("Wrong username or password");
       }
       // Clear form
       setUsername("");
       setPassword("");
-      toast.success("Login successful")
-
+     toast.success(
+  "Login successful!",
+ );
       setTimeout(() => {
       navigate("/");
     }, 3000);
@@ -254,31 +253,26 @@ const ClientLogin = () => {
                     ))}
                   </div>
                 </div>
-              </div>
+              </div>             
             </div>
           </div>
 
           <div
             className="
-  lg:w-1/2 w-full relative
-  bg-gradient-to-br
-  from-blue-50/80 to-teal-50/80
-  dark:from-gray-900 dark:to-gray-800
-  p-8 md:p-10 lg:p-12
-  flex flex-col justify-between
+  lg:w-1/2 w-full relative bg-gradient-to-br from-blue-50/80 to-teal-50/80 dark:from-gray-900 dark:to-gray-800p-8 md:p-10 lg:p-12 flex flex-col justify-between
 "
           >
             <div className="relative z-10">
-              <div className="mb-8">
+              <div className="mb-8">               
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                   Never Lose Your Cart
                   <br />
                   <span className="text-[#01A49E]">With Account Sync</span>
-                </h2>
+                </h2>             
                 <p className="text-gray-700 text-lg dark:text-white">
                   Login to save your shopping cart, access it from any device,
                   and continue shopping where you left off.
-                </p>
+                </p>                
               </div>
 
               {/* Features List */}

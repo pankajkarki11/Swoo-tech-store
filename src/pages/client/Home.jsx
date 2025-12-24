@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import React, {
   useState,
   useEffect,
@@ -29,16 +28,14 @@ const EcommerceHomepage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(8);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const api = useApi();
   const navigate = useNavigate();
-  const autoSlideTimerRef = useRef(null);
 
-  // Use refs to track state without triggering re-renders
-  const isLoadingRef = useRef(false);
+  // Use ref to track if data has been loaded
   const hasLoadedDataRef = useRef(false);
-  const abortControllerRef = useRef(null);
+  const autoSlideTimerRef = useRef(null);
 
   const heroSlides = useMemo(
     () => [
@@ -101,7 +98,6 @@ const EcommerceHomepage = () => {
   const handleSlideChange = useCallback(
     (index) => {
       setCurrentSlide(index);
-
       // Reset auto slide timer
       if (autoSlideTimerRef.current) {
         clearInterval(autoSlideTimerRef.current);
@@ -132,83 +128,56 @@ const EcommerceHomepage = () => {
       if (autoSlideTimerRef.current) {
         clearInterval(autoSlideTimerRef.current);
       }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
     };
   }, [startAutoSlide]);
 
-  // Effect for initial data load - runs only once
   useEffect(() => {
-    if (!hasLoadedDataRef.current) {
-      loadInitialData();
-    }
-  }, []);
-
-  // Load initial data - fixed to run only once
-  const loadInitialData = useCallback(async () => {
-    // Prevent multiple calls
-    if (isLoadingRef.current || hasLoadedDataRef.current) {
-      return;
-    }
-
-    // Cancel any pending request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
-
-    isLoadingRef.current = true;
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const [productsResponse, categoriesResponse] = await Promise.all([
-        api.productAPI.getAll({ signal }),
-        api.productAPI.getCategories({ signal }),
-      ]);
-
-      // Check if component is still mounted
-      if (signal.aborted) return;
-
-      const allProductsData = productsResponse.data;
-      const categoriesData = categoriesResponse.data;
-
-      setAllProducts(allProductsData);
-      setProducts(allProductsData.slice(0, 12));
-      setCategories(categoriesData);
+    const loadInitialData = async () => {
+      // Prevent multiple calls
+      if (hasLoadedDataRef.current) {
+        return;
+      }
 
       hasLoadedDataRef.current = true;
-    } catch (err) {
-      // Don't set error for aborted requests
-      if (err.name === "AbortError") return;
+      setIsLoading(true);
+      setError(null);
 
-      setError("Failed to load data. Please try again.");
-      console.error("Load data error:", err);
+      try {
+        const [productsResponse, categoriesResponse,] = await Promise.all([
+          api.productAPI.getAll(),
+          api.productAPI.getCategories(),
+          
+        ]);
 
-      // Reset flags on error to allow retry
-      hasLoadedDataRef.current = false;
-    } finally {
-      if (!signal.aborted) {
-        isLoadingRef.current = false;
+        const allProductsData = productsResponse.data;
+        const categoriesData = categoriesResponse.data;
+
+        setAllProducts(allProductsData);
+        setProducts(allProductsData.slice(0, 12));
+        setCategories(categoriesData);
+      } catch (err) {
+        setError("Failed to load data. Please try again.");
+         console.error("Load data error:", err);
+       
+        // Reset flag on error to allow retry
+        hasLoadedDataRef.current = false;
+      } finally {
         setIsLoading(false);
       }
-    }
+    };
+
+    loadInitialData();
   }, [api.productAPI]);
 
-  // Handle category click - FIXED: No API calls, uses cached data
+  // Handle category click - uses cached data
   const handleCategoryClick = useCallback(
     (category) => {
       setActiveCategory(category);
       setVisibleCount(12); // Reset visible count
 
       if (category === "All") {
-        // Show all products from cached data
         setProducts(allProducts.slice(0, 12));
       } else {
-        // Filter from cached allProducts
         const filteredProducts = allProducts.filter(
           (product) =>
             product.category?.toLowerCase() === category.toLowerCase()
@@ -219,7 +188,7 @@ const EcommerceHomepage = () => {
     [allProducts]
   );
 
-  // Load more products - FIXED: Uses cached data
+  // Load more products - uses cached data
   const loadMoreProducts = useCallback(() => {
     setIsLoadingMore(true);
 
@@ -271,8 +240,8 @@ const EcommerceHomepage = () => {
   // Handle retry loading
   const handleRetry = useCallback(() => {
     hasLoadedDataRef.current = false;
-    loadInitialData();
-  }, [loadInitialData]);
+    window.location.reload(); // Simple reload for retry
+  }, []);
 
   // Render loading state
   const renderLoadingState = () => (
@@ -329,8 +298,8 @@ const EcommerceHomepage = () => {
     <div className="min-h-screen bg-white font-sans dark:bg-gray-900">
       <main className="container mx-auto px-4 py-8">
         {/* Hero Carousel */}
-        <div className="relative mb-12 rounded-3xl overflow-hidden shadow-2xl dark:bg-gray-500">
-          <div className="relative h-[300px] md:h-[400px] lg:h-[500px] bg-gray-300">
+        <div className="relative mb-12 rounded-3xl overflow-hidden shadow-2xl">
+          <div className="relative h-[300px] md:h-[400px] lg:h-[500px] bg-gray-300 dark:bg-gray-700">
             {heroSlides.map((slide, index) => (
               <div
                 key={slide.id}
@@ -352,10 +321,9 @@ const EcommerceHomepage = () => {
               >
                 <div
                   className={`absolute inset-0 bg-gradient-to-r ${slide.color} bg-cover bg-center`}
-
                   style={{ backgroundImage: `url(${slide.image})` }}
                 >
-                   <div className="absolute inset-0 bg-black/20 dark:bg-black/30"></div>
+                  <div className="absolute inset-0 bg-black/20 dark:bg-black/30"></div>
                   <div className="absolute inset-0 bg-black/40"></div>
                 </div>
                 <div className="relative h-full flex items-center">

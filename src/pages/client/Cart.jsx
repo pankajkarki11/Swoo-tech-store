@@ -19,7 +19,6 @@ import {
   Archive,
   ShoppingCart as CartIcon,
   CalendarSync,
-  
   AlertCircle,
 } from "lucide-react";
 import useApi from "../../services/AdminuseApi";
@@ -43,7 +42,6 @@ const CartPage = () => {
     cartStats,
     isSyncing,
     syncCartToAPI,
-    loadUserCartFromAPI,
     apiCartId,
   } = useCart();
 
@@ -53,15 +51,14 @@ const CartPage = () => {
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+  },[]);
 
-
+  
   useEffect(() => {
     if (user?.id && !hasLoadedCarts) {
       loadUserAPICarts();
     }
   }, [user?.id]);
-
 
   const loadUserAPICarts = useCallback(async () => {
     if (!user?.id || isLoadingAPICarts) {
@@ -77,7 +74,6 @@ const CartPage = () => {
     try {
       setIsLoadingAPICarts(true);
 
-     
       const result = await getUserCarts(user.id);
 
       if (result.success && result.data) {
@@ -99,7 +95,6 @@ const CartPage = () => {
     }
   }, [user?.id, getUserCarts, isLoadingAPICarts]);
 
-
   const totals = useMemo(() => {
     const subtotal = cartStats.totalValue;
     const shipping = subtotal > 100 ? 0 : 9.99;
@@ -114,7 +109,6 @@ const CartPage = () => {
     };
   }, [cartStats.totalValue]);
 
- 
   const proceedToCheckout = useCallback(() => {
     if (cart.length === 0) return;
     toast.success("Proceeding to checkout!");
@@ -123,14 +117,12 @@ const CartPage = () => {
 
   const continueShopping = useCallback(() => navigate("/"), [navigate]);
 
-
   const clearCartHandler = useCallback(() => {
     if (window.confirm("Are you sure you want to clear your cart?")) {
       clearCart();
       toast.success("Cart cleared!");
     }
   }, [clearCart]);
-
 
   const loadAPICartIntoCurrentCart = useCallback(
     async (apiCart) => {
@@ -148,7 +140,6 @@ const CartPage = () => {
         setIsLoadingAPICarts(true);
         toast.loading("Loading cart items...", { id: "load-cart" });
 
-    
         const productPromises = apiCart.products.map(async (apiProduct) => {
           try {
             const { data: product } = await api.productAPI.getById(
@@ -174,7 +165,6 @@ const CartPage = () => {
           return;
         }
 
-     
         // const shouldReplace = window.confirm(
         //   cart.length > 0
         //     ? "Replace current cart with saved cart? (Cancel to merge instead)"
@@ -182,21 +172,20 @@ const CartPage = () => {
         // );
 
         // if (shouldReplace && cart.length > 0) {
-         
+
         //   clearCart();
         // }
 
-      
         validProducts.forEach(({ product, quantity }) => {
           addToCart(product, quantity);
         });
 
         toast.success(
-          `Loaded ${validProducts.length} items from saved cart!`,
+          `Loaded ${validProducts.length} items from saved cart!`, 
           {
-            id: "load-cart",
-          }
-        );
+          id: "load-cart",
+        }
+      );
       } catch (error) {
         console.error("Error loading API cart:", error);
         toast.error("Failed to load saved cart", { id: "load-cart" });
@@ -235,7 +224,7 @@ const CartPage = () => {
       toast.loading("Syncing cart to server...", { id: "sync" });
       await syncCartToAPI();
       toast.success("Cart synced successfully!", { id: "sync" });
-      
+
       // Reload cart history
       await loadUserAPICarts();
     } catch (error) {
@@ -259,7 +248,6 @@ const CartPage = () => {
     }
   }, [loadUserAPICarts]);
 
- 
   const toggleCartHistory = useCallback(() => {
     if (!showCartHistory && !hasLoadedCarts && user?.id) {
       loadUserAPICarts();
@@ -376,7 +364,7 @@ const CartPage = () => {
                     </div>
                     <div className="text-gray-600 text-sm">
                       Your Cart Value
-                    </div>
+                      </div>
                   </div>
                 </div>
               </div>

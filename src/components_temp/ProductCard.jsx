@@ -91,29 +91,14 @@ const ProductCard = ({
           <div className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-500" />
             <span>
-              <strong>{product.title}</strong> added to cart!
+              <strong><p className="text-blue-500">{product.title}</p> added to cart!</strong> 
             </span>
           </div>,
           {
-            duration: 2000,
+            duration: 1500,
             icon: "🛒",
           }
         );
-
-        
-        if (user) {
-          toast.success(
-            <div className="flex items-center gap-2 text-sm">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Syncing to server...</span>
-            </div>,
-            {
-              duration: 1000,
-              id: "cart-sync",
-              icon: "☁️",
-            }
-          );
-        }
       } catch (error) {
         console.error("Failed to add to cart:", error);
         toast.error(
@@ -136,25 +121,7 @@ const ProductCard = ({
     },
     [navigate, product?.id]
   );
-
-  // Wishlist toggle handler
-  const handleWishlistToggle = useCallback(
-    (e) => {
-      e.stopPropagation();
-      if (onWishlistToggle) {
-        onWishlistToggle(product?.id);
-        toast.success(
-          isInWishlist ? "Removed from wishlist" : "Added to wishlist!",
-          {
-            icon: isInWishlist ? "💔" : "❤️",
-            duration: 1500,
-          }
-        );
-      }
-    },
-    [product?.id, onWishlistToggle, isInWishlist]
-  );
-
+  
   // Loading skeleton
   if (isLoading) {
     return (
@@ -212,21 +179,7 @@ const ProductCard = ({
           loading="lazy"
         />
 
-        {/* Wishlist Button */}
-        <button
-          onClick={handleWishlistToggle}
-          className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:shadow-md transition-all hover:scale-110 z-10 dark:bg-white"
-          aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          <Heart
-            size={18}
-            fill={isInWishlist ? "#f40303ff" : "none"}
-            strokeWidth={isInWishlist ? 0 : 2}
-            className={`transition-colors ${
-              isInWishlist ? "text-red-500" : "text-gray-600 hover:text-red-500"
-            }`}
-          />
-        </button>
+     
 
         {/* Quick View Overlay */}
         <div
