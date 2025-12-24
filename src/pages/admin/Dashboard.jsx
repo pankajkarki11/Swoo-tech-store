@@ -39,10 +39,7 @@ const Dashboard = () => {
     try {
       setLoading(true);
 
-      // OPTIMIZATION: Only 3 API calls instead of 33+
-      // 1. Get all products (1 call)
-      // 2. Get all carts (1 call)
-      // 3. Get all users (1 call)
+
       const [productsRes, cartsRes, usersRes] = await Promise.all([
         api.productAPI.getAll(),
         api.cartAPI.getAll(),
@@ -53,7 +50,7 @@ const Dashboard = () => {
       const carts = cartsRes.data || [];
       const users = usersRes.data || [];
 
-      // Create a product price lookup map (O(1) lookup instead of API calls)
+     
       const productPriceMap = new Map();
       products.forEach((product) => {
         productPriceMap.set(product.id, parseFloat(product.price) || 0);
@@ -83,7 +80,7 @@ const Dashboard = () => {
     }
   };
 
-  // OPTIMIZED: Calculate all stats in a single pass
+
   const calculateAllStats = (carts, productPriceMap) => {
     let totalRevenue = 0;
     let totalItems = 0;

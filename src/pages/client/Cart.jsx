@@ -35,6 +35,7 @@ const CartPage = () => {
   const {
     cart,
     addToCart,
+    addMultipleToCart,
     removeFromCart,
     updateQuantity,
     clearCart,
@@ -42,23 +43,24 @@ const CartPage = () => {
     cartStats,
     isSyncing,
     syncCartToAPI,
-    apiCartId,
+    getUserCarts,
+    refreshCartFromAPI,
   } = useCart();
 
-  const { user, getUserCarts } = useAuth();
+  const { user } = useAuth();
   const api = useApi();
 
-  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  },[]);
+  }, []);
 
-  
   useEffect(() => {
     if (user?.id && !hasLoadedCarts) {
       loadUserAPICarts();
     }
   }, [user?.id]);
+
+//cart history
 
   const loadUserAPICarts = useCallback(async () => {
     if (!user?.id || isLoadingAPICarts) {
@@ -95,34 +97,7 @@ const CartPage = () => {
     }
   }, [user?.id, getUserCarts, isLoadingAPICarts]);
 
-  const totals = useMemo(() => {
-    const subtotal = cartStats.totalValue;
-    const shipping = subtotal > 100 ? 0 : 9.99;
-    const tax = subtotal * 0.08;
-    const total = subtotal + shipping + tax;
-
-    return {
-      subtotal: subtotal.toFixed(2),
-      shipping: shipping.toFixed(2),
-      tax: tax.toFixed(2),
-      total: total.toFixed(2),
-    };
-  }, [cartStats.totalValue]);
-
-  const proceedToCheckout = useCallback(() => {
-    if (cart.length === 0) return;
-    toast.success("Proceeding to checkout!");
-    navigate("/checkout");
-  }, [navigate, cart.length]);
-
-  const continueShopping = useCallback(() => navigate("/"), [navigate]);
-
-  const clearCartHandler = useCallback(() => {
-    if (window.confirm("Are you sure you want to clear your cart?")) {
-      clearCart();
-      toast.success("Cart cleared!");
-    }
-  }, [clearCart]);
+  // LOAD SAVED CART INTO CURRENT CART
 
   const loadAPICartIntoCurrentCart = useCallback(
     async (apiCart) => {
@@ -140,6 +115,7 @@ const CartPage = () => {
         setIsLoadingAPICarts(true);
         toast.loading("Loading cart items...", { id: "load-cart" });
 
+        // Fetch all products in parallel
         const productPromises = apiCart.products.map(async (apiProduct) => {
           try {
             const { data: product } = await api.productAPI.getById(
@@ -165,27 +141,19 @@ const CartPage = () => {
           return;
         }
 
-        // const shouldReplace = window.confirm(
-        //   cart.length > 0
-        //     ? "Replace current cart with saved cart? (Cancel to merge instead)"
-        //     : "Load this cart?"
-        // );
+        // Use addMultipleToCart to add all products at once (fixes race condition)
+        const result = await addMultipleToCart(validProducts);
 
-        // if (shouldReplace && cart.length > 0) {
-
-        //   clearCart();
-        // }
-
-        validProducts.forEach(({ product, quantity }) => {
-          addToCart(product, quantity);
-        });
-
-        toast.success(
-          `Loaded ${validProducts.length} items from saved cart!`, 
-          {
-          id: "load-cart",
+        if (result.success) {
+          toast.success(
+            `Loaded ${validProducts.length} items from saved cart!`,
+            { id: "load-cart" }
+          );
+        } else {
+          toast.error(result.error || "Failed to add items to cart", {
+            id: "load-cart",
+          });
         }
-      );
       } catch (error) {
         console.error("Error loading API cart:", error);
         toast.error("Failed to load saved cart", { id: "load-cart" });
@@ -193,10 +161,13 @@ const CartPage = () => {
         setIsLoadingAPICarts(false);
       }
     },
-    [api.productAPI, addToCart, clearCart, cart.length, isLoadingAPICarts]
+    [api.productAPI, addMultipleToCart, isLoadingAPICarts]
   );
 
-  // Format date
+
+  // UTILITY FUNCTIONS
+
+
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "";
     try {
@@ -213,7 +184,10 @@ const CartPage = () => {
     }
   }, []);
 
-  // Force sync current cart to API
+ 
+  // CART ACTIONS
+
+
   const handleForceSyncToAPI = useCallback(async () => {
     if (cart.length === 0) {
       toast.error("Cart is empty, nothing to sync");
@@ -233,20 +207,34 @@ const CartPage = () => {
     }
   }, [cart.length, syncCartToAPI, loadUserAPICarts]);
 
-  // Refresh all data
   const refreshCartData = useCallback(async () => {
     try {
-      toast.loading("Refreshing cart history...", { id: "refresh" });
+      toast.loading("Refreshing cart data...", { id: "refresh" });
 
-      // Reload cart history from API
+      // Refresh current cart from API
+      if (user?.id) {
+        const result = await refreshCartFromAPI();
+        if (result.success) {
+          toast.success("Cart refreshed from server!", { id: "refresh" });
+        } else {
+          toast.error(result.error || "Failed to refresh cart", { id: "refresh" });
+        }
+      }
+
+      // Reload cart history
       await loadUserAPICarts();
-
-      toast.success("Cart history refreshed!", { id: "refresh" });
     } catch (error) {
       console.error("Refresh failed:", error);
       toast.error("Refresh failed", { id: "refresh" });
     }
-  }, [loadUserAPICarts]);
+  }, [user?.id, refreshCartFromAPI, loadUserAPICarts]);
+
+  const clearCartHandler = useCallback(() => {
+    if (window.confirm("Are you sure you want to clear your cart?")) {
+      clearCart();
+      toast.success("Cart cleared!");
+    }
+  }, [clearCart]);
 
   const toggleCartHistory = useCallback(() => {
     if (!showCartHistory && !hasLoadedCarts && user?.id) {
@@ -255,10 +243,43 @@ const CartPage = () => {
     setShowCartHistory(!showCartHistory);
   }, [showCartHistory, hasLoadedCarts, user?.id, loadUserAPICarts]);
 
+ 
+  // NAVIGATION
+  
+
+  const proceedToCheckout = useCallback(() => {
+    if (cart.length === 0) return;
+    toast.success("Proceeding to checkout!");
+    navigate("/checkout");
+  }, [navigate, cart.length]);
+
+  const continueShopping = useCallback(() => navigate("/"), [navigate]);
+
+
+  // COMPUTED VALUES
+
+
+  const totals = useMemo(() => {
+    const subtotal = cartStats.totalValue;
+    const shipping = subtotal > 100 ? 0 : 9.99;
+    const tax = subtotal * 0.08;
+    const total = subtotal + shipping + tax;
+
+    return {
+      subtotal: subtotal.toFixed(2),
+      shipping: shipping.toFixed(2),
+      tax: tax.toFixed(2),
+      total: total.toFixed(2),
+    };
+  }, [cartStats.totalValue]);
+
+
+  // RENDER
+
   return (
     <div className="min-h-screen bg-white font-sans py-8 dark:bg-gray-900">
       <div className="container mx-auto px-4">
-        {/* Header */}
+       
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <Button variant="secondary" onClick={continueShopping}>
@@ -309,27 +330,20 @@ const CartPage = () => {
                     Syncing...
                   </span>
                 )}
-                {apiCartId && !isSyncing && (
-                  <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                    <CalendarSync className="h-3 w-3" />
-                    Cart #{apiCartId}
-                  </span>
-                )}
               </div>
             </div>
           </div>
 
-          {/* Auto-Sync Info Banner */}
+          {/* Info Banner */}
           {user && cart.length > 0 && (
             <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/20 dark:border-blue-800">
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-800 dark:text-blue-300">
-                  <p className="font-medium">Auto-sync enabled</p>
+                  <p className="font-medium">Auto-sync Info</p>
                   <p className="text-blue-600 dark:text-blue-400">
-                    Your cart will automatically sync to the server after 3
-                    seconds of inactivity. Click "Save to Server" to sync
-                    immediately.
+                    Your cart automatically syncs to the server. Note: FakeStore API is read-only, 
+                    so changes are sent but not actually persisted on the server.
                   </p>
                 </div>
               </div>
@@ -348,7 +362,7 @@ const CartPage = () => {
                     <div className="text-2xl font-bold text-gray-900">
                       {cartItemCount}
                     </div>
-                    <div className="text-gray-600 text-sm">Your Items</div>
+                    <div className="text-gray-600 text-sm">Total Items</div>
                   </div>
                 </div>
               </div>
@@ -362,9 +376,7 @@ const CartPage = () => {
                     <div className="text-2xl font-bold text-gray-900">
                       ${cartStats.totalValue?.toFixed(2) || "0.00"}
                     </div>
-                    <div className="text-gray-600 text-sm">
-                      Your Cart Value
-                      </div>
+                    <div className="text-gray-600 text-sm">Cart Value</div>
                   </div>
                 </div>
               </div>
@@ -373,10 +385,12 @@ const CartPage = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Cart Items */}
+          {/* ====================================================================== */}
+          {/* LEFT COLUMN - CART ITEMS */}
+          {/* ====================================================================== */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Empty Cart State */}
             {cart.length === 0 ? (
+              /* Empty Cart State */
               <div className="bg-gray rounded-2xl shadow-lg p-8 text-center dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 dark:bg-gray-800">
                   <ShoppingBag className="text-red-400" size={48} />
@@ -392,24 +406,21 @@ const CartPage = () => {
                 </Button>
               </div>
             ) : (
-              /* Cart Items */
+              /* Cart Items List */
               <div className="bg-white rounded-2xl shadow-lg p-6 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                     Current Cart Items
                   </h2>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="danger"
-                      onClick={clearCartHandler}
-                      size="small"
-                    >
-                      Clear Cart
-                    </Button>
-                  </div>
+                  <Button
+                    variant="danger"
+                    onClick={clearCartHandler}
+                    size="small"
+                  >
+                    Clear Cart
+                  </Button>
                 </div>
 
-                {/* Cart Items List */}
                 {cart.map((item) => (
                   <div
                     key={`${item.id}-${item.addedAt}`}
@@ -442,11 +453,6 @@ const CartPage = () => {
                               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded flex items-center gap-1">
                                 <Archive size={10} />
                                 From Saved
-                              </span>
-                            )}
-                            {item.source && (
-                              <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-800 rounded">
-                                {item.source}
                               </span>
                             )}
                           </div>
@@ -500,7 +506,7 @@ const CartPage = () => {
                             ${(item.price * item.quantity).toFixed(2)}
                           </div>
                           <div className="text-gray-500 text-sm dark:text-white">
-                            ${item.price.toFixed(2)} each
+                            ${Number(item.price || 0).toFixed(2)} each
                           </div>
                         </div>
                       </div>
@@ -509,8 +515,6 @@ const CartPage = () => {
                 ))}
               </div>
             )}
-
-            {/* Cart History Section */}
             {user && (
               <div>
                 <Button
@@ -553,8 +557,7 @@ const CartPage = () => {
                           No saved carts found
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-500">
-                          Your cart history will appear here once you sync your
-                          cart
+                          Your cart history will appear here once you sync your cart
                         </p>
                       </div>
                     ) : (
@@ -573,11 +576,6 @@ const CartPage = () => {
                                 <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
                                   {apiCart.products?.length || 0} items
                                 </span>
-                                {apiCartId === apiCart.id && (
-                                  <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
-                                    Current
-                                  </span>
-                                )}
                               </div>
                               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-white">
                                 <Clock size={14} />
@@ -591,9 +589,7 @@ const CartPage = () => {
                             <Button
                               size="small"
                               variant="teal"
-                              onClick={() =>
-                                loadAPICartIntoCurrentCart(apiCart)
-                              }
+                              onClick={() => loadAPICartIntoCurrentCart(apiCart)}
                               disabled={isLoadingAPICarts}
                             >
                               <Download size={14} className="mr-2" />
@@ -601,7 +597,7 @@ const CartPage = () => {
                             </Button>
                           </div>
 
-                          {/* Show products preview */}
+                          {/* Products Preview */}
                           {apiCart.products && apiCart.products.length > 0 && (
                             <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
@@ -633,28 +629,23 @@ const CartPage = () => {
             )}
           </div>
 
-          {/* Right Column - Order Summary */}
+       
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
               <h2 className="text-xl font-bold text-gray-900 mb-6 dark:text-white">
                 Order Summary
               </h2>
 
-              {/* Order Details */}
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-white">
-                    Subtotal
-                  </span>
+                  <span className="text-gray-600 dark:text-white">Subtotal</span>
                   <span className="font-medium dark:text-white">
                     ${totals.subtotal}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-white">
-                    Shipping
-                  </span>
+                  <span className="text-gray-600 dark:text-white">Shipping</span>
                   <span
                     className={
                       totals.shipping === "0.00"
@@ -662,16 +653,12 @@ const CartPage = () => {
                         : "font-medium dark:text-white"
                     }
                   >
-                    {totals.shipping === "0.00"
-                      ? "FREE"
-                      : `$${totals.shipping}`}
+                    {totals.shipping === "0.00" ? "FREE" : `$${totals.shipping}`}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-white">
-                    Tax (8%)
-                  </span>
+                  <span className="text-gray-600 dark:text-white">Tax (8%)</span>
                   <span className="font-medium dark:text-white">
                     ${totals.tax}
                   </span>
@@ -730,14 +717,10 @@ const CartPage = () => {
                         <Loader2 className="h-3 w-3 animate-spin" />
                         Syncing...
                       </span>
-                    ) : apiCartId ? (
+                    ) : (
                       <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
                         <CalendarSync className="h-3 w-3" />
                         Synced
-                      </span>
-                    ) : (
-                      <span className="text-gray-500 dark:text-gray-400">
-                        Not synced
                       </span>
                     )}
                   </div>

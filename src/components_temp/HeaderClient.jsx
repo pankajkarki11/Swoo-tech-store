@@ -411,7 +411,7 @@ const HeaderClient = () => {
 
               {/* Shop Now Button */}
               <button
-                onClick={() => navigate("/products")}
+                onClick={() => navigate("/")}
                 className="bg-gradient-to-r from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 text-[#0A1F33] dark:text-gray-100 px-6 py-2.5 rounded-full font-bold hover:bg-gradient-to-r hover:from-[#01A49E] hover:to-[#01857F] dark:hover:from-[#01A49E] dark:hover:to-[#01857F] hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 group flex items-center"
               >
                 Shop Now

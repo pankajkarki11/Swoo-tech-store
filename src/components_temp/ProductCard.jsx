@@ -18,8 +18,6 @@ import Button from "./ui/Button";
 
 const ProductCard = ({
   product,
-  onWishlistToggle,
-  isInWishlist = false,
   isLoading = false,
   compact = false,
 }) => {

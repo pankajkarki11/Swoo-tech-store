@@ -1,4 +1,3 @@
-
 import {
   createContext,
   useState,
@@ -11,7 +10,6 @@ import {
 import useApi from "../services/AdminuseApi";
 
 const AuthContext = createContext();
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -28,10 +26,8 @@ export const AuthProvider = ({ children }) => {
 
   const api = useApi();
   const isInitializing = useRef(false);
-
   // Admin username patterns
   const ADMIN_USERNAME_PATTERNS = ["john"];
-
   // Check if username qualifies for admin
   const isAdminUsername = useCallback((username) => {
     if (!username) return false;
@@ -40,14 +36,11 @@ export const AuthProvider = ({ children }) => {
       lowerUsername.includes(pattern.toLowerCase())
     );
   }, []);
-
-  
   useEffect(() => {
     if (isInitializing.current) return;
 
     const initializeAuth = async () => {
-      isInitializing.current = true;
-      
+      isInitializing.current = true; 
       try {
         const storedUser = localStorage.getItem("swmart_user");
         const storedToken = localStorage.getItem("swmart_token");
@@ -68,8 +61,7 @@ export const AuthProvider = ({ children }) => {
 
     initializeAuth();
   }, []); 
-
-  
+ 
   const clearAuthData = useCallback(() => {
     localStorage.removeItem("swmart_user");
     localStorage.removeItem("swmart_token");
@@ -77,13 +69,11 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   }, []);
 
-
   const login = useCallback(
     async (credentials) => {
       const { username, password } = credentials;
-
       try {
-       
+        // Fetch both auth and user data
         const [authResponse, usersResponse] = await Promise.all([
           api.authAPI.login({ username, password }),
           api.userAPI.getAll(),
@@ -95,10 +85,9 @@ export const AuthProvider = ({ children }) => {
         if (!apiUser) {
           throw new Error("User not found in API");
         }
-
         const isAdminUser = isAdminUsername(username);
 
-    
+        // Construct user data
         const userData = {
           id: apiUser.id,
           username: apiUser.username,
@@ -111,11 +100,9 @@ export const AuthProvider = ({ children }) => {
           role: isAdminUser ? "admin" : "customer",
           isAdmin: isAdminUser,
         };
-
-    
+        // Store data
         localStorage.setItem("swmart_token", apiToken);
         localStorage.setItem("swmart_user", JSON.stringify(userData));
-
         setUser(userData);
         setToken(apiToken);
 
@@ -135,91 +122,21 @@ export const AuthProvider = ({ children }) => {
     },
     [api, isAdminUsername]
   );
-
-  
   const logout = useCallback(() => {
     clearAuthData();
   }, [clearAuthData]);
-
-  
   const updateUser = useCallback(
     (updatedData) => {
       if (!user) return { success: false, error: "No user logged in" };
-
       const updatedUser = { ...user, ...updatedData };
       localStorage.setItem("swmart_user", JSON.stringify(updatedUser));
       setUser(updatedUser);
-
       return { success: true, user: updatedUser };
     },
     [user]
   );
-
-
-  const getAllCarts = useCallback(async () => {
-    try {
-      const { data } = await api.cartAPI.getAll();
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error getting all carts:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
-
-  const getCartById = useCallback(async (cartId) => {
-    try {
-      const { data } = await api.cartAPI.getById(cartId);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error getting cart:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
-
- 
-  const getUserCarts = useCallback(async (userId) => {
-    try {
-      const { data } = await api.cartAPI.getUserCarts(userId);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error getting user carts:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
-
-
-  const createCart = useCallback(async (cartData) => {
-    try {
-      const { data } = await api.cartAPI.create(cartData);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error creating cart:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
-
-
-  const updateCart = useCallback(async (cartId, cartData) => {
-    try {
-      const { data } = await api.cartAPI.update(cartId, cartData);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error updating cart:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
-
-
-  const deleteCart = useCallback(async (cartId) => {
-    try {
-      const { data } = await api.cartAPI.delete(cartId);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error deleting cart:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
-
+  // Get API instance for cart context
+  const getApi = useCallback(() => api, [api]);
 
   const value = useMemo(
     () => ({
@@ -227,24 +144,15 @@ export const AuthProvider = ({ children }) => {
       user,
       token,
       loading,
-
       // Auth status
       isAuthenticated: !!user && !!token,
       isAdmin: user?.isAdmin || false,
-
       // Auth functions
       login,
       logout,
       updateUser,
-
-      // FakeStore API Cart functions
-      getAllCarts,
-      getCartById,
-      getUserCarts,
-      createCart,
-      updateCart,
-      deleteCart,
-
+      // API access
+      getApi,
       // Helpers
       isAdminUsername,
       ADMIN_USERNAME_PATTERNS,
@@ -256,15 +164,9 @@ export const AuthProvider = ({ children }) => {
       login,
       logout,
       updateUser,
-      getAllCarts,
-      getCartById,
-      getUserCarts,
-      createCart,
-      updateCart,
-      deleteCart,
+      getApi,
       isAdminUsername,
     ]
   );
-
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
