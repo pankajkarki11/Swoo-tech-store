@@ -37,7 +37,6 @@ const HeaderClient = () => {
   const { user, logout, isAuthenticated, isAdmin, } = useAuth();
   const { getCartCount, } = useCart();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(false);
@@ -81,7 +80,7 @@ const HeaderClient = () => {
     toast((t) => (
       <div className="flex flex-col space-y-2">
         <p className="font-medium">Are you sure you want to logout?</p>
-        <div className="flex space-x-2 justify-end">
+        <div className="flex flex-col space-y-3 justify-end">
           <button
             onClick={() => {
               logout();
@@ -90,7 +89,7 @@ const HeaderClient = () => {
             }}
             className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
           >
-            Yes, logout
+            Yes, Logout
           </button>
           <button
             onClick={() => toast.dismiss(t.id)}
@@ -111,19 +110,10 @@ const HeaderClient = () => {
   };
 
   const handleCategoryClick = (categoryName) => {
-    setIsCategoryOpen(false);
+    
     setIsMobileMenuOpen(false);
     navigate(`/products?category=${encodeURIComponent(categoryName)}`);
   };
-
-  const featuredCategories = [
-    { name: "Laptops", icon: "💻", color: "text-blue-500" },
-    { name: "Phones", icon: "📱", color: "text-purple-500" },
-    { name: "Gaming", icon: "🎮", color: "text-red-500" },
-    { name: "Audio", icon: "🎧", color: "text-green-500" },
-    { name: "Cameras", icon: "📷", color: "text-yellow-500" },
-    { name: "Smart Home", icon: "🏠", color: "text-indigo-500" },
-  ];
 
   const quickLinks = [
     { name: "Daily Deals", icon: Tag, path: "/deals", badge: "🔥" },
@@ -145,6 +135,7 @@ const HeaderClient = () => {
             <button
               className="lg:hidden text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+               onBlur={()=>setTimeout(()=>setIsMobileMenuOpen(false),200)}
               aria-label="Toggle mobile menu"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -182,11 +173,6 @@ const HeaderClient = () => {
               >
                 <Search size={20} />
               </button>
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                <span className="text-xs text-gray-400 dark:text-gray-500 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
-                  
-                </span>
-              </div>
             </form>
           </div>
 
@@ -207,7 +193,7 @@ const HeaderClient = () => {
                   aria-label="Deals"
                 >
                   <Tag size={20} />
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                 </button>
                 <button
                   onClick={() => navigate("/track-order")}
@@ -401,29 +387,19 @@ const HeaderClient = () => {
                     className="group-hover:scale-110 transition-transform"
                   />
                   {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse shadow-lg">
+                    <span className="absolute -top-4 -right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse shadow-lg">
                       {cartCount}
                     </span>
                   )}
                 </div>
-               
-              </button>
-
-              {/* Shop Now Button */}
-              <button
-                onClick={() => navigate("/")}
-                className="bg-gradient-to-r from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 text-[#0A1F33] dark:text-gray-100 px-6 py-2.5 rounded-full font-bold hover:bg-gradient-to-r hover:from-[#01A49E] hover:to-[#01857F] dark:hover:from-[#01A49E] dark:hover:to-[#01857F] hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 group flex items-center"
-              >
-                Shop Now
-                <ChevronRight
-                  size={16}
-                  className="ml-2 group-hover:translate-x-1 transition-transform"
-                />
               </button>
             </div>
 
             {/* Mobile Actions */}
             <div className="flex items-center space-x-2 lg:hidden">
+              <div className="scale-75">
+                <Switch checked={darkMode} onChange={toggleDarkMode} />
+              </div>
               <button
                 onClick={() => navigate("/cart")}
                 className="relative text-white dark:text-gray-200 p-2"
@@ -436,9 +412,7 @@ const HeaderClient = () => {
                   </span>
                 )}
               </button>
-              <div className="scale-75">
-                <Switch checked={darkMode} onChange={toggleDarkMode} />
-              </div>
+              
             </div>
           </div>
         </div>
@@ -476,8 +450,8 @@ const HeaderClient = () => {
 
             <div className="relative">
               <button
-                onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                onBlur={() => setTimeout(() => setIsCategoryOpen(false), 200)}
+              
+               
                 className="flex items-center space-x-2 text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 font-medium transition-colors group hover:bg-white/10 px-3 py-1 rounded-lg"
                 aria-label="Product categories"
               >
@@ -488,9 +462,7 @@ const HeaderClient = () => {
                 <span>Categories</span>
                 <ChevronDown
                   size={16}
-                  className={`transition-transform ${
-                    isCategoryOpen ? "rotate-180" : ""
-                  } group-hover:scale-110`}
+                  className={`transition-transform group-hover:scale-110`}
                 />
               </button>
 
@@ -559,6 +531,7 @@ const HeaderClient = () => {
               {/* User Info */}
               {isAuthenticated ? (
                 <div className="p-4 bg-gradient-to-r from-[#01A49E]/10 to-blue-500/5 dark:from-[#01A49E]/20 dark:to-blue-900/10 rounded-xl mb-4">
+                  
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gradient-to-r from-[#01A49E] to-[#01857F] rounded-full flex items-center justify-center">
                       <span className="text-white font-medium text-lg">
@@ -579,15 +552,6 @@ const HeaderClient = () => {
                 </div>
               ) : null}
 
-              {/* Dark Mode Toggle */}
-              <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                <span className="text-gray-900 dark:text-gray-100 font-medium">
-                  Theme
-                </span>
-                <div className="scale-90">
-                  <Switch checked={darkMode} onChange={toggleDarkMode} />
-                </div>
-              </div>
 
               {/* Quick Links */}
               <div className="grid grid-cols-2 gap-2">
@@ -653,12 +617,12 @@ const HeaderClient = () => {
                       </Link>
                     )}
                     <Link
-                      to="/addproduct"
+                      to="/setting"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center py-3 px-4 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
                       <Package size={18} className="mr-3" />
-                      Add Products
+                      Setting
                     </Link>
                     <button
                       onClick={handleLogout}
@@ -678,20 +642,7 @@ const HeaderClient = () => {
                     Login / Signup
                   </Link>
                 )}
-
-                <button
-                  onClick={() => {
-                    navigate("/cart");
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex items-center w-full text-left py-3 px-4 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <ShoppingCart size={18} className="mr-3" />
-                  Cart {cartCount > 0 && `(${cartCount})`}
-                </button>
               </div>
-
-             
 
               {/* Contact Info */}
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">

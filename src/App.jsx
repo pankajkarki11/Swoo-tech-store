@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import NotFound from "./pages/admin/NotFound";
 import NotFound404 from "./components_temp/NotFound404";
-import Loader from "./components_temp/Loader";
 
 // Client Components
 import LayoutClient from "./components_temp/LayoutClient";

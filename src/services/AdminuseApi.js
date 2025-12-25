@@ -1,4 +1,3 @@
-// src/hooks/useApi.js
 import { useState, useCallback } from "react";
 
 const useApi = () => {
@@ -18,7 +17,6 @@ const useApi = () => {
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
-
     try {
       const response = await fetch(`https://fakestoreapi.com${url}`, {
         ...options,
@@ -65,10 +63,7 @@ const useApi = () => {
     getCategories: () => request("/products/categories"),
     getByCategory: (category) =>
       request(`/products/category/${category}`),
-    getLimited: (limit = 10) =>
-      request(`/products?limit=${limit}`),
   };
-
   // Carts API
   const cartAPI = {
     getAll: () => request("/carts"),
