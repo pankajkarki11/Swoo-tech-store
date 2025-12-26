@@ -8,6 +8,7 @@ import {
   useMemo,
 } from "react";
 import { useAuth } from "./AuthContext";
+import { toast } from "react-hot-toast";
 
 const CartContext = createContext();
 
@@ -46,55 +47,70 @@ export const CartProvider = ({ children }) => {
     }
   }, [api]);
 
-  const getCartById = useCallback(async (cartId) => {
-    try {
-      const { data } = await api.cartAPI.getById(cartId);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error getting cart:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
+  const getCartById = useCallback(
+    async (cartId) => {
+      try {
+        const { data } = await api.cartAPI.getById(cartId);
+        return { success: true, data };
+      } catch (error) {
+        console.error("Error getting cart:", error);
+        return { success: false, error: error.message };
+      }
+    },
+    [api]
+  );
 
-  const getUserCarts = useCallback(async (userId) => {
-    try {
-      const { data } = await api.cartAPI.getUserCarts(userId);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error getting user carts:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
+  const getUserCarts = useCallback(
+    async (userId) => {
+      try {
+        const { data } = await api.cartAPI.getUserCarts(userId);
+        return { success: true, data };
+      } catch (error) {
+        console.error("Error getting user carts:", error);
+        return { success: false, error: error.message };
+      }
+    },
+    [api]
+  );
 
-  const createCartAPI = useCallback(async (cartData) => {
-    try {
-      const { data } = await api.cartAPI.create(cartData);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error creating cart:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
+  const createCartAPI = useCallback(
+    async (cartData) => {
+      try {
+        const { data } = await api.cartAPI.create(cartData);
+        return { success: true, data };
+      } catch (error) {
+        console.error("Error creating cart:", error);
+        return { success: false, error: error.message };
+      }
+    },
+    [api]
+  );
 
-  const updateCartAPI = useCallback(async (cartId, cartData) => {
-    try {
-      const { data } = await api.cartAPI.update(cartId, cartData);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error updating cart:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
+  const updateCartAPI = useCallback(
+    async (cartId, cartData) => {
+      try {
+        const { data } = await api.cartAPI.update(cartId, cartData);
+        return { success: true, data };
+      } catch (error) {
+        console.error("Error updating cart:", error);
+        return { success: false, error: error.message };
+      }
+    },
+    [api]
+  );
 
-  const deleteCartAPI = useCallback(async (cartId) => {
-    try {
-      const { data } = await api.cartAPI.delete(cartId);
-      return { success: true, data };
-    } catch (error) {
-      console.error("Error deleting cart:", error);
-      return { success: false, error: error.message };
-    }
-  }, [api]);
+  const deleteCartAPI = useCallback(
+    async (cartId) => {
+      try {
+        const { data } = await api.cartAPI.delete(cartId);
+        return { success: true, data };
+      } catch (error) {
+        console.error("Error deleting cart:", error);
+        return { success: false, error: error.message };
+      }
+    },
+    [api]
+  );
 
   // ============================================================================
   // HELPER FUNCTIONS
@@ -104,82 +120,91 @@ export const CartProvider = ({ children }) => {
     return userId || 1;
   }, []);
 
-  const updateCartInAPI = useCallback(async (updatedCart) => {
-    if (!user?.id) return { success: false };
+  const updateCartInAPI = useCallback(
+    async (updatedCart) => {
+      if (!user?.id) return { success: false };
+     
+        try {
+          setIsSyncing(true);
+          const cartIdentifier = getCartIdentifier(user.id);
 
-    try {
-      setIsSyncing(true);
-      const cartIdentifier = getCartIdentifier(user.id);
-      
-      const apiCartData = {
-        userId: user.id,
-        date: new Date().toISOString(),
-        products: updatedCart.map((item) => ({
-          productId: item.id,
-          quantity: item.quantity || 1,
-        })),
-      };
+          const apiCartData = {
+            userId: user.id,
+            date: new Date().toISOString(),
+            products: updatedCart.map((item) => ({
+              productId: item.id,
+              quantity: item.quantity || 1,
+            })),
+          };
 
-      const result = await updateCartAPI(cartIdentifier, apiCartData);
+          const result = await updateCartAPI(cartIdentifier, apiCartData);
+          toast.success("Cart Updated!");
+          if (result.success) {
+            const syncTime = new Date().toISOString();
+            setLastSyncTime(syncTime);
+            localStorage.setItem("swmart_cart_sync_time", syncTime);
 
-      if (result.success) {
-        const syncTime = new Date().toISOString();
-        setLastSyncTime(syncTime);
-        localStorage.setItem("swmart_cart_sync_time", syncTime);
+            console.log("✅ Cart Updated at:", syncTime);
+          }
 
-        console.log("✅ Cart Updated at:", syncTime);
+          return result;
+        } catch (error) {
+          console.error("Error updating cart in API:", error);
+          return { success: false, error: error.message };
+        } finally {
+          setIsSyncing(false);
+        }
       }
-
-      return result;
-    } catch (error) {
-      console.error("Error updating cart in API:", error);
-      return { success: false, error: error.message };
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [user, getCartIdentifier, updateCartAPI]);
+    ,
+    [user, getCartIdentifier, updateCartAPI]
+  );
 
   const deleteCartInAPI = useCallback(async () => {
     if (!user?.id) return { success: false };
+    
+      try {
+        setIsSyncing(true);
+        const cartIdentifier = getCartIdentifier(user.id);
 
-    try {
-      setIsSyncing(true);
-      const cartIdentifier = getCartIdentifier(user.id);
-      
-      const result = await deleteCartAPI(cartIdentifier);
+        const result = await deleteCartAPI(cartIdentifier);
 
-      if (result.success) {
-        setLastSyncTime(null);
-        localStorage.removeItem("swmart_cart_sync_time");
-        console.log("✅ Cart deleted from API");
+        if (result.success) {
+          setLastSyncTime(null);
+          localStorage.removeItem("swmart_cart_sync_time");
+          console.log("✅ Cart deleted from API");
+        }
+
+        return result;
+      } catch (error) {
+        console.error("Error deleting cart from API:", error);
+        return { success: false, error: error.message };
+      } finally {
+        setIsSyncing(false);
       }
-
-      return result;
-    } catch (error) {
-      console.error("Error deleting cart from API:", error);
-      return { success: false, error: error.message };
-    } finally {
-      setIsSyncing(false);
     }
-  }, [user, getCartIdentifier, deleteCartAPI]);
+  , [user, getCartIdentifier, deleteCartAPI]);
 
   const convertAPICartToLocal = useCallback(async (apiCart) => {
     if (!apiCart || !apiCart.products) return [];
 
-    console.log("🔄 Fetching product details for", apiCart.products.length, "cart items...");
+    console.log(
+      "🔄 Fetching product details for",
+      apiCart.products.length,
+      "cart items..."
+    );
 
     const productPromises = apiCart.products.map(async (item) => {
       try {
         const response = await fetch(
           `https://fakestoreapi.com/products/${item.productId}`
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const product = await response.json();
-        
+
         return {
           ...product,
           quantity: item.quantity,
@@ -203,7 +228,7 @@ export const CartProvider = ({ children }) => {
 
     const products = await Promise.all(productPromises);
     console.log("✅ Fetched product details for", products.length, "items");
-    
+
     return products;
   }, []);
 
@@ -220,7 +245,11 @@ export const CartProvider = ({ children }) => {
         if (savedCart) {
           const parsedCart = JSON.parse(savedCart);
           setCart(parsedCart);
-          console.log("✅ Loaded cart from localStorage:", parsedCart.length, "items");
+          console.log(
+            "✅ Loaded cart from localStorage:",
+            parsedCart.length,
+            "items"
+          );
         }
 
         if (savedSyncTime) {
@@ -308,7 +337,7 @@ export const CartProvider = ({ children }) => {
         setCart(cartItems);
         localStorage.setItem("swmart_cart", JSON.stringify(cartItems));
         window.dispatchEvent(new Event("cartUpdated"));
-        
+
         console.log("✅ Cart refreshed from API:", cartItems.length, "items");
         return { success: true, data: cartItems };
       } else {
@@ -327,60 +356,12 @@ export const CartProvider = ({ children }) => {
   // CART OPERATIONS (WITH IMMEDIATE API CALLS)
   // ============================================================================
 
-  const addToCart = useCallback(async (product, quantity = 1) => {
-    if (!product) return { success: false };
+  const addToCart = useCallback(
+    async (product, quantity = 1) => {
+      if (!product) return { success: false };
 
-    try {
-      const updatedCart = [...cart];
-      const existingIndex = updatedCart.findIndex(
-        (item) => item.id === product.id
-      );
-
-      if (existingIndex > -1) {
-        updatedCart[existingIndex] = {
-          ...updatedCart[existingIndex],
-          quantity: updatedCart[existingIndex].quantity + quantity,
-          updatedAt: new Date().toISOString(),
-        };
-      } else {
-        updatedCart.push({
-          ...product,
-          quantity,
-          addedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-      }
-
-      setCart(updatedCart);
-
-      const result = await updateCartInAPI(updatedCart);
-
-      if (result.success) {
-        localStorage.setItem("swmart_cart", JSON.stringify(updatedCart));
-        window.dispatchEvent(new Event("cartUpdated"));
-        return { success: true };
-      } else {
-        setCart(cart);
-        return { success: false, error: result.error };
-      }
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      setCart(cart);
-      return { success: false, error: error.message };
-    }
-  }, [cart, updateCartInAPI]);
-
-  const addMultipleToCart = useCallback(async (products) => {
-    if (!products || products.length === 0) {
-      return { success: false, error: "No products provided" };
-    }
-
-    try {
-      console.log("📦 Adding", products.length, "products to cart...");
-
-      const updatedCart = [...cart];
-      
-      products.forEach(({ product, quantity }) => {
+      try {
+        const updatedCart = [...cart];
         const existingIndex = updatedCart.findIndex(
           (item) => item.id === product.id
         );
@@ -399,86 +380,150 @@ export const CartProvider = ({ children }) => {
             updatedAt: new Date().toISOString(),
           });
         }
-      });
 
-      setCart(updatedCart);
+        setCart(updatedCart);
 
-      const result = await updateCartInAPI(updatedCart);
+        const result = await updateCartInAPI(updatedCart);
 
-      if (result.success) {
-        localStorage.setItem("swmart_cart", JSON.stringify(updatedCart));
-        window.dispatchEvent(new Event("cartUpdated"));
-        console.log("✅ Added", products.length, "products to cart successfully");
-        return { success: true, count: products.length };
-      } else {
+        if (result.success) {
+          localStorage.setItem("swmart_cart", JSON.stringify(updatedCart));
+          window.dispatchEvent(new Event("cartUpdated"));
+          return { success: true };
+        } else {
+          setCart(cart);
+          return { success: false, error: result.error };
+        }
+      } catch (error) {
+        console.error("Error adding to cart:", error);
         setCart(cart);
-        return { success: false, error: result.error };
+        return { success: false, error: error.message };
       }
-    } catch (error) {
-      console.error("Error adding multiple items to cart:", error);
-      setCart(cart);
-      return { success: false, error: error.message };
-    }
-  }, [cart, updateCartInAPI]);
+    },
+    [cart, updateCartInAPI]
+  );
 
-  const removeFromCart = useCallback(async (productId) => {
-    try {
-      const updatedCart = cart.filter((item) => item.id !== productId);
-      setCart(updatedCart);
-
-      let result;
-      if (updatedCart.length === 0) {
-        console.log("🗑️ Removing last item, deleting cart from API...");
-        result = await deleteCartInAPI();
-      } else {
-        console.log("🔄 Removing item, updating cart in API...");
-        result = await updateCartInAPI(updatedCart);
+  const addMultipleToCart = useCallback(
+    async (products) => {
+      if (!products || products.length === 0) {
+        return { success: false, error: "No products provided" };
       }
 
-      if (result.success) {
-        localStorage.setItem("swmart_cart", JSON.stringify(updatedCart));
-        window.dispatchEvent(new Event("cartUpdated"));
-        return { success: true };
-      } else {
+      try {
+        console.log("📦 Adding", products.length, "products to cart...");
+
+        const updatedCart = [...cart];
+
+        products.forEach(({ product, quantity }) => {
+          const existingIndex = updatedCart.findIndex(
+            (item) => item.id === product.id
+          );
+
+          if (existingIndex > -1) {
+            updatedCart[existingIndex] = {
+              ...updatedCart[existingIndex],
+              quantity: updatedCart[existingIndex].quantity + quantity,
+              updatedAt: new Date().toISOString(),
+            };
+          } else {
+            updatedCart.push({
+              ...product,
+              quantity,
+              addedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+          }
+        });
+
+        setCart(updatedCart);
+
+        const result = await updateCartInAPI(updatedCart);
+
+        if (result.success) {
+          localStorage.setItem("swmart_cart", JSON.stringify(updatedCart));
+          window.dispatchEvent(new Event("cartUpdated"));
+          console.log(
+            "✅ Added",
+            products.length,
+            "products to cart successfully"
+          );
+          return { success: true, count: products.length };
+        } else {
+          setCart(cart);
+          return { success: false, error: result.error };
+        }
+      } catch (error) {
+        console.error("Error adding multiple items to cart:", error);
         setCart(cart);
-        return { success: false, error: result.error };
+        return { success: false, error: error.message };
       }
-    } catch (error) {
-      console.error("Error removing from cart:", error);
-      setCart(cart);
-      return { success: false, error: error.message };
-    }
-  }, [cart, updateCartInAPI, deleteCartInAPI]);
+    },
+    [cart, updateCartInAPI]
+  );
 
-  const updateQuantity = useCallback(async (productId, quantity) => {
-    if (quantity < 1) {
-      return await removeFromCart(productId);
-    }
+  const removeFromCart = useCallback(
+    async (productId) => {
+      try {
+        const updatedCart = cart.filter((item) => item.id !== productId);
+        setCart(updatedCart);
 
-    try {
-      const updatedCart = cart.map((item) =>
-        item.id === productId
-          ? { ...item, quantity, updatedAt: new Date().toISOString() }
-          : item
-      );
-      setCart(updatedCart);
+        let result;
+        if (updatedCart.length === 0) {
+          console.log("🗑️ Removing last item, deleting cart from API...");
+          result = await deleteCartInAPI();
+        } else {
+          console.log("🔄 Removing item, updating cart in API...");
+          result = await updateCartInAPI(updatedCart);
+        }
 
-      const result = await updateCartInAPI(updatedCart);
-
-      if (result.success) {
-        localStorage.setItem("swmart_cart", JSON.stringify(updatedCart));
-        window.dispatchEvent(new Event("cartUpdated"));
-        return { success: true };
-      } else {
+        if (result.success) {
+          localStorage.setItem("swmart_cart", JSON.stringify(updatedCart));
+          window.dispatchEvent(new Event("cartUpdated"));
+          return { success: true };
+        } else {
+          setCart(cart);
+          return { success: false, error: result.error };
+        }
+      } catch (error) {
+        console.error("Error removing from cart:", error);
         setCart(cart);
-        return { success: false, error: result.error };
+        return { success: false, error: error.message };
       }
-    } catch (error) {
-      console.error("Error updating quantity:", error);
-      setCart(cart);
-      return { success: false, error: error.message };
-    }
-  }, [cart, updateCartInAPI, removeFromCart]);
+    },
+    [cart, updateCartInAPI, deleteCartInAPI]
+  );
+
+  const updateQuantity = useCallback(
+    async (productId, quantity) => {
+      if (quantity < 1) {
+        return await removeFromCart(productId);
+      }
+
+      try {
+        const updatedCart = cart.map((item) =>
+          item.id === productId
+            ? { ...item, quantity, updatedAt: new Date().toISOString() }
+            : item
+        );
+        setCart(updatedCart);
+
+        const result = await updateCartInAPI(updatedCart);
+
+        if (result.success) {
+          localStorage.setItem("swmart_cart", JSON.stringify(updatedCart));
+          window.dispatchEvent(new Event("cartUpdated"));
+          return { success: true };
+        } else {
+          setCart(cart);
+          return { success: false, error: result.error };
+        }
+      } catch (error) {
+        console.error("Error updating quantity:", error);
+        setCart(cart);
+        return { success: false, error: error.message };
+      }
+    },
+    [cart, updateCartInAPI, removeFromCart]
+  );
 
   const clearCart = useCallback(async () => {
     try {

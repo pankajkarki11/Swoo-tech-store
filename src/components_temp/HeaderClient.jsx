@@ -179,7 +179,7 @@ const HeaderClient = () => {
           {/* Right Actions */}
           <div className="flex items-center space-x-4">
             {/* Dark Mode Toggle */}
-            <div className="hidden md:flex items-center">
+            <div className="hidden lg:flex items-center">
               <Switch checked={darkMode} onChange={toggleDarkMode} />
             </div>
 
