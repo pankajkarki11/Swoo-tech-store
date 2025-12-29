@@ -37,7 +37,7 @@ const ProductDetailPage = () => {
 
   const api = useApi();
   const {
-    cart,
+
     addToCart: addToCartContext,
     removeFromCart,
     updateQuantity,
@@ -243,7 +243,7 @@ const ProductDetailPage = () => {
 
     const qty = parseInt(quantityStr);
     if (isNaN(qty) || qty < 1) {
-      toast.error("Quantity must be at least 1");
+      toast.error("Quantity must be at 1");
       clearEditingQuantity(productId);
       return;
     }
@@ -649,7 +649,12 @@ const ProductDetailPage = () => {
                             );
                           } else {
                             // For product NOT in cart: just validate and keep the value
-                            handleQuantityInputBlur(product.id, parseInt(displayQuantity));
+                            handleQuantityInputBlur(product.id, handleQuantityConfirm,
+                              { 
+                                min: 1, 
+                                max: maxQuantity,
+                                requireConfirmation: true
+                              }, parseInt(displayQuantity));
                           }
                         }}
                         containerClassName="mb-0 h-full"
