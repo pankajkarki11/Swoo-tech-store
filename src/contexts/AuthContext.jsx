@@ -104,13 +104,12 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("swmart_token", apiToken);
         localStorage.setItem("swmart_user", JSON.stringify(userData));
         setUser(userData);
-        setToken(apiToken);
-
+        setToken(apiToken);     
         return {
           success: true,
           user: userData,
           token: apiToken,
-          isAdmin: isAdminUser,
+          isAdmin: isAdminUser,  
         };
       } catch (error) {
         console.error("Login error:", error);
