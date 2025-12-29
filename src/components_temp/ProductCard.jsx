@@ -188,8 +188,9 @@ const ProductCard = ({
           <Button 
           variant="overlay"
            onClick={handleQuickView}
+           icon={<Eye size={16} />}
            >
-            <Eye size={16} />
+            
             Quick View
           </Button>
         </div>

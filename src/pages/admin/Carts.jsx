@@ -250,8 +250,8 @@ const Carts = () => {
           <Button variant="outline" onClick={handleRefresh} loading={loading}>
             Refresh
           </Button>
-          <Button variant="primary">
-            <Plus className="h-5 w-5 mr-2" />
+          <Button variant="primary"icon={<Plus className="h-5 w-5" />}>
+            
             Create Cart
           </Button>
         </div>
@@ -350,8 +350,8 @@ const Carts = () => {
           </div>
 
           <div>
-            <Button variant="outline" fullWidth onClick={clearFilters}>
-              <Filter className="h-5 w-5 mr-2" />
+            <Button variant="outline" fullWidth onClick={clearFilters} icon={  <Filter className="h-5 w-5 mr-2" />}>
+            
               Clear Filters
             </Button>
           </div>

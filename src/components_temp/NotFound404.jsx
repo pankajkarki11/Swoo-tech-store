@@ -29,8 +29,8 @@ const NotFound404 = () => {
        
         
         <div className="space-y-3">
- <Button variant="outline" onClick={() => window.history.back()}>
-            <ArrowLeft className="h-5 w-5 mr-2" />
+ <Button icon={<ArrowLeft/>} variant="outline" onClick={() => window.history.back()}>
+           
             Go Back
           </Button>
 

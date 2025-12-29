@@ -340,9 +340,11 @@ const EcommerceHomepage = () => {
                       </p>
                       <Button
                         onClick={() => navigate("/product")}
+                        iconPosition="right"
+                        icon={<ArrowRight  />}
                         className={`${slide.buttonColor} hover:shadow-2xl transition-all hover:scale-105 flex items-center gap-2`}
                       >
-                        Shop Now <ArrowRight className="ml-2" />
+                        Shop Now 
                       </Button>
                     </div>
                   </div>
@@ -456,24 +458,40 @@ const EcommerceHomepage = () => {
                 </div>
 
                 {hasMoreProducts ? (
-                  <Button
-                    variant="teal"
-                    size="xlarge"
-                    onClick={loadMoreProducts}
-                    disabled={isLoadingMore}
-                  >
-                    {isLoadingMore ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      <>
-                        Load More Products
-                        <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </Button>
+
+              <Button 
+                variant="teal"
+                iconPosition="right"
+                icon={<ArrowRight/>}
+                size="xlarge"
+                onClick={loadMoreProducts}
+                disabled={isLoadingMore}
+                loading={isLoadingMore}
+              >
+                {isLoadingMore ? 'Loading Products...' : 'Load More Products'}
+              </Button>
+
+
+
+                  // <Button
+                  //   variant="teal"
+                  //   iconPosition="right"
+                  //   size="xlarge"
+                  //   onClick={loadMoreProducts}
+                  //   disabled={isLoadingMore}
+                  // >
+                  //   {isLoadingMore ? (
+                  //     <>
+                  //       <Loader2 className="h-5 w-5 animate-spin" />
+                  //       Loading...
+                  //     </>
+                  //   ) : (
+                  //     <>
+                  //       Load More Products
+                  //       <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                  //     </>
+                  //   )}
+                  // </Button>
                 ) : (
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 border border-green-200 dark:border-green-800 rounded-2xl p-6 max-w-md mx-auto">
                     <div className="flex items-center justify-center gap-3 mb-3">

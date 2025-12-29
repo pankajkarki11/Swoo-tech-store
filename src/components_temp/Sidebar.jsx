@@ -225,8 +225,9 @@ const Sidebar = ({ isOpen, onClose }) => {
             fullWidth
             onClick={handleLogout}
             className={collapsed ? "justify-center" : ""}
+            icon={<LogOut className="h-5 w-5" />}
           >
-            <LogOut className="h-5 w-5" />
+            
             {!collapsed && <span className="ml-2">Logout</span>}
           </Button>
         </div>

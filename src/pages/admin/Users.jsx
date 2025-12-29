@@ -153,8 +153,8 @@ const UsersPage = () => {
           <Button variant="outline" onClick={handleRefresh}>
             Refresh
           </Button>
-          <Button variant="primary">
-            <Plus className="h-5 w-5 mr-2" />
+          <Button variant="primary" icon={ <Plus className="h-5 w-5" />}>
+           
             Add User
           </Button>
         </div>
@@ -271,8 +271,9 @@ const UsersPage = () => {
                 setSearchTerm("");
                 setSelectedRole("all");
               }}
+              icon={ <Filter className="h-5 w-5 mr-2" />}
             >
-              <Filter className="h-5 w-5 mr-2" />
+             
               Clear Filters
             </Button>
           </div>

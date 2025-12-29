@@ -13,7 +13,7 @@ import {
   Home,
 } from "lucide-react";
 import useApi from "../../services/AdminuseApi";
-import { useCart } from "../../contexts/CartContext";
+import { useCart, useQuantity } from "../../contexts/CartContext";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -29,11 +29,11 @@ const ProductDetailPage = () => {
   const {
     cart,
     addToCart: addToCartContext,
-    removeFromCart,
-    updateQuantity,
     isInCart,
     getCartItemQuantity,
   } = useCart();
+
+  const { handleDirectQuantityChange } = useQuantity();
 
   // Scroll to top when component mounts or id changes
   useEffect(() => {
@@ -92,34 +92,11 @@ const ProductDetailPage = () => {
     }
   };
 
-  const handleUpdateCartQuantity = async (change) => {
-    if (!product) return;
-
-    const newQty = cartStatus.quantity + change;
-
-    if (newQty <= 0) {
-      try {
-        await removeFromCart(product.id);
-        toast.success("Item removed from cart");
-      } catch (error) {
-        toast.error("Failed to remove item");
-      }
-    } else {
-      try {
-        await updateQuantity(product.id, newQty);
-        toast.success(`Cart quantity updated to ${newQty}`);
-      } catch (error) {
-        toast.error("Failed to update quantity");
-      }
-    }
-  };
-
   const handleRemoveFromCart = async () => {
     if (!product) return;
 
     try {
-      await removeFromCart(product.id);
-      toast.success("Item removed from cart");
+      await handleDirectQuantityChange(product.id, -cartStatus.quantity, cartStatus.quantity);
     } catch (error) {
       toast.error("Failed to remove item");
     }
@@ -378,14 +355,14 @@ const ProductDetailPage = () => {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => handleUpdateCartQuantity(-1)}
+                      onClick={() => handleDirectQuantityChange(product.id, -1, cartStatus.quantity)}
                       
                       className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50"
                     >
                       -
                     </button>
                     <button
-                      onClick={() => handleUpdateCartQuantity(1)}
+                      onClick={() => handleDirectQuantityChange(product.id, 1, cartStatus.quantity)}
                      
                       className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50"
                     >

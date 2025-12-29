@@ -213,8 +213,8 @@ const Products = () => {
           <Button variant="outline" onClick={handleRefresh} loading={loading}>
             Refresh
           </Button>
-          <Button variant="primary" onClick={handleAddNew}>
-            <Plus className="h-5 w-5 mr-2" />
+          <Button variant="primary" icon={<Plus className="h-5 w-5" />} onClick={handleAddNew}>
+            
             Add Product
           </Button>
         </div>
@@ -299,8 +299,8 @@ const Products = () => {
           </div>
 
           <div>
-            <Button variant="outline" fullWidth onClick={clearFilters}>
-              <Filter className="h-5 w-5 mr-2" />
+            <Button variant="outline" icon={  <Filter className="h-5 w-5 mr-2" />}fullWidth onClick={clearFilters}>
+            
               Clear Filters
             </Button>
           </div>

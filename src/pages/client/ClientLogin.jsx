@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
+import { useCart } from "../../contexts/CartContext";
 
 const ClientLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,11 +28,13 @@ const ClientLogin = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
+  const { refreshCartFromAPI } = useCart();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
+      
     }
   }, [isAuthenticated, navigate]);
 
@@ -81,11 +84,14 @@ const ClientLogin = () => {
       setUsername("");
       setPassword("");
      toast.success(
-  "Login successful!",
+  "Login successful!",  
  );
+ 
       setTimeout(() => {
       navigate("/");
+      
     }, 3000);
+    
     } catch (error) {
       setError(error.message);
       console.error(error);

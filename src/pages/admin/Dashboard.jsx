@@ -390,8 +390,9 @@ const Dashboard = () => {
               variant="outline"
               className="h-24 flex flex-col items-center justify-center"
               onClick={() => navigate("/admin/products")}
+              icon={<Package className="h-8 w-8" />}
             >
-              <Package className="h-8 w-8 mb-2" />
+              
               <span>Manage Products</span>
             </Button>
 
@@ -399,8 +400,9 @@ const Dashboard = () => {
               variant="outline"
               className="h-24 flex flex-col items-center justify-center"
               onClick={() => navigate("/admin/carts")}
+              icon={<ShoppingCart className="h-8 w-8 mb-2" />}
             >
-              <ShoppingCart className="h-8 w-8 mb-2" />
+              
               <span>View Carts</span>
             </Button>
 
@@ -408,8 +410,9 @@ const Dashboard = () => {
               variant="outline"
               className="h-24 flex flex-col items-center justify-center"
               onClick={() => navigate("/admin/users")}
+              icon={ <Users className="h-8 w-8 mb-2" />}
             >
-              <Users className="h-8 w-8 mb-2" />
+             
               <span>Manage Users</span>
             </Button>
 
@@ -417,8 +420,9 @@ const Dashboard = () => {
               variant="outline"
               className="h-24 flex flex-col items-center justify-center"
               onClick={fetchDashboardData}
+              icon={<DollarSign className="h-8 w-8 mb-2" />}
             >
-              <DollarSign className="h-8 w-8 mb-2" />
+              
               <span>Refresh Stats</span>
             </Button>
           </div>
