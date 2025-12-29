@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   ShoppingCart,
   Star,
   Truck,
- 
+  Shield,
   Package,
   Check,
   ArrowLeft,
@@ -46,13 +46,12 @@ const ProductDetailPage = () => {
   } = useCart();
 
   const {
-    tempQuantity,
-    handleDetailQuantityChange,
-    handleDetailQuantityBlur,
-    handleDetailQuantityKeyDown,
-    handleDetailQuantityAdjust,
-    getDetailQuantityValue,
-    clearTempQuantity,
+    getCurrentQuantity,
+    handleQuantityChange,
+    handleQuantityBlur,
+    handleQuantityKeyDown,
+    handleQuantityAdjust,
+    clearEditingQuantity,
   } = useQuantity();
 
   // Scroll to top when component mounts or id changes
@@ -79,10 +78,10 @@ const ProductDetailPage = () => {
   };
 
   // Check cart status
-  const cartStatus = {
+  const cartStatus = useMemo(() => ({
     isInCart: product?.id ? isInCart(product.id) : false,
     quantity: product?.id ? getCartItemQuantity(product.id) : 0,
-  };
+  }), [product?.id, isInCart, getCartItemQuantity]);
 
   // ============================================================================
   // MODAL HANDLERS
@@ -104,7 +103,7 @@ const ProductDetailPage = () => {
     });
   }, []);
 
-  // Quantity confirmation handler
+  // Quantity confirmation handler (for products already in cart)
   const handleQuantityConfirm = useCallback((productId, currentQuantity, newQuantity, action = 'update') => {
     if (action === 'remove') {
       openModal('remove', { 
@@ -120,6 +119,15 @@ const ProductDetailPage = () => {
         newQuantity,
       });
     }
+  }, [product, openModal]);
+
+  // Special handler for adding to cart with specific quantity (for products NOT in cart)
+  const handleAddToCartConfirm = useCallback((productId, quantity) => {
+    openModal('addToCart', {
+      productId,
+      product,
+      quantity,
+    });
   }, [product, openModal]);
 
   // Remove confirmation handler
@@ -141,12 +149,19 @@ const ProductDetailPage = () => {
 
     setIsAddingToCart(true);
     try {
-      const quantity = parseInt(tempQuantity[product.id]) || 1;
-      await addToCartContext(product, quantity);
-      toast.success(`${quantity} × ${product.title} added to cart!`);
-      clearTempQuantity(product.id);
+      // Get the current quantity from input (editing state)
+      const quantityStr = getCurrentQuantity(product.id, 1);
+      const quantity = parseInt(quantityStr) || 1;
+      
+      // If product is already in cart, update quantity
+      if (cartStatus.isInCart) {
+        handleQuantityConfirm(product.id, cartStatus.quantity, quantity);
+      } else {
+        // If not in cart, show add confirmation
+        handleAddToCartConfirm(product.id, quantity);
+      }
     } catch (err) {
-      toast.error("Failed to add to cart. Please try again.");
+      toast.error("Failed to add to cart");
     } finally {
       setTimeout(() => setIsAddingToCart(false), 500);
     }
@@ -158,7 +173,8 @@ const ProductDetailPage = () => {
     try {
       // Add to cart first (if not already in cart)
       if (!cartStatus.isInCart) {
-        const quantity = parseInt(tempQuantity[product.id]) || 1;
+        const quantityStr = getCurrentQuantity(product.id, 1);
+        const quantity = parseInt(quantityStr) || 1;
         await addToCartContext(product, quantity);
       }
       // Navigate to cart page
@@ -181,24 +197,66 @@ const ProductDetailPage = () => {
     try {
       await removeFromCart(productId);
       toast.success(`"${product.title}" removed from cart`);
-      clearTempQuantity(productId);
+      clearEditingQuantity(productId);
       closeModal();
     } catch (error) {
       toast.error("Failed to remove item");
     }
-  }, [activeModal.data, product, removeFromCart, clearTempQuantity, closeModal]);
+  }, [activeModal.data, product, removeFromCart, clearEditingQuantity, closeModal]);
 
   const handleConfirmQuantity = useCallback(async () => {
     const { productId, newQuantity } = activeModal.data;
     try {
       await updateQuantity(productId, newQuantity);
       toast.success(`Quantity updated to ${newQuantity}`);
-      clearTempQuantity(productId);
+      clearEditingQuantity(productId);
       closeModal();
     } catch (error) {
       toast.error("Failed to update quantity");
     }
-  }, [activeModal.data, updateQuantity, clearTempQuantity, closeModal]);
+  }, [activeModal.data, updateQuantity, clearEditingQuantity, closeModal]);
+
+  const handleConfirmAddToCart = useCallback(async () => {
+    const { productId, quantity } = activeModal.data;
+    try {
+      await addToCartContext(product, quantity);
+      toast.success(`${quantity} × ${product.title} added to cart!`);
+      clearEditingQuantity(productId);
+      closeModal();
+    } catch (error) {
+      toast.error("Failed to add to cart");
+    }
+  }, [activeModal.data, product, addToCartContext, clearEditingQuantity, closeModal]);
+
+  // ============================================================================
+  // QUANTITY HANDLER FOR PRODUCT NOT IN CART
+  // ============================================================================
+
+  // Handle quantity blur for product NOT in cart (when typing and pressing Enter/Blur)
+  const handleQuantityInputBlur = useCallback((productId, currentQuantity) => {
+    const quantityStr = getCurrentQuantity(productId, 1);
+    
+    // If empty or same as current, reset
+    if (!quantityStr || quantityStr === currentQuantity.toString()) {
+      return;
+    }
+
+    const qty = parseInt(quantityStr);
+    if (isNaN(qty) || qty < 1) {
+      toast.error("Quantity must be at least 1");
+      clearEditingQuantity(productId);
+      return;
+    }
+    
+    if (qty > 10) {
+      toast.error("Maximum 10 per customer");
+      clearEditingQuantity(productId);
+      return;
+    }
+    
+    // For product NOT in cart, just update the display (no modal)
+    // The quantity will be used when user clicks "Add to Cart"
+  }, [getCurrentQuantity, clearEditingQuantity]);
 
   // ============================================================================
   // MODAL RENDER
@@ -208,6 +266,7 @@ const ProductDetailPage = () => {
     const modalTitles = {
       'remove': 'Remove Item',
       'quantity': 'Update Quantity',
+      'addToCart': 'Add to Cart',
     };
 
     const getModalIcon = () => {
@@ -218,6 +277,8 @@ const ProductDetailPage = () => {
           return <Minus className="h-6 w-6 text-red-600" />;
         case 'quantity':
           return <Package className="h-6 w-6 text-blue-600" />;
+        case 'addToCart':
+          return <ShoppingCart className="h-6 w-6 text-green-600" />;
         default:
           return <Package className="h-6 w-6 text-gray-600" />;
       }
@@ -231,6 +292,8 @@ const ProductDetailPage = () => {
           return `Are you sure you want to remove "${data.product.title}" from your cart?`;
         case 'quantity':
           return `Update quantity of "${data.product.title}" from ${data.currentQuantity} to ${data.newQuantity}?`;
+        case 'addToCart':
+          return `Add ${data.quantity} × "${data.product.title}" to your cart?`;
         default:
           return 'Are you sure?';
       }
@@ -242,6 +305,7 @@ const ProductDetailPage = () => {
       switch (type) {
         case 'remove': return handleConfirmRemove;
         case 'quantity': return handleConfirmQuantity;
+        case 'addToCart': return handleConfirmAddToCart;
         default: return () => {};
       }
     };
@@ -252,6 +316,8 @@ const ProductDetailPage = () => {
       switch (type) {
         case 'remove':
           return 'danger';
+        case 'addToCart':
+          return 'success';
         default:
           return 'primary';
       }
@@ -334,7 +400,9 @@ const ProductDetailPage = () => {
     );
   }
 
-  const currentQuantity = cartStatus.isInCart ? cartStatus.quantity : (parseInt(tempQuantity[product.id]) || 1);
+  // Get current quantity to display
+  const currentQuantity = cartStatus.isInCart ? cartStatus.quantity : 1;
+  const displayQuantity = getCurrentQuantity(product.id, currentQuantity);
   const maxQuantity = 10;
 
   return (
@@ -351,21 +419,21 @@ const ProductDetailPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <nav className="mb-8">
-          <ol className="flex items-center space-x-2 text-sm text-gray-600 flex-wrap dark:text-wite">
+          <ol className="flex items-center space-x-2 text-sm text-gray-600 flex-wrap dark:text-white">
             <li>
               <button
                 onClick={() => navigate("/")}
-                className="hover:text-[#01A49E] transition-colors flex items-center gap-1 dark:text-gray-400 dark:hover:text-[#01A49E] transition-color"
+                className="hover:text-[#01A49E] transition-colors flex items-center gap-1 dark:text-gray-400 dark:hover:text-[#01A49E]"
               >
                 <Home size={16} />
                 Home
               </button>
             </li>
-            <li className="dark:text-gray-400 ">›</li>
+            <li className="dark:text-gray-400">›</li>
             <li className="capitalize">
               <button
                 onClick={() => navigate("/")}
-                className="hover:text-[#01A49E] transition-colors dark:text-gray-400 dark:hover:text-[#01A49E] transition-color"
+                className="hover:text-[#01A49E] transition-colors dark:text-gray-400 dark:hover:text-[#01A49E]"
               >
                 {product.category}
               </button>
@@ -382,11 +450,11 @@ const ProductDetailPage = () => {
             {/* Left Column - Images */}
             <div>
               {/* Main Image */}
-              <div className="relative bg-gray-100 rounded-2xl overflow-hidden mb-6 h-96 dark:bg-gray-800 dark:shadow-white dark:shadow-sm">
+              <div className="relative bg-gray-100 rounded-2xl overflow-hidden mb-6 h-96 dark:bg-gray-800">
                 <img
                   src={selectedImage}
                   alt={product.title}
-                  className="w-full h-full object-contain p-8 transition-transform duration-500 hover:scale-110 dark:shadow-white dark:shadow-lg"
+                  className="w-full h-full object-contain p-8 transition-transform duration-500 hover:scale-110"
                 />
                 {product.price > 100 && (
                   <div className="absolute top-4 left-4">
@@ -489,7 +557,7 @@ const ProductDetailPage = () => {
                 </p>
               </div>
 
-              {/* Quantity Selector */}
+              {/* Quantity Selector - Works EXACTLY like Cart Page */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3 dark:text-gray-200">
                   Quantity
@@ -498,13 +566,26 @@ const ProductDetailPage = () => {
                   <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden dark:border-gray-600">
                     {/* Decrease Button */}
                     <button
-                      onClick={() => handleDetailQuantityAdjust(
-                        product.id, 
-                        -1, 
-                        currentQuantity,
-                        maxQuantity,
-                        handleQuantityConfirm
-                      )}
+                      onClick={() => {
+                        if (cartStatus.isInCart) {
+                          // For product in cart: show confirmation modal
+                          handleQuantityAdjust(
+                            product.id, 
+                            -1, 
+                            currentQuantity,
+                            handleQuantityConfirm,
+                            { 
+                              min: 1, 
+                              max: maxQuantity,
+                              requireConfirmation: true
+                            }
+                          );
+                        } else {
+                          // For product NOT in cart: update quantity directly
+                          const newQty = Math.max(parseInt(displayQuantity) - 1, 1);
+                          handleQuantityChange(product.id, newQty.toString());
+                        }
+                      }}
                       className="
                         h-12 w-12
                         flex items-center justify-center
@@ -516,32 +597,61 @@ const ProductDetailPage = () => {
                         disabled:opacity-40 disabled:cursor-not-allowed
                       "
                       aria-label="Decrease quantity"
-                      disabled={currentQuantity <= 1}
+                      disabled={parseInt(displayQuantity) <= 1}
                     >
                       <Minus size={20} className="text-gray-700 dark:text-gray-300" />
                     </button>
                     
-                    {/* Quantity Input */}
+                    {/* Quantity Input - Works EXACTLY like Cart Page */}
                     <div className="h-12 w-20">
                       <Input
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        value={getDetailQuantityValue(product.id, cartStatus.quantity, 1)}
-                        onChange={(e) => handleDetailQuantityChange(product.id, e.target.value)}
-                        onKeyDown={(e) => handleDetailQuantityKeyDown(
-                          e, 
-                          product.id, 
-                          currentQuantity,
-                          maxQuantity,
-                          handleQuantityConfirm
-                        )}
-                        onBlur={() => handleDetailQuantityBlur(
-                          product.id, 
-                          currentQuantity,
-                          maxQuantity,
-                          handleQuantityConfirm
-                        )}
+                        value={displayQuantity}
+                        onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            // When Enter is pressed
+                            if (cartStatus.isInCart) {
+                              // For product in cart: show confirmation modal
+                              handleQuantityBlur(
+                                product.id, 
+                                currentQuantity,
+                                handleQuantityConfirm,
+                                { 
+                                  min: 1, 
+                                  max: maxQuantity,
+                                  requireConfirmation: true
+                                }
+                              );
+                            } else {
+                              // For product NOT in cart: just validate and keep the value
+                              handleQuantityInputBlur(product.id, parseInt(displayQuantity));
+                            }
+                          } else if (e.key === "Escape") {
+                            clearEditingQuantity(product.id);
+                          }
+                        }}
+                        onBlur={() => {
+                          // When input loses focus
+                          if (cartStatus.isInCart) {
+                            // For product in cart: show confirmation modal
+                            handleQuantityBlur(
+                              product.id, 
+                              currentQuantity,
+                              handleQuantityConfirm,
+                              { 
+                                min: 1, 
+                                max: maxQuantity,
+                                requireConfirmation: true
+                              }
+                            );
+                          } else {
+                            // For product NOT in cart: just validate and keep the value
+                            handleQuantityInputBlur(product.id, parseInt(displayQuantity));
+                          }
+                        }}
                         containerClassName="mb-0 h-full"
                         className="
                           h-full
@@ -564,13 +674,26 @@ const ProductDetailPage = () => {
 
                     {/* Increase Button */}
                     <button
-                      onClick={() => handleDetailQuantityAdjust(
-                        product.id, 
-                        1, 
-                        currentQuantity,
-                        maxQuantity,
-                        handleQuantityConfirm
-                      )}
+                      onClick={() => {
+                        if (cartStatus.isInCart) {
+                          // For product in cart: show confirmation modal
+                          handleQuantityAdjust(
+                            product.id, 
+                            1, 
+                            currentQuantity,
+                            handleQuantityConfirm,
+                            { 
+                              min: 1, 
+                              max: maxQuantity,
+                              requireConfirmation: true
+                            }
+                          );
+                        } else {
+                          // For product NOT in cart: update quantity directly
+                          const newQty = Math.min(parseInt(displayQuantity) + 1, 10);
+                          handleQuantityChange(product.id, newQty.toString());
+                        }
+                      }}
                       className="
                         h-12 w-12
                         flex items-center justify-center
@@ -582,7 +705,7 @@ const ProductDetailPage = () => {
                         disabled:opacity-40 disabled:cursor-not-allowed
                       "
                       aria-label="Increase quantity"
-                      disabled={currentQuantity >= maxQuantity}
+                      disabled={parseInt(displayQuantity) >= maxQuantity}
                     >
                       <Plus size={20} className="text-gray-700 dark:text-gray-300" />
                     </button>
@@ -624,7 +747,7 @@ const ProductDetailPage = () => {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <button
-                  onClick={cartStatus.isInCart ? handleViewCart : handleAddToCart}
+                  onClick={handleAddToCart}
                   disabled={isAddingToCart}
                   className={`flex-1 py-4 rounded-xl transition-all duration-300 font-medium disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 ${
                     cartStatus.isInCart
@@ -640,12 +763,12 @@ const ProductDetailPage = () => {
                   ) : cartStatus.isInCart ? (
                     <>
                       <ShoppingCart size={20} />
-                      In Cart ({cartStatus.quantity})
+                      Update in Cart ({displayQuantity})
                     </>
                   ) : (
                     <>
                       <ShoppingCart size={20} />
-                      Add to Cart
+                      Add to Cart ({displayQuantity})
                     </>
                   )}
                 </button>

@@ -21,182 +21,144 @@ export const useCart = () => {
   return context;
 };
 
-// Custom hook for quantity operations
+// Unified quantity management hook
 export const useQuantity = () => {
-  const { cart, updateQuantity, removeFromCart } = useContext(CartContext);
-  const [editingQuantity, setEditingQuantity] = useState({});
-  const [tempQuantity, setTempQuantity] = useState({});
+  const { cart, updateQuantity, removeFromCart, getCartItemQuantity } = useContext(CartContext);
+  const [editingQuantities, setEditingQuantities] = useState({});
 
-  // Handle quantity input change for cart page
-  const handleQuantityInputChange = useCallback((itemId, value) => {
+  // Get current quantity for a product (with priority: editing > cart > default)
+  const getCurrentQuantity = useCallback((productId, defaultValue = 1) => {
+    // If currently editing this product, use editing value
+    if (editingQuantities[productId] !== undefined) {
+      return editingQuantities[productId];
+    }
+    
+    // If product is in cart, use cart quantity
+    const cartQuantity = getCartItemQuantity(productId);
+    if (cartQuantity > 0) {
+      return cartQuantity.toString();
+    }
+    
+    // Otherwise use default value
+    return defaultValue.toString();
+  }, [editingQuantities, getCartItemQuantity]);
+
+  // Handle quantity input change
+  const handleQuantityChange = useCallback((productId, value) => {
+    // Remove all non-numeric characters
     const numericValue = value.replace(/[^0-9]/g, '');
+    
+    // Allow empty string or positive numbers
     if (numericValue === '' || parseInt(numericValue) > 0) {
-      setEditingQuantity((prev) => ({
+      setEditingQuantities((prev) => ({
         ...prev,
-        [itemId]: numericValue,
+        [productId]: numericValue,
       }));
     }
   }, []);
 
-  // Handle quantity input blur/confirmation for cart page
-  const handleQuantityInputBlur = useCallback((itemId, currentQuantity, onConfirm) => {
-    const newValue = editingQuantity[itemId];
+  // Validate quantity with min/max limits
+  const validateQuantity = useCallback((value, min = 1, max = 10) => {
+    if (value === '') {
+      toast.error("Quantity cannot be empty");
+      return null;
+    }
+
+    const qty = parseInt(value);
     
-    if (!newValue || newValue === currentQuantity.toString()) {
-      setEditingQuantity(prev => {
-        const updated = { ...prev };
-        delete updated[itemId];
-        return updated;
-      });
+    if (isNaN(qty)) {
+      toast.error("Please enter a valid number");
+      return null;
+    }
+    
+    if (qty < min) {
+      toast.error(`Minimum quantity is ${min}`);
+      return null;
+    }
+    
+    if (qty > max) {
+      toast.error(`Maximum quantity is ${max}`);
+      return max;
+    }
+    
+    return qty;
+  }, []);
+
+  // Handle quantity input blur/confirmation
+  const handleQuantityBlur = useCallback((productId, currentQuantity, onConfirm, options = {}) => {
+    const { min = 1, max = 10 } = options;
+    const editingValue = editingQuantities[productId];
+    
+    // If empty or same as current, reset without action
+    if (!editingValue || editingValue === currentQuantity.toString()) {
+      clearEditingQuantity(productId);
       return;
     }
 
-    const qty = parseInt(newValue);
-    if (isNaN(qty) || qty < 1) {
-      toast.error("Quantity must be at least 1");
-      setEditingQuantity(prev => {
-        const updated = { ...prev };
-        delete updated[itemId];
-        return updated;
-      });
+    // Validate the new quantity
+    const validatedQty = validateQuantity(editingValue, min, max);
+    if (validatedQty === null) {
+      clearEditingQuantity(productId);
       return;
     }
 
+    // Call the confirmation handler if provided
     if (onConfirm) {
-      onConfirm(itemId, currentQuantity, qty);
+      onConfirm(productId, currentQuantity, validatedQty);
     }
     
-    setEditingQuantity(prev => {
-      const updated = { ...prev };
-      delete updated[itemId];
-      return updated;
-    });
-  }, [editingQuantity]);
+    // Clear editing state
+    clearEditingQuantity(productId);
+  }, [editingQuantities, validateQuantity]);
 
-  // Handle quantity input key events for cart page
-  const handleQuantityInputKeyDown = useCallback(
-    (e, itemId, currentQuantity, onConfirm) => {
+  // Handle quantity input key events
+  const handleQuantityKeyDown = useCallback(
+    (e, productId, currentQuantity, onConfirm, options = {}) => {
       if (e.key === "Enter") {
-        handleQuantityInputBlur(itemId, currentQuantity, onConfirm);
+        handleQuantityBlur(productId, currentQuantity, onConfirm, options);
       } else if (e.key === "Escape") {
-        setEditingQuantity((prev) => {
-          const updated = { ...prev };
-          delete updated[itemId];
-          return updated;
-        });
+        clearEditingQuantity(productId);
       }
     },
-    [handleQuantityInputBlur]
+    [handleQuantityBlur]
   );
 
-  // Handle decrease quantity for cart page
-  const handleDecreaseQuantity = useCallback((item, onRemove, onUpdate) => {
-    if (item.quantity === 1) {
-      if (onRemove) onRemove(item);
-    } else {
-      if (onUpdate) onUpdate(item.id, item.quantity, item.quantity - 1);
-    }
-  }, []);
-
-  // Handle increase quantity for cart page
-  const handleIncreaseQuantity = useCallback((item, onUpdate) => {
-    if (onUpdate) onUpdate(item.id, item.quantity, item.quantity + 1);
-  }, []);
-
-  
-  // PRODUCT DETAIL PAGE QUANTITY FUNCTIONS
-  //==================================================================
-
-  // Handle quantity change for product detail page
-  const handleDetailQuantityChange = useCallback((productId, value) => {
-    const numericValue = value.replace(/[^0-9]/g, '');
-    if (numericValue === '' || parseInt(numericValue) >= 0) {
-      setTempQuantity((prev) => ({
-        ...prev,
-        [productId]: numericValue === '' ? '' : numericValue,
-      }));
-    }
-  }, []);
-
-  // Handle quantity input blur for product detail
-  const handleDetailQuantityBlur = useCallback((productId, currentQuantity, maxQuantity, onConfirm) => {
-    const newValue = tempQuantity[productId];
+  // Handle quantity adjustment (+/- buttons)
+  const handleQuantityAdjust = useCallback((productId, change, currentQuantity, onConfirm, options = {}) => {
+    const { min = 1, max = 10 } = options;
+    let newQty = currentQuantity + change;
     
-    // If empty or same as current, reset
-    if (newValue === '' || newValue === currentQuantity.toString()) {
-      setTempQuantity(prev => {
-        const updated = { ...prev };
-        delete updated[productId];
-        return updated;
-      });
-      return;
-    }
-
-    let qty = parseInt(newValue);
-    
-    // Validate quantity
-    if (isNaN(qty) || qty < 1) {
-      toast.error("Quantity must be at least 1");
-      setTempQuantity(prev => {
-        const updated = { ...prev };
-        delete updated[productId];
-        return updated;
-      });
+    // Handle removal (quantity goes to 0 or below)
+    if (newQty < min) {
+      if (onConfirm) {
+        onConfirm(productId, currentQuantity, 0, 'remove');
+      }
       return;
     }
     
-    if (maxQuantity && qty > maxQuantity) {
-      toast.error(`Maximum ${maxQuantity} per customer`);
-      qty = maxQuantity;
+    // Cap at maximum allowed
+    if (newQty > max) {
+      toast.error(`Maximum quantity is ${max}`);
+      newQty = max;
     }
-
+    
+    // Call confirmation handler
     if (onConfirm) {
-      onConfirm(productId, currentQuantity, qty);
+      onConfirm(productId, currentQuantity, newQty);
     }
-    
-    setTempQuantity(prev => {
+  }, []);
+
+  // Clear editing state for a product
+  const clearEditingQuantity = useCallback((productId) => {
+    setEditingQuantities((prev) => {
       const updated = { ...prev };
       delete updated[productId];
       return updated;
     });
-  }, [tempQuantity]);
-
-  // Handle quantity key events for product detail
-  const handleDetailQuantityKeyDown = useCallback(
-    (e, productId, currentQuantity, maxQuantity, onConfirm) => {
-      if (e.key === "Enter") {
-        handleDetailQuantityBlur(productId, currentQuantity, maxQuantity, onConfirm);
-      } else if (e.key === "Escape") {
-        setTempQuantity((prev) => {
-          const updated = { ...prev };
-          delete updated[productId];
-          return updated;
-        });
-      }
-    },
-    [handleDetailQuantityBlur]
-  );
-
-  // Handle increment/decrement for product detail
-  const handleDetailQuantityAdjust = useCallback((productId, change, currentQuantity, maxQuantity, onConfirm) => {
-    let newQty = currentQuantity + change;
-    
-    if (newQty < 1) {
-      // Remove item if quantity goes to 0
-      if (onConfirm) onConfirm(productId, currentQuantity, 0, 'remove');
-      return;
-    }
-    
-    if (maxQuantity && newQty > maxQuantity) {
-      toast.error(`Maximum ${maxQuantity} per customer`);
-      newQty = maxQuantity;
-    }
-    
-    if (onConfirm) onConfirm(productId, currentQuantity, newQty);
   }, []);
 
-  // Direct quantity update (for immediate updates without confirmation)
-  const handleDirectQuantityChange = useCallback(async (productId, change, currentQuantity) => {
+  // Direct quantity update (immediate, without confirmation modal)
+  const updateQuantityDirectly = useCallback(async (productId, change, currentQuantity) => {
     const newQty = currentQuantity + change;
     
     if (newQty <= 0) {
@@ -216,45 +178,30 @@ export const useQuantity = () => {
     }
   }, [updateQuantity, removeFromCart]);
 
-  // Get current quantity value for product detail
-  const getDetailQuantityValue = useCallback((productId, cartQuantity, defaultValue = 1) => {
-    if (tempQuantity[productId] !== undefined) {
-      return tempQuantity[productId];
-    }
-    return cartQuantity ? cartQuantity.toString() : defaultValue.toString();
-  }, [tempQuantity]);
-
-  // Clear temp quantity for a product
-  const clearTempQuantity = useCallback((productId) => {
-    setTempQuantity(prev => {
-      const updated = { ...prev };
-      delete updated[productId];
-      return updated;
-    });
+  // Clear all editing states
+  const clearAllEditingQuantities = useCallback(() => {
+    setEditingQuantities({});
   }, []);
 
   return {
-    // For cart page
-    editingQuantity,
-    handleQuantityInputChange,
-    handleQuantityInputBlur,
-    handleQuantityInputKeyDown,
-    handleDecreaseQuantity,
-    handleIncreaseQuantity,
+    // State
+    editingQuantities,
     
-    // For product detail page
-    tempQuantity,
-    handleDetailQuantityChange,
-    handleDetailQuantityBlur,
-    handleDetailQuantityKeyDown,
-    handleDetailQuantityAdjust,
-    getDetailQuantityValue,
-    clearTempQuantity,
+    // Core quantity functions
+    getCurrentQuantity,
+    handleQuantityChange,
+    handleQuantityBlur,
+    handleQuantityKeyDown,
+    handleQuantityAdjust,
     
-    // Common functions
-    handleDirectQuantityChange,
-    setEditingQuantity,
-    setTempQuantity,
+    // Utility functions
+    validateQuantity,
+    clearEditingQuantity,
+    clearAllEditingQuantities,
+    updateQuantityDirectly,
+    
+    // For setting editing state externally (if needed)
+    setEditingQuantities,
   };
 };
 
@@ -288,7 +235,7 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   // ============================================================================
-  // AUTO-REFRESH when user logs in or page reloads with logged-in user
+  // AUTO-REFRESH when user logs in or page reloads
   // ============================================================================
 
   useEffect(() => {

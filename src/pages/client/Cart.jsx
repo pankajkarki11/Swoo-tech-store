@@ -53,12 +53,11 @@ const CartPage = () => {
   } = useCart();
 
   const {
-    editingQuantity,
-    handleQuantityInputChange,
-    handleQuantityInputBlur,
-    handleQuantityInputKeyDown,
-    handleDecreaseQuantity,
-    handleIncreaseQuantity,
+    getCurrentQuantity,
+    handleQuantityChange,
+    handleQuantityBlur,
+    handleQuantityKeyDown,
+    handleQuantityAdjust,
   } = useQuantity();
 
   const { user } = useAuth();
@@ -628,7 +627,13 @@ const CartPage = () => {
                             <div className="flex items-center">
                               {/* Decrease Button */}
                               <button
-                                onClick={() => handleDecreaseQuantity(item, handleRemoveConfirm, handleQuantityConfirm)}
+                                onClick={() => handleQuantityAdjust(
+                                  item.id,
+                                  -1,
+                                  item.quantity,
+                                  handleQuantityConfirm,
+                                  { min: 1, max: 10 }
+                                )}
                                 className="
                                   h-10 w-8
                                   flex items-center justify-center
@@ -653,10 +658,21 @@ const CartPage = () => {
                                   type="text"
                                   inputMode="numeric"
                                   pattern="[0-9]*"
-                                  value={editingQuantity[item.id] !== undefined ? editingQuantity[item.id] : item.quantity}
-                                  onChange={(e) => handleQuantityInputChange(item.id, e.target.value)}
-                                  onKeyDown={(e) => handleQuantityInputKeyDown(e, item.id, item.quantity, handleQuantityConfirm)}
-                                  onBlur={() => handleQuantityInputBlur(item.id, item.quantity, handleQuantityConfirm)}
+                                  value={getCurrentQuantity(item.id, item.quantity)}
+                                  onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                                  onKeyDown={(e) => handleQuantityKeyDown(
+                                    e,
+                                    item.id,
+                                    item.quantity,
+                                    handleQuantityConfirm,
+                                    { min: 1, max: 10 }
+                                  )}
+                                  onBlur={() => handleQuantityBlur(
+                                    item.id,
+                                    item.quantity,
+                                    handleQuantityConfirm,
+                                    { min: 1, max: 10 }
+                                  )}
                                   containerClassName="mb-0 h-full"
                                   className="
                                     h-full
@@ -679,7 +695,13 @@ const CartPage = () => {
 
                               {/* Increase Button */}
                               <button
-                                onClick={() => handleIncreaseQuantity(item, handleQuantityConfirm)}
+                                onClick={() => handleQuantityAdjust(
+                                  item.id,
+                                  1,
+                                  item.quantity,
+                                  handleQuantityConfirm,
+                                  { min: 1, max: 10 }
+                                )}
                                 className="
                                   h-10 w-8
                                   flex items-center justify-center
