@@ -23,10 +23,11 @@ export const useCart = () => {
 
 // Custom hook for quantity operations
 export const useQuantity = () => {
-  const { cart, updateQuantity, removeFromCart } = useCart();
+  const { cart, updateQuantity, removeFromCart } = useContext(CartContext);
   const [editingQuantity, setEditingQuantity] = useState({});
+  const [tempQuantity, setTempQuantity] = useState({});
 
-  // Handle quantity input change
+  // Handle quantity input change for cart page
   const handleQuantityInputChange = useCallback((itemId, value) => {
     const numericValue = value.replace(/[^0-9]/g, '');
     if (numericValue === '' || parseInt(numericValue) > 0) {
@@ -37,7 +38,7 @@ export const useQuantity = () => {
     }
   }, []);
 
-  // Handle quantity input blur/confirmation
+  // Handle quantity input blur/confirmation for cart page
   const handleQuantityInputBlur = useCallback((itemId, currentQuantity, onConfirm) => {
     const newValue = editingQuantity[itemId];
     
@@ -72,7 +73,7 @@ export const useQuantity = () => {
     });
   }, [editingQuantity]);
 
-  // Handle quantity input key events
+  // Handle quantity input key events for cart page
   const handleQuantityInputKeyDown = useCallback(
     (e, itemId, currentQuantity, onConfirm) => {
       if (e.key === "Enter") {
@@ -88,7 +89,7 @@ export const useQuantity = () => {
     [handleQuantityInputBlur]
   );
 
-  // Handle decrease quantity
+  // Handle decrease quantity for cart page
   const handleDecreaseQuantity = useCallback((item, onRemove, onUpdate) => {
     if (item.quantity === 1) {
       if (onRemove) onRemove(item);
@@ -97,12 +98,104 @@ export const useQuantity = () => {
     }
   }, []);
 
-  // Handle increase quantity
+  // Handle increase quantity for cart page
   const handleIncreaseQuantity = useCallback((item, onUpdate) => {
     if (onUpdate) onUpdate(item.id, item.quantity, item.quantity + 1);
   }, []);
 
-  // Direct quantity update (for cart detail page)
+  
+  // PRODUCT DETAIL PAGE QUANTITY FUNCTIONS
+  //==================================================================
+
+  // Handle quantity change for product detail page
+  const handleDetailQuantityChange = useCallback((productId, value) => {
+    const numericValue = value.replace(/[^0-9]/g, '');
+    if (numericValue === '' || parseInt(numericValue) >= 0) {
+      setTempQuantity((prev) => ({
+        ...prev,
+        [productId]: numericValue === '' ? '' : numericValue,
+      }));
+    }
+  }, []);
+
+  // Handle quantity input blur for product detail
+  const handleDetailQuantityBlur = useCallback((productId, currentQuantity, maxQuantity, onConfirm) => {
+    const newValue = tempQuantity[productId];
+    
+    // If empty or same as current, reset
+    if (newValue === '' || newValue === currentQuantity.toString()) {
+      setTempQuantity(prev => {
+        const updated = { ...prev };
+        delete updated[productId];
+        return updated;
+      });
+      return;
+    }
+
+    let qty = parseInt(newValue);
+    
+    // Validate quantity
+    if (isNaN(qty) || qty < 1) {
+      toast.error("Quantity must be at least 1");
+      setTempQuantity(prev => {
+        const updated = { ...prev };
+        delete updated[productId];
+        return updated;
+      });
+      return;
+    }
+    
+    if (maxQuantity && qty > maxQuantity) {
+      toast.error(`Maximum ${maxQuantity} per customer`);
+      qty = maxQuantity;
+    }
+
+    if (onConfirm) {
+      onConfirm(productId, currentQuantity, qty);
+    }
+    
+    setTempQuantity(prev => {
+      const updated = { ...prev };
+      delete updated[productId];
+      return updated;
+    });
+  }, [tempQuantity]);
+
+  // Handle quantity key events for product detail
+  const handleDetailQuantityKeyDown = useCallback(
+    (e, productId, currentQuantity, maxQuantity, onConfirm) => {
+      if (e.key === "Enter") {
+        handleDetailQuantityBlur(productId, currentQuantity, maxQuantity, onConfirm);
+      } else if (e.key === "Escape") {
+        setTempQuantity((prev) => {
+          const updated = { ...prev };
+          delete updated[productId];
+          return updated;
+        });
+      }
+    },
+    [handleDetailQuantityBlur]
+  );
+
+  // Handle increment/decrement for product detail
+  const handleDetailQuantityAdjust = useCallback((productId, change, currentQuantity, maxQuantity, onConfirm) => {
+    let newQty = currentQuantity + change;
+    
+    if (newQty < 1) {
+      // Remove item if quantity goes to 0
+      if (onConfirm) onConfirm(productId, currentQuantity, 0, 'remove');
+      return;
+    }
+    
+    if (maxQuantity && newQty > maxQuantity) {
+      toast.error(`Maximum ${maxQuantity} per customer`);
+      newQty = maxQuantity;
+    }
+    
+    if (onConfirm) onConfirm(productId, currentQuantity, newQty);
+  }, []);
+
+  // Direct quantity update (for immediate updates without confirmation)
   const handleDirectQuantityChange = useCallback(async (productId, change, currentQuantity) => {
     const newQty = currentQuantity + change;
     
@@ -123,41 +216,45 @@ export const useQuantity = () => {
     }
   }, [updateQuantity, removeFromCart]);
 
-  // Update quantity with confirmation
-  const updateQuantityWithConfirm = useCallback(async (productId, newQuantity) => {
-    try {
-      await updateQuantity(productId, newQuantity);
-      toast.success(`Quantity updated to ${newQuantity}`);
-      return { success: true };
-    } catch (error) {
-      toast.error("Failed to update quantity");
-      return { success: false };
+  // Get current quantity value for product detail
+  const getDetailQuantityValue = useCallback((productId, cartQuantity, defaultValue = 1) => {
+    if (tempQuantity[productId] !== undefined) {
+      return tempQuantity[productId];
     }
-  }, [updateQuantity]);
+    return cartQuantity ? cartQuantity.toString() : defaultValue.toString();
+  }, [tempQuantity]);
 
-  // Remove item with confirmation
-  const removeItemWithConfirm = useCallback(async (item) => {
-    try {
-      await removeFromCart(item.id);
-      toast.success(`"${item.title}" removed from cart`);
-      return { success: true };
-    } catch (error) {
-      toast.error("Failed to remove item");
-      return { success: false };
-    }
-  }, [removeFromCart]);
+  // Clear temp quantity for a product
+  const clearTempQuantity = useCallback((productId) => {
+    setTempQuantity(prev => {
+      const updated = { ...prev };
+      delete updated[productId];
+      return updated;
+    });
+  }, []);
 
   return {
+    // For cart page
     editingQuantity,
     handleQuantityInputChange,
     handleQuantityInputBlur,
     handleQuantityInputKeyDown,
     handleDecreaseQuantity,
     handleIncreaseQuantity,
+    
+    // For product detail page
+    tempQuantity,
+    handleDetailQuantityChange,
+    handleDetailQuantityBlur,
+    handleDetailQuantityKeyDown,
+    handleDetailQuantityAdjust,
+    getDetailQuantityValue,
+    clearTempQuantity,
+    
+    // Common functions
     handleDirectQuantityChange,
-    updateQuantityWithConfirm,
-    removeItemWithConfirm,
     setEditingQuantity,
+    setTempQuantity,
   };
 };
 
@@ -188,28 +285,23 @@ export const CartProvider = ({ children }) => {
       }
     }
     setIsInitialized(true);
-  }, []); // Run once on mount
+  }, []);
 
   // ============================================================================
   // AUTO-REFRESH when user logs in or page reloads with logged-in user
   // ============================================================================
 
   useEffect(() => {
-    // Only refresh if:
-    // 1. App is initialized
-    // 2. User is logged in
-    // 3. We haven't loaded for this user yet (or user changed)
     if (isInitialized && user?.id && hasLoadedForUser.current !== user.id) {
       console.log("🔄 User detected, refreshing cart from API...");
       refreshCartFromAPI();
       hasLoadedForUser.current = user.id;
     }
 
-    // Reset when user logs out
     if (!user?.id) {
       hasLoadedForUser.current = null;
     }
-  }, [isInitialized, user?.id]); // Watch for user changes
+  }, [isInitialized, user?.id]);
 
   // ============================================================================
   // API CART FUNCTIONS
@@ -305,7 +397,6 @@ export const CartProvider = ({ children }) => {
         const latestCart = result.data[0];
         console.log("✅ Found cart in API with", latestCart.products.length, "products");
         
-        // Fetch product details for cart items
         const productPromises = latestCart.products.map(async (item) => {
           try {
             const { data: product } = await api.productAPI.getById(item.productId);
@@ -357,7 +448,6 @@ export const CartProvider = ({ children }) => {
     setCart(updatedCart);
     localStorage.setItem("swmart_cart", JSON.stringify(updatedCart));
 
-    // Sync to API if user is logged in (background sync)
     if (user?.id && updatedCart.length > 0) {
       const apiCartData = {
         userId: user.id,

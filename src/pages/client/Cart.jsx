@@ -18,7 +18,6 @@ import {
   Download,
   Package,
   Archive,
-  ShoppingCart as CartIcon,
   CalendarSync,
   AlertCircle,
 } from "lucide-react";
@@ -294,7 +293,6 @@ const CartPage = () => {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    
   }, []);
 
   const formatDate = useCallback((dateString) => {
@@ -632,7 +630,7 @@ const CartPage = () => {
                               <button
                                 onClick={() => handleDecreaseQuantity(item, handleRemoveConfirm, handleQuantityConfirm)}
                                 className="
-                                  h-8 w-5
+                                  h-10 w-8
                                   flex items-center justify-center
                                   bg-gray-100 dark:bg-gray-800
                                   border border-gray-300 dark:border-gray-600
@@ -683,7 +681,7 @@ const CartPage = () => {
                               <button
                                 onClick={() => handleIncreaseQuantity(item, handleQuantityConfirm)}
                                 className="
-                                  h-8 w-5
+                                  h-10 w-8
                                   flex items-center justify-center
                                   bg-gray-100 dark:bg-gray-800
                                   border border-gray-300 dark:border-gray-600
@@ -824,8 +822,7 @@ const CartPage = () => {
                   fullWidth
                   size="large"
                 >
-                  <span>Proceed to Checkout</span>
-                 
+                  Proceed to Checkout
                 </Button>
               </div>
             </div>
