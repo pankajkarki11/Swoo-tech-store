@@ -780,8 +780,9 @@ const CartPage = () => {
                               variant="teal"
                               onClick={() => handleLoadAPICart(apiCart)}
                               disabled={isLoadingAPICarts}
+                              icon={<Download size={14}/>}
                             >
-                              <Download size={14} className="mr-2" />
+                              
                               Load Cart
                             </Button>
                           </div>
