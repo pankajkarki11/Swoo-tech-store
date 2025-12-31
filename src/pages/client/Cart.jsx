@@ -689,7 +689,7 @@ const CartPage = () => {
                                     hover:bg-gray-50 dark:hover:bg-gray-750
                                     transition-all duration-200
                                   "
-                                  hideLabel
+                                  
                                 />
                               </div>
 

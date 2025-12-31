@@ -23,12 +23,12 @@ vi.mock("react-router-dom", async () => {
 vi.mock("../../services/AdminuseApi", () => ({
   default: vi.fn(() => ({
     productAPI: {
-      getById: vi.fn(),
+      getById: vi.fn().mockResolvedValue({data:null})
     },
     cartAPI: {
-      getUserCarts: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
+      getUserCarts: vi.fn().mockResolvedValue({ success: true, data: [] }),
+      update: vi.fn().mockResolvedValue({ success: true }),
+      delete: vi.fn().mockResolvedValue({ success: true }),
     },
     authAPI: {
       login: vi.fn(),
@@ -46,6 +46,7 @@ vi.mock("../../contexts/CartContext", async () => {
     ...actual,
     useCart: vi.fn(),
     useQuantity: vi.fn(),
+    CartProvider:({children})=> <>{children}</>,
   };
 });
 
