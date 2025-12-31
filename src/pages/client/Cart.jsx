@@ -60,7 +60,7 @@ const CartPage = () => {
     handleQuantityAdjust,
   } = useQuantity();
 
-  const { user } = useAuth();
+  const { user,isAuthenticated } = useAuth();
   const api = useApi();
 
   // ============================================================================
@@ -836,7 +836,7 @@ const CartPage = () => {
                   </div>
                 </div>
 
-                <Button
+              {isAuthenticated ? ( <Button
                   onClick={handleProceedToCheckout}
                   icon={<ArrowRight/>}
                   iconPosition="right"
@@ -846,7 +846,21 @@ const CartPage = () => {
                   size="large"
                 >
                   Proceed to Checkout
+                </Button>):(
+                  <Button
+                  onClick={() => {navigate('/login')}}
+
+                  icon={<ArrowRight/>}
+                  iconPosition="right"
+                  disabled={cart.length === 0}
+                  variant="teal"
+                  fullWidth
+                  size="large"
+                >
+                  Login to Checkout
                 </Button>
+                )
+}
               </div>
             </div>
           </div>
