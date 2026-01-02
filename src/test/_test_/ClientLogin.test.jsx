@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import ClientLogin from "../../pages/client/ClientLogin";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "../../contexts/AuthContext";
-import { vi, describe, it, afterEach, expect, beforeEach,test } from "vitest";
+import { vi, describe, it, afterEach, expect, beforeEach,} from "vitest";
 
 
 const mockNavigate = vi.fn();
