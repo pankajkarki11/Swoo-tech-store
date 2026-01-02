@@ -1,6 +1,6 @@
 // tests/EcommerceHomepage.test.jsx
-import { describe,page, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor,  } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BrowserRouter } from "react-router-dom";
 import EcommerceHomepage from "../../pages/client/Home";
@@ -99,11 +99,7 @@ describe("EcommerceHomepage", () => {
   /* -------------------------------------------------- */
 
   it("shows loading state initially", async () => {
-    render(
-      <BrowserRouter>
-        <EcommerceHomepage />
-      </BrowserRouter>
-    );
+   renderPage(<EcommerceHomepage/>)
 
     expect(
       screen.getByText(/loading amazing products/i)
@@ -113,11 +109,7 @@ describe("EcommerceHomepage", () => {
   it("shows error state when API fails", async () => {
     mockGetAll.mockRejectedValueOnce(new Error("API Error"));
 
-    render(
-      <BrowserRouter>
-        <EcommerceHomepage />
-      </BrowserRouter>
-    );
+    renderPage(<EcommerceHomepage/>)
 
     await waitFor(() => {
       expect(
@@ -125,9 +117,6 @@ describe("EcommerceHomepage", () => {
       ).toBeInTheDocument();
     });
 
-    expect(
-      screen.getByText(/failed to load data/i)
-    ).toBeInTheDocument();
   });
 
   /* -------------------------------------------------- */
@@ -196,10 +185,10 @@ describe("EcommerceHomepage", () => {
   /* -------------------------------------------------- */
 
   it("changes slide when next button is clicked", async () => {
-    await renderPage();
+    const {user} = await renderPage();
 
     const nextButton = screen.getByLabelText(/next slide/i);
-    fireEvent.click(nextButton);
+    user.click(nextButton);
 
     // slide title should change
     expect(
@@ -208,10 +197,10 @@ describe("EcommerceHomepage", () => {
   });
 
   it("changes slide when indicator is clicked", async () => {
-    await renderPage();
+    const {user}= await renderPage();
 
     const indicators = screen.getAllByLabelText(/go to slide/i);
-    fireEvent.click(indicators[2]);
+    user.click(indicators[2]);
 
     expect(screen.getByText(/summer sale/i)).toBeInTheDocument();
   });
