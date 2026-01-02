@@ -67,14 +67,12 @@ vi.mock("react-hot-toast", async () => {
     default: {
       success: vi.fn(),
       error: vi.fn(),
-      loading: vi.fn(),
       dismiss: vi.fn(),
       info: vi.fn(),
     },
     toast: {
       success: vi.fn(),
       error: vi.fn(),
-      loading: vi.fn(),
       dismiss: vi.fn(),
       info: vi.fn(),
     },
@@ -88,6 +86,7 @@ const renderWithProviders = (
   ui,
   { authState = {}, cartState = {}, quantityState = {} } = {}
 ) => {
+
   // Default cart context
   const defaultCartContext = {
     cart: cartState.cart || [],
@@ -108,40 +107,14 @@ const renderWithProviders = (
     getUserCarts:
       cartState.getUserCarts ||
       vi.fn().mockResolvedValue({ success: true, data: [] }),
-    refreshCartFromAPI:
-      cartState.refreshCartFromAPI ||
-      vi.fn().mockResolvedValue({ success: true }),
-    getCartCount:
-      cartState.getCartCount || vi.fn(() => cartState.cartItemCount || 0),
-    getCartItemQuantity:
-      cartState.getCartItemQuantity ||
-      vi.fn((id) => {
-        const item = (cartState.cart || []).find((i) => i.id === id);
-        return item ? item.quantity : 0;
-      }),
-    isInCart:
-      cartState.isInCart ||
-      vi.fn((id) => {
-        return (cartState.cart || []).some((i) => i.id === id);
-      }),
   };
 
   // Default auth context
   const defaultAuthContext = {
     user: authState.user || null,
-    token: authState.token || null,
-    loading: authState.loading || false,
     isAuthenticated: !!authState.user,
     isAdmin: authState.user?.isAdmin || false,
     login: authState.login || vi.fn(),
-    logout: authState.logout || vi.fn(),
-    updateUser: authState.updateUser || vi.fn(),
-    getApi:
-      authState.getApi ||
-      vi.fn(() => ({
-        productAPI: { getById: vi.fn() },
-        cartAPI: { getUserCarts: vi.fn(), update: vi.fn(), delete: vi.fn() },
-      })),
   };
 
   // Default quantity context
@@ -149,17 +122,7 @@ const renderWithProviders = (
     getCurrentQuantity:
       quantityState.getCurrentQuantity ||
       vi.fn((id, defaultQty) => defaultQty?.toString() || "1"),
-    handleQuantityChange: quantityState.handleQuantityChange || vi.fn(),
-    handleQuantityBlur: quantityState.handleQuantityBlur || vi.fn(),
-    handleQuantityKeyDown: quantityState.handleQuantityKeyDown || vi.fn(),
     handleQuantityAdjust: quantityState.handleQuantityAdjust || vi.fn(),
-    validateQuantity: quantityState.validateQuantity || vi.fn(),
-    clearEditingQuantity: quantityState.clearEditingQuantity || vi.fn(),
-    clearAllEditingQuantities:
-      quantityState.clearAllEditingQuantities || vi.fn(),
-    updateQuantityDirectly: quantityState.updateQuantityDirectly || vi.fn(),
-    editingQuantities: quantityState.editingQuantities || {},
-    setEditingQuantities: quantityState.setEditingQuantities || vi.fn(),
   };
 
   // Mock the hooks
