@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useSearch } from "../contexts/SearchContext";
 import {
   Search,
   ChevronDown,
@@ -26,6 +27,11 @@ import {
   MapPin,
   Star,
   ChevronRight,
+  Clock,
+  XCircle,
+  Loader2,
+  ArrowRight,
+  ExternalLink
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -34,13 +40,29 @@ import Switch from "./ui/Switch";
 import toast from "react-hot-toast";
 
 const HeaderClient = () => {
-  const { user, logout, isAuthenticated, isAdmin, } = useAuth();
-  const { getCartCount, } = useCart();
+  const { user, logout, isAuthenticated, isAdmin } = useAuth();
+  const { getCartCount } = useCart();
+  const { 
+    searchResults, 
+     
+    isSearching, 
+    showSearchResults, 
+    recentSearches,
+    performSearch, 
+    clearSearch, 
+    clearRecentSearches,
+    setShowSearchResults 
+  } = useSearch();
+  
   const [showDropdown, setShowDropdown] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  
   const navigate = useNavigate();
+  const searchRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem("clientDarkMode") === "true";
@@ -56,7 +78,23 @@ const HeaderClient = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearchResults(false);
+        setIsSearchExpanded(false);
+      }
+    };
 
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [setShowSearchResults]);
+
+  useEffect(() => {
+    if (isSearchExpanded && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchExpanded]);
 
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -104,13 +142,62 @@ const HeaderClient = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    if (localSearchQuery.trim()) {
+      performSearch(localSearchQuery);
+      navigate(`/search?q=${encodeURIComponent(localSearchQuery)}`);
+      setShowSearchResults(false);
+      setIsSearchExpanded(false);
     }
   };
 
-  const handleCategoryClick = (categoryName) => {
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setLocalSearchQuery(value);
     
+    if (value.trim()) {
+      performSearch(value);
+    } else {
+      setShowSearchResults(false);
+    }
+  };
+
+  // Handle search result click - navigate to product details
+  const handleResultClick = (product) => {
+    console.log('Navigating to product:', product.id); // Debug log
+    navigate(`/products/${product.id}`);
+    setShowSearchResults(false);
+    setIsSearchExpanded(false);
+    setLocalSearchQuery("");
+    
+    // Show success toast
+    toast.success(`Viewing ${product.title}`, {
+      icon: "🔍",
+      duration: 2000,
+    });
+  };
+
+  // Handle "View All Results" click
+  const handleViewAllResults = () => {
+    if (localSearchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(localSearchQuery)}`);
+      setShowSearchResults(false);
+      setIsSearchExpanded(false);
+    }
+  };
+
+  const handleRecentSearchClick = (query) => {
+    setLocalSearchQuery(query);
+    performSearch(query);
+    searchInputRef.current?.focus();
+  };
+
+  const handleClearSearch = () => {
+    setLocalSearchQuery("");
+    clearSearch();
+    searchInputRef.current?.focus();
+  };
+
+  const handleCategoryClick = (categoryName) => {
     setIsMobileMenuOpen(false);
     navigate(`/products?category=${encodeURIComponent(categoryName)}`);
   };
@@ -124,18 +211,13 @@ const HeaderClient = () => {
 
   return (
     <header className="bg-[#0A1F33] dark:bg-gray-900 shadow-sm w-full transition-colors duration-200">
-  
-
-      {/* Main Header */}
       <div className="w-full px-4 py-4">
-        {/* Top Bar */}
         <div className="flex items-center justify-between mb-4">
-          {/* Logo and Mobile Menu Button */}
           <div className="flex items-center space-x-3">
             <button
               className="lg:hidden text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-               onBlur={()=>setTimeout(()=>setIsMobileMenuOpen(false),200)}
+              onBlur={() => setTimeout(() => setIsMobileMenuOpen(false), 200)}
               aria-label="Toggle mobile menu"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -151,41 +233,152 @@ const HeaderClient = () => {
                 <h1 className="text-2xl font-bold text-white dark:text-gray-100 bg-gradient-to-r from-white to-gray-300 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
                   SWOO TECH MART
                 </h1>
-               
               </div>
             </Link>
           </div>
 
-          {/* Search Bar (Desktop) */}
-          <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
-            <form onSubmit={handleSearch} className="w-full relative group">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for products, brands, or categories..."
-                className="w-full px-6 py-3 pl-12 pr-12 rounded-full border-0 focus:ring-2 focus:ring-[#01A49E] dark:focus:ring-[#01A49E] focus:ring-opacity-50 focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 shadow-lg hover:shadow-xl transition-all duration-300"
-              />
-              <button
-                type="submit"
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-[#01A49E] dark:hover:text-[#01A49E] transition-colors"
-                aria-label="Search"
-              >
-                <Search size={20} />
-              </button>
-            </form>
+          <div className="hidden lg:flex flex-1 max-w-2xl mx-8" ref={searchRef}>
+            <div className="w-full relative">
+              <form onSubmit={handleSearch} className="relative">
+                <div className={`relative transition-all duration-300 ${isSearchExpanded ? 'w-full' : 'w-full'}`}>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={localSearchQuery}
+                    onChange={handleSearchChange}
+                    onFocus={() => {
+                      if (localSearchQuery.trim()) {
+                        setShowSearchResults(true);
+                      }
+                      setIsSearchExpanded(true);
+                    }}
+                    placeholder="Search for products, brands, or categories..."
+                    className="w-full px-6 py-3 pl-12 pr-12 rounded-full border-0 focus:ring-2 focus:ring-[#01A49E] dark:focus:ring-[#01A49E] focus:ring-opacity-50 focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 shadow-lg hover:shadow-xl transition-all duration-300"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-[#01A49E] dark:hover:text-[#01A49E] transition-colors"
+                    aria-label="Search"
+                  >
+                    <Search size={20} />
+                  </button>
+                  
+                  {localSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={handleClearSearch}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      aria-label="Clear search"
+                    >
+                      <XCircle size={20} />
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              {showSearchResults && (
+                <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 animate-fadeIn backdrop-blur-sm max-h-[600px] overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                        {isSearching ? 'Searching...' : searchResults.length > 0 ? `Found ${searchResults.length} results` : 'No results found'}
+                      </h3>
+                      {!localSearchQuery && (
+                        <button
+                          onClick={clearRecentSearches}
+                          className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                        >
+                          Clear history
+                        </button>
+                      )}
+                    </div>
+                    
+
+                    {isSearching ? (
+                      <div className="flex justify-center items-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-[#01A49E]" />
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                        {searchResults.slice(0, 8).map((product) => (
+                          <button
+                            key={product.id}
+                             onClick={() =>{ navigate(`/products/${product?.id}`);
+                              handleClearSearch();
+                             }}
+                            className="flex items-center w-full p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors group"
+                          >
+                            <div className="relative w-12 h-12 flex-shrink-0">
+                              <img
+                                src={product.image}
+                                alt={product.title}
+                                className="w-full h-full object-contain rounded-lg border border-gray-200 dark:border-gray-600 p-1 bg-white"
+                                onError={(e) => {
+                                  e.target.src = "https://via.placeholder.com/100x100?text=Product";
+                                }}
+                              />
+                            </div>
+                            <div className="ml-3 flex-1 text-left min-w-0">
+                              <p className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-[#01A49E] transition-colors line-clamp-1 text-sm">
+                                {product.title}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm font-bold text-[#01A49E]">
+                                  ${product.price}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <Star size={12} className="text-yellow-500 fill-current" />
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                                    {product.rating?.rate || 0}
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block truncate">
+                                {product.category}
+                              </span>
+                            </div>
+                            <ChevronRight size={16} className="text-gray-400 group-hover:text-[#01A49E] transition-colors flex-shrink-0 ml-2" />
+                          </button>
+                        ))}
+                      </div>
+                    ) : localSearchQuery.trim() && (
+                      <div className="py-8 text-center">
+                        <Search size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                        <p className="text-gray-600 dark:text-gray-400">
+                          No results found for "<span className="font-semibold">{localSearchQuery}</span>"
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                          Try different keywords or browse categories
+                        </p>
+                      </div>
+                    )}
+
+                    {searchResults.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                        <button
+                          onClick={handleViewAllResults}
+                          className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                        >
+                          View All {searchResults.length} Results
+                          <ArrowRight size={16} />
+                        </button>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                          Click on any product to view details
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Right Actions */}
           <div className="flex items-center space-x-4">
-            {/* Dark Mode Toggle */}
             <div className="hidden lg:flex items-center">
               <Switch checked={darkMode} onChange={toggleDarkMode} />
             </div>
 
-            {/* User Actions (Desktop) */}
             <div className="hidden lg:flex items-center space-x-4">
-              {/* Quick Links */}
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => navigate("/deals")}
@@ -268,7 +461,6 @@ const HeaderClient = () => {
                                   Admin
                                 </span>
                               )}
-                           
                             </div>
                           </div>
                         </div>
@@ -317,7 +509,7 @@ const HeaderClient = () => {
                               <span className="block text-xs text-gray-500 dark:text-gray-400">
                                 Manage store & products
                               </span>
-                            </div>
+                          </div>
                             <ChevronRight size={16} className="opacity-50" />
                           </Link>
                         )}
@@ -375,7 +567,6 @@ const HeaderClient = () => {
                 </Link>
               )}
 
-              {/* Cart */}
               <button
                 onClick={() => navigate("/cart")}
                 className="relative text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg group"
@@ -395,7 +586,6 @@ const HeaderClient = () => {
               </button>
             </div>
 
-            {/* Mobile Actions */}
             <div className="flex items-center space-x-2 lg:hidden">
               <div className="scale-75">
                 <Switch checked={darkMode} onChange={toggleDarkMode} />
@@ -412,29 +602,137 @@ const HeaderClient = () => {
                   </span>
                 )}
               </button>
-              
             </div>
           </div>
         </div>
 
-        {/* Mobile Search */}
-        <div className="lg:hidden mb-4">
+        <div className="lg:hidden mb-4" ref={searchRef}>
           <form onSubmit={handleSearch} className="relative">
             <input
+              ref={searchInputRef}
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={localSearchQuery}
+              onChange={handleSearchChange}
+              onFocus={() => {
+                if (localSearchQuery.trim() || recentSearches.length > 0) {
+                  setShowSearchResults(true);
+                }
+              }}
               placeholder="Search products..."
-              className="w-full px-4 py-3 pl-10 pr-4 rounded-lg border-0 focus:ring-2 focus:ring-[#01A49E] dark:focus:ring-[#01A49E] focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 shadow-sm transition-colors"
+              className="w-full px-4 py-3 pl-10 pr-10 rounded-lg border-0 focus:ring-2 focus:ring-[#01A49E] dark:focus:ring-[#01A49E] focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 shadow-sm transition-colors"
             />
             <Search
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
               size={18}
             />
+            
+            {localSearchQuery && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                aria-label="Clear search"
+              >
+                <XCircle size={18} />
+              </button>
+            )}
           </form>
+
+          {showSearchResults && (
+            <div className="absolute left-4 right-4 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 animate-fadeIn max-h-[500px] overflow-y-auto">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                    {isSearching ? 'Searching...' : searchResults.length > 0 ? `Results (${searchResults.length})` : recentSearches.length > 0 ? 'Recent Searches' : 'No results'}
+                  </h3>
+                  <button
+                    onClick={() => setShowSearchResults(false)}
+                    className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {!localSearchQuery && recentSearches.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Recent</p>
+                    <div className="space-y-2">
+                      {recentSearches.map((search, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleRecentSearchClick(search.query)}
+                          className="flex items-center gap-3 w-full p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                        >
+                          <Clock size={16} className="text-gray-500" />
+                          <span className="text-sm">{search.query}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {isSearching ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-[#01A49E]" />
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div className="space-y-3">
+                    {searchResults.slice(0, 5).map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => handleResultClick(product)}
+                        className="flex items-center w-full p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      >
+                        <img
+                          src={product.image}
+                          alt={product.title}
+                          className="w-10 h-10 object-contain rounded-lg"
+                          onError={(e) => {
+                            e.target.src = "https://via.placeholder.com/100x100?text=Product";
+                          }}
+                        />
+                        <div className="ml-3 flex-1 text-left">
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
+                            {product.title}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-[#01A49E] font-bold">
+                              ${product.price}
+                            </p>
+                            <div className="flex items-center gap-1">
+                              <Star size={10} className="text-yellow-500 fill-current" />
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
+                                {product.rating?.rate || 0}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                    
+                    {searchResults.length > 5 && (
+                      <button
+                        onClick={handleViewAllResults}
+                        className="flex items-center justify-center gap-2 w-full py-3 text-center text-[#01A49E] font-medium border-t border-gray-100 dark:border-gray-700"
+                      >
+                        View all {searchResults.length} results
+                        <ExternalLink size={14} />
+                      </button>
+                    )}
+                  </div>
+                ) : localSearchQuery.trim() && (
+                  <div className="py-6 text-center">
+                    <Search size={32} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      No results found
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center justify-between">
           <div className="flex items-center space-x-6">
             <Link
@@ -450,8 +748,6 @@ const HeaderClient = () => {
 
             <div className="relative">
               <button
-              
-               
                 className="flex items-center space-x-2 text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 font-medium transition-colors group hover:bg-white/10 px-3 py-1 rounded-lg"
                 aria-label="Product categories"
               >
@@ -465,7 +761,6 @@ const HeaderClient = () => {
                   className={`transition-transform group-hover:scale-110`}
                 />
               </button>
-
             </div>
 
             {quickLinks.map((link, index) => (
@@ -490,7 +785,6 @@ const HeaderClient = () => {
             ))}
           </div>
 
-          {/* Right Navigation */}
           <div className="hidden lg:flex items-center space-x-6">
             <Link
               to="/seller"
@@ -524,14 +818,11 @@ const HeaderClient = () => {
           </div>
         </nav>
 
-        {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="lg:hidden bg-white dark:bg-gray-800 rounded-2xl mt-3 p-4 shadow-2xl animate-slideDown backdrop-blur-sm">
             <div className="space-y-3">
-              {/* User Info */}
               {isAuthenticated ? (
                 <div className="p-4 bg-gradient-to-r from-[#01A49E]/10 to-blue-500/5 dark:from-[#01A49E]/20 dark:to-blue-900/10 rounded-xl mb-4">
-                  
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gradient-to-r from-[#01A49E] to-[#01857F] rounded-full flex items-center justify-center">
                       <span className="text-white font-medium text-lg">
@@ -552,8 +843,6 @@ const HeaderClient = () => {
                 </div>
               ) : null}
 
-
-              {/* Quick Links */}
               <div className="grid grid-cols-2 gap-2">
                 {quickLinks.map((link, index) => (
                   <Link
@@ -570,7 +859,6 @@ const HeaderClient = () => {
                 ))}
               </div>
 
-              {/* Main Menu */}
               <div className="space-y-1">
                 <Link
                   to="/"
@@ -644,7 +932,6 @@ const HeaderClient = () => {
                 )}
               </div>
 
-              {/* Contact Info */}
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="px-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
@@ -669,7 +956,6 @@ const HeaderClient = () => {
         )}
       </div>
 
-      {/* Quick Access Bar */}
       <div className="bg-[#A40107] dark:bg-red-900 hidden lg:block w-full transition-colors duration-200">
         <div className="w-full px-4 py-2">
           <div className="max-w-7xl mx-auto flex items-center justify-between text-white dark:text-gray-200 text-sm">
@@ -695,7 +981,6 @@ const HeaderClient = () => {
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-               
                 {isAdmin && (
                   <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full text-xs font-medium">
                     Admin
