@@ -26,7 +26,7 @@ import {
   Clock,
   XCircle,
   Loader2,
-  ExternalLink
+  ExternalLink,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -37,24 +37,24 @@ import toast from "react-hot-toast";
 const HeaderClient = () => {
   const { user, logout, isAuthenticated, isAdmin } = useAuth();
   const { getCartCount } = useCart();
-  const { 
-    searchResults, 
-     
-    isSearching, 
-    showSearchResults, 
+  const {
+    searchResults,
+
+    isSearching,
+    showSearchResults,
     recentSearches,
-    performSearch, 
-    clearSearch, 
+    performSearch,
+    clearSearch,
     clearRecentSearches,
-    setShowSearchResults 
+    setShowSearchResults,
   } = useSearch();
-  
+
   const [showDropdown, setShowDropdown] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  
+
   const navigate = useNavigate();
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -81,8 +81,8 @@ const HeaderClient = () => {
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [setShowSearchResults]);
 
   useEffect(() => {
@@ -148,7 +148,7 @@ const HeaderClient = () => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setLocalSearchQuery(value);
-    
+
     if (value.trim()) {
       performSearch(value);
     } else {
@@ -158,12 +158,12 @@ const HeaderClient = () => {
 
   // Handle search result click - navigate to product details
   const handleResultClick = (product) => {
-    console.log('Navigating to product:', product.id); // Debug log
+    console.log("Navigating to product:", product.id); // Debug log
     navigate(`/products/${product.id}`);
     setShowSearchResults(false);
     setIsSearchExpanded(false);
     setLocalSearchQuery("");
-    
+
     // Show success toast
     toast.success(`Viewing ${product.title}`, {
       icon: "🔍",
@@ -212,6 +212,7 @@ const HeaderClient = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               onBlur={() => setTimeout(() => setIsMobileMenuOpen(false), 200)}
               aria-label="Toggle mobile menu"
+              label="Toggle mobile menu"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -233,7 +234,11 @@ const HeaderClient = () => {
           <div className="hidden lg:flex flex-1 max-w-2xl mx-8" ref={searchRef}>
             <div className="w-full relative">
               <form onSubmit={handleSearch} className="relative">
-                <div className={`relative transition-all duration-300 ${isSearchExpanded ? 'w-full' : 'w-full'}`}>
+                <div
+                  className={`relative transition-all duration-300 ${
+                    isSearchExpanded ? "w-full" : "w-full"
+                  }`}
+                >
                   <input
                     ref={searchInputRef}
                     type="text"
@@ -255,7 +260,7 @@ const HeaderClient = () => {
                   >
                     <Search size={20} />
                   </button>
-                  
+
                   {localSearchQuery && (
                     <button
                       type="button"
@@ -274,7 +279,11 @@ const HeaderClient = () => {
                   <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                        {isSearching ? 'Searching...' : searchResults.length > 0 ? `Found ${searchResults.length} results` : 'No results found'}
+                        {isSearching
+                          ? "Searching..."
+                          : searchResults.length > 0
+                          ? `Found ${searchResults.length} results`
+                          : "No results found"}
                       </h3>
                       {!localSearchQuery && (
                         <button
@@ -285,7 +294,6 @@ const HeaderClient = () => {
                         </button>
                       )}
                     </div>
-                    
 
                     {isSearching ? (
                       <div className="flex justify-center items-center py-8">
@@ -296,9 +304,10 @@ const HeaderClient = () => {
                         {searchResults.slice(0, 8).map((product) => (
                           <button
                             key={product.id}
-                             onClick={() =>{ navigate(`/products/${product?.id}`);
+                            onClick={() => {
+                              navigate(`/products/${product?.id}`);
                               handleClearSearch();
-                             }}
+                            }}
                             className="flex items-center w-full p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors group"
                           >
                             <div className="relative w-12 h-12 flex-shrink-0">
@@ -307,7 +316,8 @@ const HeaderClient = () => {
                                 alt={product.title}
                                 className="w-full h-full object-contain rounded-lg border border-gray-200 dark:border-gray-600 p-1 bg-white"
                                 onError={(e) => {
-                                  e.target.src = "https://via.placeholder.com/100x100?text=Product";
+                                  e.target.src =
+                                    "https://via.placeholder.com/100x100?text=Product";
                                 }}
                               />
                             </div>
@@ -320,7 +330,10 @@ const HeaderClient = () => {
                                   ${product.price}
                                 </span>
                                 <div className="flex items-center gap-1">
-                                  <Star size={12} className="text-yellow-500 fill-current" />
+                                  <Star
+                                    size={12}
+                                    className="text-yellow-500 fill-current"
+                                  />
                                   <span className="text-xs text-gray-600 dark:text-gray-400">
                                     {product.rating?.rate || 0}
                                   </span>
@@ -330,22 +343,33 @@ const HeaderClient = () => {
                                 {product.category}
                               </span>
                             </div>
-                            <ChevronRight size={16} className="text-gray-400 group-hover:text-[#01A49E] transition-colors flex-shrink-0 ml-2" />
+                            <ChevronRight
+                              size={16}
+                              className="text-gray-400 group-hover:text-[#01A49E] transition-colors flex-shrink-0 ml-2"
+                            />
                           </button>
                         ))}
                       </div>
-                    ) : localSearchQuery.trim() && (
-                      <div className="py-8 text-center">
-                        <Search size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-                        <p className="text-gray-600 dark:text-gray-400">
-                          No results found for "<span className="font-semibold">{localSearchQuery}</span>"
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                          Try different keywords or browse categories
-                        </p>
-                      </div>
+                    ) : (
+                      localSearchQuery.trim() && (
+                        <div className="py-8 text-center">
+                          <Search
+                            size={48}
+                            className="mx-auto text-gray-300 dark:text-gray-600 mb-3"
+                          />
+                          <p className="text-gray-600 dark:text-gray-400">
+                            No results found for "
+                            <span className="font-semibold">
+                              {localSearchQuery}
+                            </span>
+                            "
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                            Try different keywords or browse categories
+                          </p>
+                        </div>
+                      )
                     )}
-
                   </div>
                 </div>
               )}
@@ -354,12 +378,12 @@ const HeaderClient = () => {
 
           <div className="flex items-center space-x-4">
             <div className="hidden lg:flex items-center">
-              <Switch checked={darkMode} onChange={toggleDarkMode} />
+            
+              <Switch  checked={darkMode} onChange={toggleDarkMode} />
             </div>
 
             <div className="hidden lg:flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                
                 <button
                   onClick={() => navigate("/track-order")}
                   className="text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg"
@@ -368,7 +392,6 @@ const HeaderClient = () => {
                   <MapPin size={20} />
                 </button>
                 <button
-                
                   className="text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg relative"
                   aria-label="Notifications"
                 >
@@ -416,9 +439,9 @@ const HeaderClient = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-gray-900 dark:text-gray-100 capitalize truncate">
-                              { user?.name || "User"}
+                              {user?.name || "User"}
                             </p>
-                           
+
                             <div className="flex items-center space-x-2 mt-2">
                               {isAdmin && (
                                 <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
@@ -439,7 +462,6 @@ const HeaderClient = () => {
                           <User size={18} className="mr-3" />
                           <div className="flex-1">
                             <span>My Profile</span>
-                           
                           </div>
                           <ChevronRight size={16} className="opacity-50" />
                         </Link>
@@ -452,7 +474,6 @@ const HeaderClient = () => {
                           <ShoppingBag size={18} className="mr-3" />
                           <div className="flex-1">
                             <span>My Orders</span>
-                          
                           </div>
                           <ChevronRight size={16} className="opacity-50" />
                         </Link>
@@ -466,8 +487,7 @@ const HeaderClient = () => {
                             <Shield size={18} className="mr-3" />
                             <div className="flex-1">
                               <span>Admin Panel</span>
-                             
-                          </div>
+                            </div>
                             <ChevronRight size={16} className="opacity-50" />
                           </Link>
                         )}
@@ -479,7 +499,6 @@ const HeaderClient = () => {
                           <Settings size={18} className="mr-3" />
                           <div className="flex-1">
                             <span>Settings</span>
-                           
                           </div>
                           <ChevronRight size={16} className="opacity-50" />
                         </Link>
@@ -535,8 +554,10 @@ const HeaderClient = () => {
                 className="relative text-white dark:text-gray-200 p-2"
                 aria-label="Shopping cart"
               >
-                <ShoppingCart size={35}
-                    className="group-hover:scale-110 transition-transform hover:text-blue-300 dark:hover:text-gray-400"/>
+                <ShoppingCart
+                  size={35}
+                  className="group-hover:scale-110 transition-transform hover:text-blue-300 dark:hover:text-gray-400"
+                />
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {cartCount}
@@ -566,7 +587,7 @@ const HeaderClient = () => {
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
               size={18}
             />
-            
+
             {localSearchQuery && (
               <button
                 type="button"
@@ -584,7 +605,13 @@ const HeaderClient = () => {
               <div className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                    {isSearching ? 'Searching...' : searchResults.length > 0 ? `Results (${searchResults.length})` : recentSearches.length > 0 ? 'Recent Searches' : 'No results'}
+                    {isSearching
+                      ? "Searching..."
+                      : searchResults.length > 0
+                      ? `Results (${searchResults.length})`
+                      : recentSearches.length > 0
+                      ? "Recent Searches"
+                      : "No results"}
                   </h3>
                   <button
                     onClick={() => setShowSearchResults(false)}
@@ -596,7 +623,9 @@ const HeaderClient = () => {
 
                 {!localSearchQuery && recentSearches.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Recent</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      Recent
+                    </p>
                     <div className="space-y-2">
                       {recentSearches.map((search, index) => (
                         <button
@@ -629,19 +658,23 @@ const HeaderClient = () => {
                           alt={product.title}
                           className="w-10 h-10 object-contain rounded-lg"
                           onError={(e) => {
-                            e.target.src = "https://via.placeholder.com/100x100?text=Product";
+                            e.target.src =
+                              "https://via.placeholder.com/100x100?text=Product";
                           }}
                         />
                         <div className="ml-3 flex-1 text-left">
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
+                          <h3><p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
                             {product.title}
-                          </p>
+                          </p></h3>
                           <div className="flex items-center gap-2 mt-1">
                             <p className="text-xs text-[#01A49E] font-bold">
                               ${product.price}
                             </p>
                             <div className="flex items-center gap-1">
-                              <Star size={10} className="text-yellow-500 fill-current" />
+                              <Star
+                                size={10}
+                                className="text-yellow-500 fill-current"
+                              />
                               <span className="text-xs text-gray-600 dark:text-gray-400">
                                 {product.rating?.rate || 0}
                               </span>
@@ -650,7 +683,7 @@ const HeaderClient = () => {
                         </div>
                       </button>
                     ))}
-                    
+
                     {searchResults.length > 5 && (
                       <button
                         onClick={handleViewAllResults}
@@ -661,13 +694,18 @@ const HeaderClient = () => {
                       </button>
                     )}
                   </div>
-                ) : localSearchQuery.trim() && (
-                  <div className="py-6 text-center">
-                    <Search size={32} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      No results found
-                    </p>
-                  </div>
+                ) : (
+                  localSearchQuery.trim() && (
+                    <div className="py-6 text-center">
+                      <Search
+                        size={32}
+                        className="mx-auto text-gray-300 dark:text-gray-600 mb-2"
+                      />
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        No results found
+                      </p>
+                    </div>
+                  )
                 )}
               </div>
             </div>
@@ -747,8 +785,6 @@ const HeaderClient = () => {
                 <span className="font-medium">Helpline</span>
               </Link>
             </div>
-
-       
           </div>
         </nav>
 
@@ -769,7 +805,6 @@ const HeaderClient = () => {
                       <p className="font-bold text-gray-900 dark:text-white capitalize">
                         {user?.firstname || user?.name || "User"}
                       </p>
-                    
                     </div>
                   </div>
                 </div>

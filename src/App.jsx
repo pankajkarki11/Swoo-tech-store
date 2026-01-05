@@ -14,7 +14,8 @@ import UserProfilePage from "./pages/client/UserProfilePage";
 import AddProductPage from "./pages/client/AddProductPage";
 import ProductsPage from "./pages/client/ProductPage";
 import CheckoutPage from "./pages/client/CheckoutPage";
-import DealsPage from "./pages/client/DailyDeals";
+
+import SearchResults from "./pages/client/SearchResult";
 
 // Admin Components
 import LayoutAdmin from "./components_temp/LayoutAdmin";
@@ -68,9 +69,10 @@ function App() {
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/notfound" element={<NotFound />} />
+          <Route path="/search" element={<SearchResults />} />
          
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/deals" element={<DealsPage />} />
+        
 
 
           {/* Protected Routes (Require Login) */}
