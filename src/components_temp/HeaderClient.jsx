@@ -12,25 +12,20 @@ import {
   Truck,
   Undo2,
   HandFist,
-  Zap,
   ShoppingBag,
   Settings,
   LogOut,
   PhoneCall,
-  HelpCircle,
   Package,
   Shield,
-  Tag,
   TrendingUp,
   Bell,
-  Gift,
   MapPin,
   Star,
   ChevronRight,
   Clock,
   XCircle,
   Loader2,
-  ArrowRight,
   ExternalLink
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -203,10 +198,8 @@ const HeaderClient = () => {
   };
 
   const quickLinks = [
-    { name: "Daily Deals", icon: Tag, path: "/deals", badge: "🔥" },
-    { name: "New Arrivals", icon: Zap, path: "/new-arrivals", badge: "NEW" },
     { name: "Best Sellers", icon: TrendingUp, path: "/best-sellers" },
-    { name: "Clearance", icon: Gift, path: "/clearance", badge: "SALE" },
+    { name: "Top Rated", icon: Star, path: "/top-rated" },
   ];
 
   return (
@@ -353,20 +346,6 @@ const HeaderClient = () => {
                       </div>
                     )}
 
-                    {searchResults.length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
-                        <button
-                          onClick={handleViewAllResults}
-                          className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
-                        >
-                          View All {searchResults.length} Results
-                          <ArrowRight size={16} />
-                        </button>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                          Click on any product to view details
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -380,14 +359,7 @@ const HeaderClient = () => {
 
             <div className="hidden lg:flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => navigate("/deals")}
-                  className="text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg group relative"
-                  aria-label="Deals"
-                >
-                  <Tag size={20} />
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                </button>
+                
                 <button
                   onClick={() => navigate("/track-order")}
                   className="text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg"
@@ -396,7 +368,7 @@ const HeaderClient = () => {
                   <MapPin size={20} />
                 </button>
                 <button
-                  onClick={() => navigate("/notifications")}
+                
                   className="text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg relative"
                   aria-label="Notifications"
                 >
@@ -444,18 +416,10 @@ const HeaderClient = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-gray-900 dark:text-gray-100 capitalize truncate">
-                              {user?.firstname || user?.name || "User"}
+                              { user?.name || "User"}
                             </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                              {user?.email || user?.username}
-                            </p>
+                           
                             <div className="flex items-center space-x-2 mt-2">
-                              <div className="flex items-center space-x-1">
-                                <Star className="h-3 w-3 text-yellow-500" />
-                                <span className="text-xs text-gray-600 dark:text-gray-400">
-                                  Gold Member
-                                </span>
-                              </div>
                               {isAdmin && (
                                 <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
                                   Admin
@@ -475,9 +439,7 @@ const HeaderClient = () => {
                           <User size={18} className="mr-3" />
                           <div className="flex-1">
                             <span>My Profile</span>
-                            <span className="block text-xs text-gray-500 dark:text-gray-400">
-                              View & edit profile
-                            </span>
+                           
                           </div>
                           <ChevronRight size={16} className="opacity-50" />
                         </Link>
@@ -490,9 +452,7 @@ const HeaderClient = () => {
                           <ShoppingBag size={18} className="mr-3" />
                           <div className="flex-1">
                             <span>My Orders</span>
-                            <span className="block text-xs text-gray-500 dark:text-gray-400">
-                              Track & manage orders
-                            </span>
+                          
                           </div>
                           <ChevronRight size={16} className="opacity-50" />
                         </Link>
@@ -506,29 +466,11 @@ const HeaderClient = () => {
                             <Shield size={18} className="mr-3" />
                             <div className="flex-1">
                               <span>Admin Panel</span>
-                              <span className="block text-xs text-gray-500 dark:text-gray-400">
-                                Manage store & products
-                              </span>
+                             
                           </div>
                             <ChevronRight size={16} className="opacity-50" />
                           </Link>
                         )}
-
-                        <Link
-                          to="/wishlist"
-                          onClick={() => setShowDropdown(false)}
-                          className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-[#01A49E] dark:hover:text-[#01A49E] transition-colors group"
-                        >
-                          <Star size={18} className="mr-3" />
-                          <div className="flex-1">
-                            <span>Wishlist</span>
-                            <span className="block text-xs text-gray-500 dark:text-gray-400">
-                              Saved items & lists
-                            </span>
-                          </div>
-                          <ChevronRight size={16} className="opacity-50" />
-                        </Link>
-
                         <Link
                           to="/settings"
                           onClick={() => setShowDropdown(false)}
@@ -537,9 +479,7 @@ const HeaderClient = () => {
                           <Settings size={18} className="mr-3" />
                           <div className="flex-1">
                             <span>Settings</span>
-                            <span className="block text-xs text-gray-500 dark:text-gray-400">
-                              Preferences & security
-                            </span>
+                           
                           </div>
                           <ChevronRight size={16} className="opacity-50" />
                         </Link>
@@ -574,8 +514,8 @@ const HeaderClient = () => {
               >
                 <div className="relative">
                   <ShoppingCart
-                    size={24}
-                    className="group-hover:scale-110 transition-transform"
+                    size={35}
+                    className="group-hover:scale-110 transition-transform hover:text-blue-300 dark:hover:text-gray-400"
                   />
                   {cartCount > 0 && (
                     <span className="absolute -top-4 -right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse shadow-lg">
@@ -595,7 +535,8 @@ const HeaderClient = () => {
                 className="relative text-white dark:text-gray-200 p-2"
                 aria-label="Shopping cart"
               >
-                <ShoppingCart size={24} />
+                <ShoppingCart size={35}
+                    className="group-hover:scale-110 transition-transform hover:text-blue-300 dark:hover:text-gray-400"/>
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {cartCount}
@@ -807,14 +748,7 @@ const HeaderClient = () => {
               </Link>
             </div>
 
-            <div className="flex items-center space-x-3 text-white dark:text-gray-200 bg-white/10 px-4 py-2 rounded-full">
-              <HelpCircle
-                size={16}
-                className="text-gray-300 dark:text-gray-400"
-              />
-              <span className="text-sm">Hotline:</span>
-              <span className="font-bold">9862463322</span>
-            </div>
+       
           </div>
         </nav>
 
@@ -835,9 +769,7 @@ const HeaderClient = () => {
                       <p className="font-bold text-gray-900 dark:text-white capitalize">
                         {user?.firstname || user?.name || "User"}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Gold Member
-                      </p>
+                    
                     </div>
                   </div>
                 </div>
@@ -886,14 +818,6 @@ const HeaderClient = () => {
                       <ShoppingBag size={18} className="mr-3" />
                       My Orders
                     </Link>
-                    <Link
-                      to="/wishlist"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center py-3 px-4 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <Star size={18} className="mr-3" />
-                      Wishlist
-                    </Link>
                     {isAdmin && (
                       <Link
                         to="/admin/dashboard"
@@ -930,26 +854,6 @@ const HeaderClient = () => {
                     Login / Signup
                   </Link>
                 )}
-              </div>
-
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="px-4">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    Hotline 24/7
-                  </div>
-                  <div className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-3">
-                    9862463322
-                  </div>
-                  <button
-                    onClick={() => {
-                      navigate("/contact");
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full bg-gradient-to-r from-[#01A49E] to-[#01857F] text-white py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
-                  >
-                    Contact Support
-                  </button>
-                </div>
               </div>
             </div>
           </div>
