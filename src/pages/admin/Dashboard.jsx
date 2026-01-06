@@ -156,8 +156,9 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div data-testid="loading-spinner" className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />
+        
       </div>
     );
   }
@@ -376,105 +377,6 @@ const Dashboard = () => {
           </Button>
         </Card.Footer>
       </Card>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2">
-          <Card.Header>
-            <Card.Title>Quick Actions</Card.Title>
-            <Card.Description>Common actions you might need</Card.Description>
-          </Card.Header>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              variant="outline"
-              className="h-24 flex flex-col items-center justify-center"
-              onClick={() => navigate("/admin/products")}
-              icon={<Package className="h-8 w-8" />}
-            >
-              
-              <span>Manage Products</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-24 flex flex-col items-center justify-center"
-              onClick={() => navigate("/admin/carts")}
-              icon={<ShoppingCart className="h-8 w-8 mb-2" />}
-            >
-              
-              <span>View Carts</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-24 flex flex-col items-center justify-center"
-              onClick={() => navigate("/admin/users")}
-              icon={ <Users className="h-8 w-8 mb-2" />}
-            >
-             
-              <span>Manage Users</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-24 flex flex-col items-center justify-center"
-              onClick={fetchDashboardData}
-              icon={<DollarSign className="h-8 w-8 mb-2" />}
-            >
-              
-              <span>Refresh Stats</span>
-            </Button>
-          </div>
-        </Card>
-
-        <Card>
-          <Card.Header>
-            <Card.Title>System Status</Card.Title>
-          </Card.Header>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">
-                API Status
-              </span>
-              <Badge variant="success">Online</Badge>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Database</span>
-              <Badge variant="success">Connected</Badge>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">
-                Last Updated
-              </span>
-              <span className="text-sm text-gray-900 dark:text-white">
-                {new Date().toLocaleTimeString()}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">
-                Total Products
-              </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {stats.totalProducts}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">
-                Active Carts
-              </span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {stats.activeCartsCount}
-              </span>
-            </div>
-          </div>
-        </Card>
-      </div>
     </div>
   );
 };

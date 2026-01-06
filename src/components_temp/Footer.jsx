@@ -2,7 +2,7 @@ const Footer = () => {
   return (
     <footer className="bg-white text-black text-left mt-16 border-t border-gray-200 rounded-t-lg dark:bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-5 gap-8">
+        <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
@@ -13,8 +13,8 @@ const Footer = () => {
             <p className="text-gray-800 dark:text-white">
               Your one-stop destination for all tech needs in KTM.
             </p>
-            <div className="mt-4">
-              <h4 className="font-semibold text-sm mb-4">HOTLINE 24/7</h4>
+            <div className="mt-2">
+              <h4 className="font-semibold text-sm mb-4 text-gray-900 dark:text-white">HOTLINE 24/7</h4>
               <p className="text-[#01A49E] text-3xl font-bold mb-2">
                 9862463322
               </p>
@@ -154,6 +154,38 @@ const Footer = () => {
                   Store Locations
                 </a>
               </li>
+                    <li>
+                <a
+                  href="become-seller"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
+                >
+                  Become Seller
+                </a>
+              </li>
+              <li>
+                <a
+                  href="affiliate"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
+                >
+                  Affiliate
+                </a>
+              </li>
+              <li>
+                <a
+                  href="advertise"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
+                >
+                  Advertise
+                </a>
+              </li>
+              <li>
+                <a
+                  href="partnership"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
+                >
+                  Partnership
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -219,43 +251,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div>
-            <h4 className="font-semibold text-lg mb-4">PARTNER</h4>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="become-seller"
-                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
-                >
-                  Become Seller
-                </a>
-              </li>
-              <li>
-                <a
-                  href="affiliate"
-                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
-                >
-                  Affiliate
-                </a>
-              </li>
-              <li>
-                <a
-                  href="advertise"
-                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
-                >
-                  Advertise
-                </a>
-              </li>
-              <li>
-                <a
-                  href="partnership"
-                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
-                >
-                  Partnership
-                </a>
-              </li>
-            </ul>
-          </div>
         </div>
 
         <div className="border-gray-800 mt-10 pt-10 text-2xl animate-pulse font-bold text-center text-[#01A49E]">

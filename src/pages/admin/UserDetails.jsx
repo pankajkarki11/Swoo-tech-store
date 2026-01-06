@@ -186,8 +186,9 @@ const UserDetails = () => {
           </p>
           <div className="mt-6">
             <Link to="/users">
-              <Button variant="primary">
-                <ArrowLeft className="h-5 w-5 mr-2" />
+              <Button variant="primary"
+              icon={<ArrowLeft />}>
+                
                 Back to Users
               </Button>
             </Link>
@@ -203,8 +204,9 @@ const UserDetails = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center space-x-4">
           <Link to="/users">
-            <Button variant="outline" size="small">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="small"
+            icon={<ArrowLeft />}>
+            
               Back
             </Button>
           </Link>
@@ -219,8 +221,8 @@ const UserDetails = () => {
         </div>
 
         <div className="flex space-x-3">
-          <Button variant="primary">
-            <Edit className="h-5 w-5 mr-2" />
+          <Button variant="primary"
+          icon={<Edit />}>
             Edit User
           </Button>
         </div>
@@ -246,16 +248,18 @@ const UserDetails = () => {
                     onClick={() => navigate("/sentemail")}
                     variant="outline"
                     fullWidth
+                    icon={<Mail className="h-4 w-4 mr-2" />}
                   >
-                    <Mail className="h-4 w-4 mr-2" />
+                   
                     Send Email
                   </Button>
                   <Button
                     onClick={() => navigate("/vieworder")}
                     variant="primary"
                     fullWidth
+                    icon={<CreditCard className="h-4 w-4 mr-2" />}
                   >
-                    <CreditCard className="h-4 w-4 mr-2" />
+                 
                     View Orders
                   </Button>
                 </div>
@@ -543,23 +547,19 @@ const UserDetails = () => {
             </Card.Header>
 
             <div className="space-y-2">
-              <Button variant="outline" fullWidth>
-                <Mail className="h-4 w-4 mr-2" />
+              <Button variant="outline" fullWidth
+              icon={<Mail className="h-4 w-4 mr-2" />}>
                 Send Welcome Email
               </Button>
 
-              <Button variant="outline" fullWidth>
-                <CreditCard className="h-4 w-4 mr-2" />
-                View Payment Methods
+              <Button variant="outline" fullWidth
+              icon={<CreditCard className="h-4 w-4 mr-2"/>}>
+                View Purchase History
               </Button>
 
-              <Button variant="outline" fullWidth>
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Create New Cart
-              </Button>
-
-              <Button variant="danger" fullWidth>
-                <User className="h-4 w-4 mr-2" />
+              <Button variant="danger" fullWidth
+              icon={<User className="h-4 w-4 mr-2" />}>
+                
                 Deactivate User
               </Button>
             </div>

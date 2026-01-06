@@ -194,8 +194,8 @@ const CartDetails = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center space-x-4">
-            <Button variant="outline" size="small" onClick={handleBack}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="small" onClick={handleBack}
+            icon={<ArrowLeft/>}>
               Back to Carts
             </Button>
             <div>
@@ -209,8 +209,8 @@ const CartDetails = () => {
           </div>
 
           <div className="flex space-x-3">
-            <Button variant="primary" onClick={() => navigate("/processorder")}>
-              <Truck className="h-5 w-5 mr-2" />
+            <Button variant="primary" onClick={() => navigate("/processorder")}
+              icon={<Truck />}>
               Process Order
             </Button>
           </div>
@@ -382,8 +382,9 @@ const CartDetails = () => {
                       toast.success("Proceeding to checkout");
                     }
                   }}
+                  icon={<CreditCard className="h-4 w-4 gap-5" />}
                 >
-                  <CreditCard className="h-5 w-5 mr-2" />
+                  
                   Proceed to Checkout
                 </Button>
               </Card.Footer>
@@ -510,66 +511,6 @@ const CartDetails = () => {
               </Card.Footer>
             </Card>
 
-            {/* Quick Actions */}
-            <Card>
-              <Card.Header>
-                <Card.Title>Cart Actions</Card.Title>
-              </Card.Header>
-
-              <div className="space-y-2">
-                <Button
-                  variant="primary"
-                  fullWidth
-                  onClick={() => {
-                    if (toast) {
-                      toast.success("Order processing started");
-                    }
-                  }}
-                  icon={<Truck className="h-4 w-4 mr-2" />}
-                >
-                  Process Order
-                </Button>
-
-                <Button
-                  variant="outline"
-                  fullWidth
-                  onClick={() => {
-                    if (toast) {
-                      toast.info("Add products feature coming soon");
-                    }
-                  }}
-                  icon={<Plus className="h-4 w-4 mr-2" />}
-                >
-                  Add Products
-                </Button>
-
-                <Button
-                  variant="outline"
-                  fullWidth
-                  onClick={() => {
-                    if (toast) {
-                      toast.info("Discount feature coming soon");
-                    }
-                  }}
-                  icon={<DollarSign className="h-4 w-4 mr-2" />}
-                >
-                  Apply Discount
-                </Button>
-
-                <Button
-                  variant="danger"
-                  fullWidth
-                  onClick={() => {
-                    if (toast) {
-                      toast.success("Cart cleared successfully");
-                    }
-                  }}
-                  icon={<Trash2 className="h-4 w-4 mr-2" />}
-                >
-                  Clear Cart
-                </Button>
-              </div>
-            </Card>
           </div>
         </div>
       </div>
