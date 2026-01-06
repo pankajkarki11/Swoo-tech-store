@@ -30,7 +30,7 @@ const AdminLogin = () => {
     }
 
     const username = formData.username.toLowerCase();
-    const patterns = ["admin", "adm", "tech", "swoo", "mart"];
+    const patterns = ["johnd"];
     const matchingPatterns = patterns.filter((pattern) =>
       username.includes(pattern.toLowerCase())
     );
@@ -97,7 +97,7 @@ const AdminLogin = () => {
       console.error("Login error:", error);
       setErrors({
         submit:
-          error.message || "Invalid username or password. Please try again.",
+           "Invalid username or password. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -127,7 +127,9 @@ const AdminLogin = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div 
+      data-testId="loading-spinner"
+      className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <LoadingSpinner size="large" />
       </div>
     );
@@ -154,6 +156,7 @@ const AdminLogin = () => {
             <div className="space-y-4">
               <div>
                 <Input
+                aria-label="Username"
                   label="Username"
                   leftIcon={<Mail className="h-5 w-5" />}
                   value={formData.username}
@@ -180,6 +183,7 @@ const AdminLogin = () => {
               </div>
 
               <Input
+              aria-label="Password"
                 label="Password"
                 type="password"
                 leftIcon={<Lock className="h-5 w-5" />}

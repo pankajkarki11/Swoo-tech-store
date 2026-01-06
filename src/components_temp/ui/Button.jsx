@@ -189,20 +189,12 @@ const Button = forwardRef(
       
       if (!icon || loading) return null;
       
-    if (React.isValidElement(icon)) {
-    return <span className="flex-shrink-0">{icon}</span>;
-  }
-
-  // If icon is a component (function), render it
-  if (typeof icon === "function") {
-    const IconComponent = icon;
-    return <span className="flex-shrink-0"><IconComponent /></span>;
-  }
-
-  // Otherwise render as text
-  return <span className="flex-shrink-0">{String(icon)}</span>;
-};
-
+      return (
+        <span className="flex-shrink-0" aria-hidden="true">
+          {icon}
+        </span>
+      );
+    };
 
     // Custom loading renderer
     const renderCustomLoading = () => {

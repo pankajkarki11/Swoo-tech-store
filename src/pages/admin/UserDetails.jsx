@@ -167,7 +167,10 @@ const UserDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div
+        data-testid="loading-spinner"
+        className="flex items-center justify-center h-64"
+      >
         <LoadingSpinner size="large" />
       </div>
     );
@@ -185,13 +188,13 @@ const UserDetails = () => {
             The user you're looking for doesn't exist.
           </p>
           <div className="mt-6">
-            <Link to="/users">
-              <Button variant="primary"
-              icon={<ArrowLeft />}>
-                
-                Back to Users
-              </Button>
-            </Link>
+            <Button
+              variant="primary"
+              onClick={() => navigate("/admin/users")}
+              icon={<ArrowLeft />}
+            >
+              Back to Users
+            </Button>
           </div>
         </div>
       </Card>
@@ -203,13 +206,13 @@ const UserDetails = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center space-x-4">
-          <Link to="/users">
-            <Button variant="outline" size="small"
-            icon={<ArrowLeft />}>
-            
+        
+            <Button 
+            onClick={() => navigate("/admin/users")}
+            variant="outline" size="small" icon={<ArrowLeft />}>
               Back
             </Button>
-          </Link>
+      
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               User Details
@@ -221,8 +224,7 @@ const UserDetails = () => {
         </div>
 
         <div className="flex space-x-3">
-          <Button variant="primary"
-          icon={<Edit />}>
+          <Button variant="primary" icon={<Edit />}>
             Edit User
           </Button>
         </div>
@@ -250,7 +252,6 @@ const UserDetails = () => {
                     fullWidth
                     icon={<Mail className="h-4 w-4 mr-2" />}
                   >
-                   
                     Send Email
                   </Button>
                   <Button
@@ -259,7 +260,6 @@ const UserDetails = () => {
                     fullWidth
                     icon={<CreditCard className="h-4 w-4 mr-2" />}
                   >
-                 
                     View Orders
                   </Button>
                 </div>
@@ -547,19 +547,27 @@ const UserDetails = () => {
             </Card.Header>
 
             <div className="space-y-2">
-              <Button variant="outline" fullWidth
-              icon={<Mail className="h-4 w-4 mr-2" />}>
+              <Button
+                variant="outline"
+                fullWidth
+                icon={<Mail className="h-4 w-4 mr-2" />}
+              >
                 Send Welcome Email
               </Button>
 
-              <Button variant="outline" fullWidth
-              icon={<CreditCard className="h-4 w-4 mr-2"/>}>
+              <Button
+                variant="outline"
+                fullWidth
+                icon={<CreditCard className="h-4 w-4 mr-2" />}
+              >
                 View Purchase History
               </Button>
 
-              <Button variant="danger" fullWidth
-              icon={<User className="h-4 w-4 mr-2" />}>
-                
+              <Button
+                variant="danger"
+                fullWidth
+                icon={<User className="h-4 w-4 mr-2" />}
+              >
                 Deactivate User
               </Button>
             </div>
