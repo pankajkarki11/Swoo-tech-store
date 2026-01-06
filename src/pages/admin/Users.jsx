@@ -131,7 +131,7 @@ const UsersPage = () => {
 
   if (loading && users.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div data-testid="loading-spinner" className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />
       </div>
     );
@@ -363,6 +363,7 @@ const UsersPage = () => {
                       </Button>
 
                       <Button
+                        aria-label="Delete user"
                         size="small"
                         variant="ghost"
                         onClick={() => {

@@ -31,7 +31,6 @@ import UserDetails from "./pages/admin/UserDetails";
 // Protected Route Components
 import ProtectedRoute from "./components_temp/ProtectedRoute";
 import PublicOnlyRoute from "./components_temp/PublicOnlyRoute";
-import Button from "./components_temp/ui/Button";
 import AccessDenied from "./pages/AccessDenied";
 
 function App() {
@@ -129,7 +128,10 @@ function App() {
           <Route path="carts/:id" element={<CartDetails />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="users/:id" element={<UserDetails />} />
-          <Route path="delete" element={<NotFound />} />
+         
+
+          <Route path="*" element={<NotFound404/>} />
+
         </Route>
 
         <Route path="/admin" element={<Navigate to="/admin/login" replace />} />

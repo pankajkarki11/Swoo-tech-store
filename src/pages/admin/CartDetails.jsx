@@ -182,7 +182,8 @@ const CartDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div data-testid="loading-spinner"  className="flex items-center justify-center min-h-screen">
+          
         <LoadingSpinner size="large" />
         <span className="ml-3 text-gray-600">Loading cart details...</span>
       </div>
@@ -209,7 +210,7 @@ const CartDetails = () => {
           </div>
 
           <div className="flex space-x-3">
-            <Button variant="primary" onClick={() => navigate("/processorder")}
+            <Button variant="primary" onClick={() => navigate("/admin/processorder")}
               icon={<Truck />}>
               Process Order
             </Button>

@@ -33,7 +33,7 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [seletedProduct, setSelectedProduct] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState("");
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
@@ -90,10 +90,6 @@ const ProductDetails = () => {
     try {
       await api.productAPI.delete(product.id);
       toast.success("Product deleted successfully");
-      navigate("/admin/dashboard");
-      setRelatedProducts((prev) =>
-        prev.filter((product) => product.id !== selectedProduct.id)
-      );
       setIsDeleteModalOpen(false);
       setSelectedProduct(null);
       navigate("/admin/delete");
@@ -184,7 +180,7 @@ const ProductDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+       <div data-testid="loading-spinner" className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />
       </div>
     );
@@ -219,12 +215,15 @@ const ProductDetails = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center space-x-4">
-          <Link to="/admin/products">
-            <Button variant="outline" size="small">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+         
+            <Button variant="outline" size="small"
+            icon={ <ArrowLeft className="h-4 w-4" />}
+             onClick={() => navigate("/admin/products")}
+             >
+            
               Back
             </Button>
-          </Link>
+          
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Product Details
@@ -418,8 +417,9 @@ const ProductDetails = () => {
                 variant="outline"
                 fullWidth
                 onClick={() => handleEdit(product)}
+                icon={<Edit className="h-4 w-4 mr-2" />}
               >
-                <Edit className="h-4 w-4 mr-2" />
+                
                 Edit Product
               </Button>
 
@@ -427,8 +427,9 @@ const ProductDetails = () => {
                 variant="danger"
                 fullWidth
                 onClick={() => setIsDeleteModalOpen(true)}
+                icon={  <Package className="h-4 w-4 mr-2" />}
               >
-                <Package className="h-4 w-4 mr-2" />
+              
                 Delete Product
               </Button>
             </div>
@@ -567,11 +568,12 @@ const ProductDetails = () => {
         title="Edit Product"
         size="large"
       >
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} role="form">
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Product Title"
+                aria-label="Product title"
                 value={formData.title}
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })

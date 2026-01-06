@@ -303,7 +303,7 @@ describe("Carts", () => {
       
     });
 
- it("should open delete modal", async () => {
+ it("should delete cart successfully with delete modal", async () => {
       const { user } = renderCarts();
 
       await waitFor(() => {
