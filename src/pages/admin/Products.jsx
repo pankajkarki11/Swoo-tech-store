@@ -191,7 +191,7 @@ const Products = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+            <div data-testid="loading-spinner" className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />
       </div>
     );
@@ -375,16 +375,19 @@ const Products = () => {
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
-
+                            
                       <Button
+                     aria-label="Edit"
                         size="small"
                         variant="ghost"
                         onClick={() => handleEdit(product)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
+                     
 
                       <Button
+                      aria-label="delete-product"
                         size="small"
                         variant="ghost"
                         onClick={() => {

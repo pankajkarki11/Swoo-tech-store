@@ -1,6 +1,6 @@
 // src/pages/Carts.jsx - HIGHLY OPTIMIZED VERSION
 import React, { useState, useEffect } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import Card from "../../components_temp/ui/Card";
 import Button from "../../components_temp/ui/Button";
 import Input from "../../components_temp/ui/Input";
@@ -32,6 +32,7 @@ const Carts = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCart, setSelectedCart] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCartsData();
@@ -228,7 +229,7 @@ const Carts = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+   <div data-testid="loading-spinner" className="flex items-center justify-center h-64">
         <LoadingSpinner size="large" />
       </div>
     );
@@ -419,13 +420,17 @@ const Carts = () => {
 
                   <Table.Cell>
                     <div className="flex items-center space-x-2">
-                      <Link to={`/admin/carts/${cart.id}`}>
-                        <Button size="small" variant="ghost">
+                      
+                        <Button 
+                        aria-label="View cart"
+                        onClick={() =>{ navigate(`/admin/carts/${cart.id}`)}}
+                        size="small" variant="ghost">
                           <Eye className="h-4 w-4" />
                         </Button>
-                      </Link>
+                      
 
                       <Button
+                      aria-label="Delete cart"
                         size="small"
                         variant="ghost"
                         onClick={() => {

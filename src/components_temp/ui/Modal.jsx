@@ -41,23 +41,32 @@ const Modal = ({
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={title ? "modal-title" : undefined}
           className={`relative w-full ${sizes[size]} transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl transition-all`}
         >
           {/* Header */}
           {title && (
             <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3
+                  id="modal-title"
+                  className="text-lg font-semibold text-gray-900 dark:text-white"
+                >
                   {title}
                 </h3>
+
                 {!hideCloseButton && (
                   <button
                     onClick={onClose}
+                    aria-label="Close modal"
                     className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   >
                     <svg

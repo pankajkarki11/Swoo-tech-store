@@ -78,7 +78,7 @@ vi.mock("react-hot-toast", async () => {
   return {
     ...actual,
     default: {
-    default: vi.fn(),
+      default: vi.fn(),
       success: vi.fn(),
       error: vi.fn(),
       loading: vi.fn(),
@@ -114,11 +114,7 @@ vi.mock("../../components/ui/Switch", () => ({
 
 const renderWithProviders = (
   ui,
-  {
-    authState = {},
-    cartState = {},
-    searchState = {},
-  } = {}
+  { authState = {}, cartState = {}, searchState = {} } = {}
 ) => {
   // Default auth context
   const defaultAuthContext = {
@@ -134,7 +130,8 @@ const renderWithProviders = (
   // Default cart context
   const defaultCartContext = {
     cart: cartState.cart || [],
-    getCartCount: cartState.getCartCount || vi.fn(() => cartState.cartCount || 0),
+    getCartCount:
+      cartState.getCartCount || vi.fn(() => cartState.cartCount || 0),
     addToCart: cartState.addToCart || vi.fn(),
     removeFromCart: cartState.removeFromCart || vi.fn(),
     updateQuantity: cartState.updateQuantity || vi.fn(),
@@ -205,9 +202,9 @@ describe("HeaderClient", () => {
     vi.restoreAllMocks();
   });
 
-//   // ==========================================================================
-//   // Mobile Menu
-//   // ==========================================================================
+  //   // ==========================================================================
+  //   // Mobile Menu
+  //   // ==========================================================================
   describe("Mobile Menu", () => {
     it("should show mobile menu button on mobile devices", () => {
       renderWithProviders(<HeaderClient />);
@@ -224,15 +221,13 @@ describe("HeaderClient", () => {
       });
 
       const menuButton = screen.getByLabelText(/toggle mobile menu/i);
-      
+
       // Click to open menu
       await user.click(menuButton);
 
       await waitFor(() => {
-        
         const allHomeLinks = screen.getAllByText(/home/i);
         expect(allHomeLinks.length).toBeGreaterThan(0);
-        
       });
     });
 
@@ -280,9 +275,9 @@ describe("HeaderClient", () => {
     });
   });
 
-//   // ==========================================================================
-//   // Search Functionality
-//   // ==========================================================================
+  //   // ==========================================================================
+  //   // Search Functionality
+  //   // ==========================================================================
   describe("Search Functionality", () => {
     it("should display search input on desktop", () => {
       renderWithProviders(<HeaderClient />);
@@ -355,7 +350,9 @@ describe("HeaderClient", () => {
       await user.type(searchInput, "nonexistent");
 
       await waitFor(() => {
-        expect(screen.getAllByText(/no results found/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/no results found/i).length).toBeGreaterThan(
+          0
+        );
       });
     });
 
@@ -389,9 +386,9 @@ describe("HeaderClient", () => {
     // });
   });
 
-//   // ==========================================================================
-//   // Cart Badge
-//   // ==========================================================================
+  //   // ==========================================================================
+  //   // Cart Badge
+  //   // ==========================================================================
   describe("Cart Badge", () => {
     it("should display cart icon", () => {
       renderWithProviders(<HeaderClient />);
@@ -420,8 +417,8 @@ describe("HeaderClient", () => {
       // Badge with "0" should not be in the document
       const badges = screen.queryAllByText("0");
       // Filter to only cart-related badges (not other zeros)
-      const cartBadges = badges.filter(badge => 
-        badge.closest('button')?.getAttribute('aria-label')?.includes('cart')
+      const cartBadges = badges.filter((badge) =>
+        badge.closest("button")?.getAttribute("aria-label")?.includes("cart")
       );
       expect(cartBadges.length).toBe(0);
     });
@@ -431,15 +428,15 @@ describe("HeaderClient", () => {
 
       const cartButton = screen.getAllByLabelText(/shopping cart/i)[0];
       await user.click(cartButton);
-        await waitFor(()=>{
-          expect(mockNavigate).toHaveBeenCalledWith("/cart");
-        })
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith("/cart");
+      });
     });
   });
 
-//   // ==========================================================================
-//   // User Authentication - Not Logged In
-//   // ==========================================================================
+  //   // ==========================================================================
+  //   // User Authentication - Not Logged In
+  //   // ==========================================================================
   describe("User Authentication - Not Logged In", () => {
     it("should show Login/Signup button when user is not authenticated", () => {
       renderWithProviders(<HeaderClient />, {
@@ -451,21 +448,20 @@ describe("HeaderClient", () => {
       expect(screen.getByText(/login \/ signup/i)).toBeInTheDocument();
     });
 
-it("should navigate to login page when Login/Signup is clicked", async () => {
-  const { user } = renderWithProviders(<HeaderClient />);
+    it("should navigate to login page when Login/Signup is clicked", async () => {
+      const { user } = renderWithProviders(<HeaderClient />);
 
-  const loginLink = screen.getByRole("link", {
-    name: /login|signup/i,
+      const loginLink = screen.getByRole("link", {
+        name: /login|signup/i,
+      });
+
+      expect(loginLink).toHaveAttribute("href", "/login");
+    });
   });
 
-  expect(loginLink).toHaveAttribute("href", "/login");
-});
-
-  });
-
-//   // ==========================================================================
-//   // User Authentication - Logged In
-//   // ==========================================================================
+  //   // ==========================================================================
+  //   // User Authentication - Logged In
+  //   // ==========================================================================
   describe("User Authentication - Logged In", () => {
     const mockUser = {
       id: 1,
@@ -541,7 +537,7 @@ it("should navigate to login page when Login/Signup is clicked", async () => {
         expect(screen.getByText("My Profile")).toBeInTheDocument();
       });
 
-      const profileLink = screen.getByRole("link",{name:"My Profile"});
+      const profileLink = screen.getByRole("link", { name: "My Profile" });
       expect(profileLink).toHaveAttribute("href", "/profile");
     });
 
@@ -577,9 +573,9 @@ it("should navigate to login page when Login/Signup is clicked", async () => {
     });
   });
 
-//   // ==========================================================================
-//   // Navigation Links
-//   // ==========================================================================
+  //   // ==========================================================================
+  //   // Navigation Links
+  //   // ==========================================================================
   describe("Navigation Links", () => {
     it("should display Home link", () => {
       renderWithProviders(<HeaderClient />);
@@ -591,15 +587,13 @@ it("should navigate to login page when Login/Signup is clicked", async () => {
       const { user } = renderWithProviders(<HeaderClient />);
 
       const homeLink = screen.getByRole("link", { name: /home/i });
-    expect(homeLink).toHaveAttribute("href", "/");
-      
+      expect(homeLink).toHaveAttribute("href", "/");
     });
   });
 
-
-//   // ==========================================================================
-//   // Responsive Behavior
-//   // ==========================================================================
+  //   // ==========================================================================
+  //   // Responsive Behavior
+  //   // ==========================================================================
   describe("Responsive Behavior", () => {
     it("should have mobile-specific search input", () => {
       renderWithProviders(<HeaderClient />);
@@ -614,16 +608,16 @@ it("should navigate to login page when Login/Signup is clicked", async () => {
 
       // Mobile menu button exists (mobile-specific)
       expect(screen.getByLabelText(/toggle mobile menu/i)).toBeInTheDocument();
-      
+
       // Desktop navigation also exists (hidden on mobile via CSS)
       const homeLinks = screen.getAllByText(/home/i);
       expect(homeLinks.length).toBeGreaterThan(0);
     });
   });
 
-//   // ==========================================================================
-//   // Search Result Navigation
-//   // ==========================================================================
+  //   // ==========================================================================
+  //   // Search Result Navigation
+  //   // ==========================================================================
   describe("Search Result Navigation", () => {
     const mockSearchResults = [
       {
@@ -640,7 +634,7 @@ it("should navigate to login page when Login/Signup is clicked", async () => {
         price: 29.99,
         image: "mouse.jpg",
         category: "Electronics",
-        rating: { rate:4.1, count: 50 },
+        rating: { rate: 4.1, count: 50 },
       },
     ];
 
@@ -667,14 +661,11 @@ it("should navigate to login page when Login/Signup is clicked", async () => {
 
       await waitFor(() => {
         expect(screen.getAllByText("$999.99").length).toBeGreaterThan(0);
-        expect(screen.getAllByText("$29.99").length).toBeGreaterThan(0); 
-          expect(screen.getAllByText("4.5").length).toBeGreaterThan(0);
-           expect(screen.getAllByText("4.1").length).toBeGreaterThan(0);
-        
+        expect(screen.getAllByText("$29.99").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("4.5").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("4.1").length).toBeGreaterThan(0);
       });
     });
-
-
 
     it("should clear search and close dropdown after clicking result", async () => {
       const mockClearSearch = vi.fn();
@@ -696,9 +687,9 @@ it("should navigate to login page when Login/Signup is clicked", async () => {
     });
   });
 
-//   // ==========================================================================
-//   // Edge Cases
-//   // ==========================================================================
+  //   // ==========================================================================
+  //   // Edge Cases
+  //   // ==========================================================================
   describe("Edge Cases", () => {
     it("should handle user with no firstname (fallback to name)", () => {
       const userWithoutFirstname = {
@@ -746,8 +737,9 @@ it("should navigate to login page when Login/Signup is clicked", async () => {
       const { user } = renderWithProviders(<HeaderClient />);
 
       const searchInput = screen.getAllByPlaceholderText(/search/i)[0];
-      const longQuery = "This is a very long search query that someone might type when looking for something specific";
-      
+      const longQuery =
+        "This is a very long search query that someone might type when looking for something specific";
+
       await user.type(searchInput, longQuery);
 
       expect(searchInput).toHaveValue(longQuery);
