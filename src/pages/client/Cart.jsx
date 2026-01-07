@@ -566,6 +566,7 @@ const CartPage = () => {
                       Cart Items
                     </h2>
                     <Button
+                    aria-label="Clear Cart"
                       variant="danger"
                       onClick={handleClearCart}
                       size="small"
@@ -594,7 +595,7 @@ const CartPage = () => {
                         </div>
 
                         {/* Product Details */}
-                        <div className="flex-grow">
+                        <div className=" group relative flex-grow">
                           <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2">
                             <div className="flex-grow">
                               <h3 className="font-bold text-gray-900 mb-1 line-clamp-2 dark:text-white">

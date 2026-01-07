@@ -581,6 +581,7 @@ const CheckoutPage = () => {
                     required
                   />
                   <Input
+                  aria-label="State"
                     label="State"
                     value={shippingInfo.state}
                     onChange={(e) => handleShippingChange('state', e.target.value)}
@@ -690,6 +691,7 @@ const CheckoutPage = () => {
                 <div className="grid md:grid-cols-2 gap-4 mb-6">
                   <div className="md:col-span-2">
                     <Input
+                    aria-label="Card Number"
                       label="Card Number"
                       placeholder="1234 5678 9012 3456"
                       value={paymentInfo.cardNumber}
@@ -699,6 +701,7 @@ const CheckoutPage = () => {
                     />
                   </div>
                   <Input
+                  aria-label="Name on Card"
                     label="Name on Card"
                     placeholder="John Doe"
                     value={paymentInfo.cardName}
@@ -707,7 +710,7 @@ const CheckoutPage = () => {
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <Input
-                      label="Expiry Date"
+                      aria-label="Expiry Date"
                       placeholder="MM/YY"
                       value={paymentInfo.expiryDate}
                       onChange={(e) => handleExpiryChange(e.target.value)}
@@ -715,7 +718,7 @@ const CheckoutPage = () => {
                       required
                     />
                     <Input
-                      label="CVV"
+                      aria-label="CVV"
                       type="password"
                       placeholder="123"
                       value={paymentInfo.cvv}
