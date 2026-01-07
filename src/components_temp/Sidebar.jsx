@@ -36,6 +36,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     // Created a custom toast component
     const LogoutConfirmation = ({ t }) => (
       <div
+       role="dialog"
         className={`${
           t.visible ? "animate-enter" : "animate-leave"
         } max-w-md w-full bg-gray-300 dark:bg-gray-600 shadow-lg rounded-lg pointer-events-auto flex flex-col ring-1 ring-black dark:ring-gray-700 ring-opacity-5`}
