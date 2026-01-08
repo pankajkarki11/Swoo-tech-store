@@ -9,9 +9,16 @@ export default defineConfig({
         plugins: [["babel-plugin-react-compiler"]],
       },
     }),
+   
+      
+    
   ],
+
   server: {
     allowedHosts: ["jace-unsaltatorial-hopelessly.ngrok-free.dev"],
+    port: 3000,
+   
+    
   },
   test: {
     environment: "jsdom",

@@ -32,7 +32,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:3000',
 
       screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -47,13 +47,13 @@ export default defineConfig({
     //   name: 'chromium',
     //   use: { ...devices['Desktop Chrome'] },
     // },
-{
-  name: 'firefox-official',
-  use: {
-    ...devices['Desktop Firefox'],
-    channel: 'firefox', 
-}
-},
+// {
+//   name: 'firefox-official',
+//   use: {
+//     ...devices['Desktop Firefox'],
+//     channel: 'firefox', 
+// }
+// },
 
 
     // {
@@ -76,17 +76,17 @@ export default defineConfig({
     //    name: 'Microsoft Edge',
     //    use: { ...devices['Desktop Edge'], channel: 'msedge' },
     //  },
-    //  {
-    //    name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
+     {
+       name: 'Google Chrome',
+      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+    },
   ],
 
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'npm run dev',
     timeout: 120 * 1000,
-    url: 'http://localhost:5173',
+    url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
   },
 });

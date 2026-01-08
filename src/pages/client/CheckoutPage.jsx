@@ -540,7 +540,7 @@ const CheckoutPage = () => {
 
                 <div className="grid md:grid-cols-2 gap-4 mb-6">
                   <Input
-                    label="First Name"
+                    aria-label="First Name"
                     value={shippingInfo.firstName}
                     onChange={(e) => handleShippingChange('firstName', e.target.value)}
                     required
@@ -553,7 +553,7 @@ const CheckoutPage = () => {
                     required
                   />
                   <Input
-                    label="Email Address"
+                    aria-label="Email Address"
                     type="email"
                     value={shippingInfo.email}
                     onChange={(e) => handleShippingChange('email', e.target.value)}
