@@ -576,7 +576,7 @@ const CartPage = () => {
                     </Button>
                   </div>
 
-                  <div className="space-y-4">
+                  <div data-testid="cart-item" className="space-y-4">
                     {cart.map((item) => (
                       <div
                         key={`${item.id}-${item.addedAt}`}
