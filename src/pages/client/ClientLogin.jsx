@@ -144,6 +144,7 @@ const ClientLogin = () => {
                         <User className="h-5 w-5 text-[#01A49E]" />
                       </div>
                       <input
+                      data-testid="username-input"
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
@@ -164,6 +165,7 @@ const ClientLogin = () => {
                         <Lock className="h-5 w-5 text-[#01A49E]" />
                       </div>
                       <input
+                      data-testid="password-input"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -188,6 +190,7 @@ const ClientLogin = () => {
                   </div>
 
                   <button
+                  data-testid="login-button"
                     type="submit"
                     className="w-full bg-gradient-to-r from-[#01A49E] to-[#01857F] hover:from-[#01857F] hover:to-[#016F6B] text-white py-3.5 px-4 rounded-xl font-semibold hover:shadow-xl transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-[1.02] group disabled:opacity-70 disabled:cursor-not-allowed"
                     disabled={isLoading}
@@ -204,7 +207,9 @@ const ClientLogin = () => {
                       </>
                     )}
                   </button>
-                  <div className="text-center pt-2">
+                  <div 
+                  
+                  className="text-center pt-2">
                     <p className="text-gray-600 dark:text-white">
                       Don't have an account?{" "}
                       <Link
@@ -225,7 +230,8 @@ const ClientLogin = () => {
                     </h3>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-3"
+                  data-testid="demo-accounts">
                     {demoCredentials.map((cred, index) => (
                       <button
                         key={index}

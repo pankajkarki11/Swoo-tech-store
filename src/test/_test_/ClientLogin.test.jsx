@@ -16,8 +16,6 @@ vi.mock("react-router-dom", async () => {
 });
 
 
-
-
 const mockLogin = vi.fn();
 vi.mock("../../contexts/AuthContext", () => ({
   AuthProvider: ({ children }) => children, 
@@ -54,15 +52,6 @@ const renderComponent = () =>
   );
 
 describe("ClientLogin Component", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockNavigate.mockClear();
-    mockLogin.mockClear();
-  });
-
-  afterEach(() => {
-    vi.clearAllTimers();
-  });
 
   it("renders login page", () => {
     renderComponent();

@@ -142,6 +142,7 @@ const ProductCard = ({
   return (
     <div
       onClick={() => navigate(`/products/${product?.id}`)}
+      data-testid="product-card"
       className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer border border-gray-100 dark:bg-gray-900"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

@@ -39,7 +39,6 @@ const HeaderClient = () => {
   const { getCartCount } = useCart();
   const {
     searchResults,
-
     isSearching,
     showSearchResults,
     recentSearches,
