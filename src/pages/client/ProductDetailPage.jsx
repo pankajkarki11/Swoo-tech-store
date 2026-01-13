@@ -597,6 +597,7 @@ const ProductDetailPage = () => {
                         disabled:opacity-40 disabled:cursor-not-allowed
                       "
                       aria-label="Decrease quantity"
+
                       disabled={parseInt(displayQuantity) <= 1}
                     >
                       <Minus size={20} className="text-gray-700 dark:text-gray-300" />
@@ -734,6 +735,7 @@ const ProductDetailPage = () => {
                       </span>
                     </div>
                     <button
+                     aria-label="Remove item"
                       onClick={handleRemoveConfirm}
                       className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
                     >
