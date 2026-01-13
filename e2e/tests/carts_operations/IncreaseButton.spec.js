@@ -3,7 +3,7 @@ import { APIResponseTracker,performLogin } from '../../utils/APIResponseTracker.
 
 console.log(' E2E TEST SUITE - Increase Button Page ');
  
- base('Test : Should call Single Product API when clicking product', async ({ page }) => {
+ base('Test : Should Perfrom Increase Quantity Operation From Cart Page', async ({ page }) => {
      const trackerfinal = new APIResponseTracker(page);
      await performLogin(page);
   await page.waitForTimeout(2000);//to load all the api which loads slowly like carts,products ,categories as we are not checking them so we tracck api calls after login before just clicking the product card.
@@ -37,7 +37,7 @@ console.log(' E2E TEST SUITE - Increase Button Page ');
 
         console.log(`Products Quantity in cart API after increase :> ${cartResponse.body.products[0].quantity}`);
    tracker.assertNoErrors();
-    tracker.printSummary('Test : API Calls adding product first time\n');
+    tracker.printSummary('Test : API Calls while Increasing quantity first time\n');
 
     console.log('\n\n\n Increase quantity by 1 using button For Second times\n\n\n');
 
@@ -69,9 +69,9 @@ console.log(' E2E TEST SUITE - Increase Button Page ');
         console.log(`Products Quantity in cart API after increase :> ${cartResponse2.body.products[0].quantity}`);
 
     tracker2.assertNoErrors();
-    tracker2.printSummary('Test : API Calls for second time adding\n');
+    tracker2.printSummary('Test : API Calls for second time Increasing quantity\n');
 
      trackerfinal.assertNoErrors();
     trackerfinal.printSummary('Test : API Calls for whole operation\n');
-    console.log('\n\n\n  ✅ TEST 3 PASSED: Product detail API validated\n');
+        console.log('\n\n\n  ✅ Increasing button validated\n');
   });

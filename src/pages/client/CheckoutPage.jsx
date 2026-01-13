@@ -280,7 +280,7 @@ const CheckoutPage = () => {
       // Auto-redirect after 5 seconds
       setTimeout(() => {
         navigate('/orders');
-      }, 5000);
+      }, 50000);
 
     } catch (error) {
       console.error("Order placement error:", error);
