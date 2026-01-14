@@ -175,6 +175,7 @@ const ClientLogin = () => {
                         disabled={isLoading}
                       />
                       <button
+                      data-testid="toggle-password-button"
                         type="button"
                         className="absolute inset-y-0 right-0 pr-4 flex items-center"
                         onClick={() => setShowPassword(!showPassword)}
@@ -231,13 +232,17 @@ const ClientLogin = () => {
                   </div>
 
                   <div className="space-y-3"
+                 
                   data-testid="demo-accounts">
                     {demoCredentials.map((cred, index) => (
                       <button
+                      // disabled
+                      data-testid="demo-account-button"
                         key={index}
                         onClick={() =>
                           useDemoAccount(cred.username, cred.password)
                         }
+                     
                         disabled={isLoading}
                         className="w-full text-left bg-white hover:from-gray-100 hover:to-gray-200 text-gray-800 py-3 px-4 rounded-lg transition text-sm font-medium border border-gray-200 hover:border-gray-300 disabled:opacity-50 group dark:bg-gray-400 dark:hover:bg-gray-500 "
                       >

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import ClientLogin from "../../pages/client/ClientLogin";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "../../contexts/AuthContext";
-import { vi, describe, it, afterEach, expect, beforeEach,} from "vitest";
+import { vi, describe, it, afterEach, expect, beforeEach,first} from "vitest";
 
 
 const renderComponent = () =>
@@ -21,23 +21,40 @@ describe("ClientLogin Component", () => {
     renderComponent();
 
     expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText(/enter your username/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText(/enter your password/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /sign in/i })
-    ).toBeInTheDocument();
-  }); 
+    expect(screen.getByPlaceholderText(/enter your username/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/enter your password/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
+    // expect(screen.getByRole("h1", { name: /LOGIN/i })).toBeInTheDocument();
+    //this is wrong because h1 is not role but level so we use heading as role and specify the level in the name section of the getbyrole function as below
+    expect(screen.getByRole("heading", { name: /login/i, level:1 })).toBeInTheDocument();
+      expect(screen.getByText(/Never lose your cart/i)).toBeInTheDocument();
+        expect(screen.getByText(/cart history/i)).toBeInTheDocument();
+          expect(screen.getByText(/real api connection/i)).toBeInTheDocument();
+          expect(screen.getByText(/swoo tech mart/i)).toBeInTheDocument();
+
+           }); 
+ 
+it("Check Button functionality",()=>{
+    renderComponent();
+     expect(screen.getByTestId("login-button")).toBeEnabled();
+    expect(screen.getByTestId("toggle-password-button")).toBeEnabled();
+    expect(screen.getAllByTestId("demo-account-button")[0]).toBeEnabled();
+    expect(screen.getByTestId("login-button")).toHaveAttribute("type", "submit");
+    //to check if it has sumit type
+
+    expect(document.querySelectorAll('button[type="submit"]')).toHaveLength(1);
+//this ensures that in the whole document there is only one submit button which is the login button
+   
+  });
+  
+ 
 
   it("allows user to type username and password", async () => {
     renderComponent();
     const user = userEvent.setup();
 
-    const usernameInput = screen.getByPlaceholderText(/enter your username/i);
-    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const usernameInput = screen.getByTestId("username-input");
+    const passwordInput = screen.getByTestId("password-input");
 
     await user.type(usernameInput, "johnd");
     await user.type(passwordInput, "123456");
@@ -46,106 +63,46 @@ describe("ClientLogin Component", () => {
     expect(passwordInput).toHaveValue("123456");
   });
 
-  
-  // it("calls login and navigate on successful login", async () => {
-  //   // Mock successful login response
-  //   mockLogin.mockResolvedValueOnce({ 
-  //     success: true,
-  //     user: { id: 1, username: "johnd" },
-  //     token: "mock-token"
-  //   });
-    
-  //   renderComponent();
+  it("shows error message on failed login", async () => {
+    renderComponent();
+    const user = userEvent.setup();
 
-  //   const user = userEvent.setup();
-
-  //   // Type credentials
-  //   await user.type(
-  //     screen.getByPlaceholderText(/enter your username/i),
-  //     "johnd"
-  //   );
-  //   await user.type(
-  //     screen.getByPlaceholderText(/enter your password/i),
-  //     "m38rmF$"
-  //   );
-
-  //   // Click sign in button
-  //   const signInButton = screen.getByRole("button", { name: /sign in/i });
-  //   await user.click(signInButton);
-
-  //   // Wait for login to be called
-  //   await waitFor(() => {
-  //     expect(mockLogin).toHaveBeenCalledWith({
-  //       username: "johnd",
-  //       password: "m38rmF$",
-  //     });
-  //   });
-
-  //   // Wait for navigation
-  //   await waitFor(
-  //     () => {
-  //       expect(mockNavigate).toHaveBeenCalledWith("/");
-  //     },
-  //     { timeout: 3000 }
-  //   );
-  // });
-
-  // it("shows error message on failed login", async () => {
-  //   // Mock failed login
-  //   mockLogin.mockResolvedValueOnce({ 
-  //     success: false,
-  //     error: "Wrong username or password"
-  //   });
-
-  //   renderComponent();
-  //   const user = userEvent.setup();
-
-  //   await user.type(
-  //     screen.getByPlaceholderText(/enter your username/i),
-  //     "wronguser"
-  //   );
-  //   await user.type(
-  //     screen.getByPlaceholderText(/enter your password/i),
-  //     "wrongpass"
-  //   );
-
-  //   await user.click(screen.getByRole("button", { name: /sign in/i }));
-
-  //   // Wait for error message to appear
-  //   await waitFor(() => {
-  //     expect(
-  //       screen.getByText(/wrong username or password/i)
-  //     ).toBeInTheDocument();
-  //   }, { timeout: 3000 });
-  // });
+    await user.type(
+      screen.getByTestId("username-input"),
+      "wronguser"
+    );
+    await user.type(
+      screen.getByTestId("password-input"),
+      "wrongpass"
+    );
+    await user.click(screen.getByTestId("login-button"));
+    // Wait for error message to appear
+    await waitFor(() => {
+      expect( screen.getByText(/wrong username or password/i) ).toBeInTheDocument();
+    });
+  });
 
   
-  // it("Demo Account fills credentials when clicked", async () => {
-  //   renderComponent();
-  //   const user = userEvent.setup();
+  it("Demo Account fills credentials when clicked", async () => {
+    renderComponent();
+    const user = userEvent.setup();
+    const FirstElements = screen.getAllByTestId("demo-account-button")[0]
+    await user.click(FirstElements);
+    await waitFor(() => {
 
-    
-  //   const johnDoeElements = screen.getAllByText(/john doe/i);
-    
-    
-  //   const johnDoeButton =
-  //     johnDoeElements.find(
-  //       (el) => el.tagName === "BUTTON" || el.closest("button")
-  //     ) || johnDoeElements[0];
-    
-  //   await user.click(johnDoeButton);
 
-   
-  //   await waitFor(() => {
-  //     expect(screen.getByPlaceholderText(/enter your username/i)).toHaveValue(
-  //       "johnd"
-  //     );
-  //   });
+      const inputName = screen.getByTestId("username-input");
+      expect(inputName.value.length).toBeGreaterThan(0);
 
-  //   await waitFor(() => {
-  //     expect(screen.getByPlaceholderText(/enter your password/i)).toHaveValue(
-  //       "m38rmF$"
-  //     );
-  //   });
-  // });
+      const inputPassword =screen.getByTestId("password-input");
+      expect(inputPassword.value.length).toBeGreaterThan(0);
+
+    //  expect(screen.getByTestId("username-input")).toHaveValue('johnd');
+//shouldnt be used beacuse it expose the password and username which we dont wanna pass to coding as it is crucial.
+    //   expect(screen.getByTestId("password-input")).toHaveValue('m38rmF$');
+    });
+
+       await user.click(screen.getByTestId("login-button"));
+       expect(screen.getByTestId("login-button")).toBeDisabled();
+  });
 });
