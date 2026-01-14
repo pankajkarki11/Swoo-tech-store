@@ -212,6 +212,7 @@ const HeaderClient = () => {
               onBlur={() => setTimeout(() => setIsMobileMenuOpen(false), 200)}
               aria-label="Toggle mobile menu"
               label="Toggle mobile menu"
+              data-testid="toggle-mobile-menu"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -232,13 +233,16 @@ const HeaderClient = () => {
 
           <div className="hidden lg:flex flex-1 max-w-2xl mx-8" ref={searchRef}>
             <div className="w-full relative">
-              <form onSubmit={handleSearch} className="relative">
+              <form onSubmit={handleSearch} className="relative"
+           
+              >
                 <div
                   className={`relative transition-all duration-300 ${
                     isSearchExpanded ? "w-full" : "w-full"
                   }`}
                 >
                   <input
+                     data-testid="search-input"
                     ref={searchInputRef}
                     type="text"
                     value={localSearchQuery}
@@ -253,6 +257,7 @@ const HeaderClient = () => {
                     className="w-full px-6 py-3 pl-12 pr-12 rounded-full border-0 focus:ring-2 focus:ring-[#01A49E] dark:focus:ring-[#01A49E] focus:ring-opacity-50 focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 shadow-lg hover:shadow-xl transition-all duration-300"
                   />
                   <button
+                    data-testid="search-button"
                     type="submit"
                     className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-[#01A49E] dark:hover:text-[#01A49E] transition-colors"
                     aria-label="Search"
@@ -262,6 +267,7 @@ const HeaderClient = () => {
 
                   {localSearchQuery && (
                     <button
+                      data-testid="clear-search-button"
                       type="button"
                       onClick={handleClearSearch}
                       className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -302,6 +308,7 @@ const HeaderClient = () => {
                       <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                         {searchResults.slice(0, 8).map((product) => (
                           <button
+                          data-testid="search-result-item"
                             key={product.id}
                             onClick={() => {
                               navigate(`/products/${product?.id}`);
@@ -402,6 +409,7 @@ const HeaderClient = () => {
               {isAuthenticated ? (
                 <div className="relative">
                   <button
+                  data-testid="user-button"
                     onClick={() => setShowDropdown(!showDropdown)}
                     onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                     className="flex items-center space-x-2 cursor-pointer focus:outline-none text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg group"
@@ -526,6 +534,7 @@ const HeaderClient = () => {
               )}
 
               <button
+              data-testid="cart-button"
                 onClick={() => navigate("/cart")}
                 className="relative text-white dark:text-gray-200 hover:text-gray-300 dark:hover:text-gray-400 transition-colors p-2 hover:bg-white/10 rounded-lg group"
                 aria-label="Shopping cart"
@@ -536,7 +545,9 @@ const HeaderClient = () => {
                     className="group-hover:scale-110 transition-transform hover:text-blue-300 dark:hover:text-gray-400"
                   />
                   {cartCount > 0 && (
-                    <span className="absolute -top-4 -right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse shadow-lg">
+                    <span
+                    data-testid="cart-count"
+                    className="absolute -top-4 -right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse shadow-lg">
                       {cartCount}
                     </span>
                   )}
@@ -801,7 +812,9 @@ const HeaderClient = () => {
                       </span>
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-gray-900 dark:text-white capitalize">
+                      <p 
+                      data-testid="mobile-menu-username"
+                      className="font-bold text-gray-900 dark:text-white capitalize">
                         {user?.firstname || user?.name || "User"}
                       </p>
                     </div>
@@ -827,6 +840,7 @@ const HeaderClient = () => {
 
               <div className="space-y-1">
                 <Link
+                data-testid="mobile-menu-home"
                   to="/"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center py-3 px-4 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -837,6 +851,7 @@ const HeaderClient = () => {
                 {isAuthenticated ? (
                   <>
                     <Link
+                     data-testid="mobile-menu-profile"
                       to="/profile"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center py-3 px-4 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -854,6 +869,7 @@ const HeaderClient = () => {
                     </Link>
                     {isAdmin && (
                       <Link
+                       data-testid="mobile-menu-admin-panel"
                         to="/admin/dashboard"
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center py-3 px-4 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -863,6 +879,7 @@ const HeaderClient = () => {
                       </Link>
                     )}
                     <Link
+                     data-testid="mobile-menu-setting"
                       to="/setting"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center py-3 px-4 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -871,6 +888,7 @@ const HeaderClient = () => {
                       Setting
                     </Link>
                     <button
+                     data-testid="mobile-menu-logout"
                       onClick={handleLogout}
                       className="flex items-center w-full text-left py-3 px-4 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
@@ -879,14 +897,16 @@ const HeaderClient = () => {
                     </button>
                   </>
                 ) : (
-                  <Link
-                    to="/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                 <button
+                     data-testid="mobile-menu-login"
+                    onClick={() =>{ setIsMobileMenuOpen(false)
+                    navigate("/login")}
+                    }
                     className="flex items-center py-3 px-4 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
                     <User size={18} className="mr-3" />
                     Login / Signup
-                  </Link>
+                  </button>
                 )}
               </div>
             </div>
