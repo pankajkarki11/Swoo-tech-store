@@ -607,6 +607,7 @@ const ProductDetailPage = () => {
                     <div className="h-12 w-20">
                       <Input
                         type="text"
+                        data-testid="quantity-input"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={displayQuantity}

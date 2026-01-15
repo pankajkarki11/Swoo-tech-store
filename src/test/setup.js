@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import "@testing-library/user-event"
+import { cleanup } from '@testing-library/react';
 import { vi } from "vitest";
+
+afterEach(()=>{
+  cleanup();
+})
+
 
 Object.defineProperty(window, "matchMedia", {
   writable: true,

@@ -150,14 +150,14 @@ const ProductCard = ({
       {/* Cart Status Badge */}
       {cartStatus.isInCart && (
         <div className="absolute top-3 left-3 z-20 animate-fade-in">
-          <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+          <span
+           className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
             <ShoppingCart size={12} />
             In Cart ({cartStatus.quantity})
           </span>
         </div>
       )}
-
-     
+      
       {isSyncing && cartStatus.isInCart && (
         <div className="absolute top-12 left-3 z-20 animate-fade-in">
           <span className="bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full shadow-lg flex items-center gap-1">

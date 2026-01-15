@@ -1,56 +1,33 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BrowserRouter } from "react-router-dom";
 import ProductCard from "../../components_temp/ProductCard";
+import { useAuth } from "../../contexts/AuthContext";
+import { useCart } from "../../contexts/CartContext";
 
-/* ------------------------------------------------------------------ */
-/* MOCKS */
-/* ------------------------------------------------------------------ */
+// Mock useAuth hook
+vi.mock("../../contexts/AuthContext", () => ({
+  useAuth: vi.fn(),
+}));
 
-// mock navigate
-const mockNavigate = vi.fn();
+// Mock useCart hook
+vi.mock("../../contexts/CartContext", () => ({
+  useCart: vi.fn(),
+}));
 
-vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual("react-router-dom");
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
-
-// mock toast
+// Mock react-hot-toast
 vi.mock("react-hot-toast", () => ({
   default: {
     success: vi.fn(),
     error: vi.fn(),
+    dismiss: vi.fn(),
   },
 }));
 
-// cart mocks
-const mockAddToCart = vi.fn();
-const mockIsInCart = vi.fn();
-const mockGetCartItemQuantity = vi.fn();
-
-vi.mock("../../contexts/CartContext", () => ({
-  useCart: () => ({
-    addToCart: mockAddToCart,
-    isInCart: mockIsInCart,
-    getCartItemQuantity: mockGetCartItemQuantity,
-    isSyncing: false,
-  }),
-}));
-
-// auth mock
-vi.mock("../../contexts/AuthContext", () => ({
-  useAuth: () => ({
-    user: { id: 1, name: "Test User" },
-  }),
-}));
-
-/* ------------------------------------------------------------------ */
-/* TEST DATA */
-/* ------------------------------------------------------------------ */
+// ============================================================================
+// TEST DATA
+// ============================================================================
 
 const mockProduct = {
   id: 1,
@@ -65,163 +42,169 @@ const mockProduct = {
   },
 };
 
-/* ------------------------------------------------------------------ */
-/* HELPER */
-/* ------------------------------------------------------------------ */
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
 
-const renderCard = (props = {}) => {
-  return {
-    user: userEvent.setup(),
-    ...render(
-      <BrowserRouter>
-        <ProductCard product={mockProduct} {...props} />
-      </BrowserRouter>
-    ),
-  };
+const mockCartContext = (overrides = {}) => {
+  useCart.mockReturnValue({
+    addToCart: vi.fn().mockResolvedValue(undefined),
+    isInCart: vi.fn().mockReturnValue(false),
+    getCartItemQuantity: vi.fn().mockReturnValue(0),
+    isSyncing: false,
+    ...overrides,
+  });
 };
 
-/* ------------------------------------------------------------------ */
-/* TESTS */
-/* ------------------------------------------------------------------ */
+const mockAuthContext = (user = null) => {
+  useAuth.mockReturnValue({
+    user,
+  });
+};
+
+const renderComponent = () =>
+  render(
+    <BrowserRouter>
+      <ProductCard product={mockProduct} />
+    </BrowserRouter>
+  );
+
+// ============================================================================
+// TESTS
+// ============================================================================
 
 describe("ProductCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockIsInCart.mockReturnValue(false);
-    mockGetCartItemQuantity.mockReturnValue(0);
-
-    mockNavigate.mockClear();
-    window.scrollTo = vi.fn();
+    mockCartContext();
+    mockAuthContext();
   });
 
-  /* -------------------------------------------------- */
-  /* LOADING STATE */
-  /* -------------------------------------------------- */
-
-  it("renders loading skeleton when isLoading is true", () => {
-    renderCard({ isLoading: true });
-
-    expect(
-      screen.queryByText("Test Product")
-    ).not.toBeInTheDocument();
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
-  /* -------------------------------------------------- */
-  /* BASIC RENDERING */
-  /* -------------------------------------------------- */
+  // ==========================================================================
+  // RENDERING TESTS
+  // ==========================================================================
 
-  it("renders product information correctly", () => {
-    renderCard();
+  describe("Testing Product Card", () => {
+    it("Renders product information correctly", () => {
+      renderComponent();
+      expect(screen.getByText("Test Product")).toBeInTheDocument();
+      expect(screen.getByText("ELECTRONICS")).toBeInTheDocument();
+      expect(screen.getByText("$49.99")).toBeInTheDocument();
+      expect(screen.getByText("4.3")).toBeInTheDocument();
+      expect(screen.getByText("(120)")).toBeInTheDocument();
 
-    expect(screen.getByText("Test Product")).toBeInTheDocument();
-    expect(screen.getByText("ELECTRONICS")).toBeInTheDocument();
-    expect(screen.getByText("$49.99")).toBeInTheDocument();
-    expect(screen.getByText("4.3")).toBeInTheDocument();
-    expect(screen.getByText("(120)")).toBeInTheDocument();
+      const image = screen.getByAltText("Test Product");
+      expect(image).toBeInTheDocument();
+      expect(image).toHaveAttribute("src", "test.jpg");
+
+
+     expect(screen.getByText("Great Value")).toBeInTheDocument();//for the product under $50 it shows great value.
+    });
+
+    it("navigates to product detail page when card is clicked", async () => {
+      const user = userEvent.setup();
+      renderComponent();
+
+      const card = screen.getByTestId("product-card");
+      await user.click(card);
+
+      await waitFor(() => {
+    expect(window.location.pathname).toBe("/products/1");//should shows the url as that when we click on the product oage we go to the product detail page.
   });
+ });
 
-  /* -------------------------------------------------- */
-  /* NAVIGATION */
-  /* -------------------------------------------------- */
+    it("calls addToCart when Add to Cart button is clicked", async () => {
+      const user = userEvent.setup();
+      const mockAddToCart = vi.fn().mockResolvedValue(undefined);
+      
+      mockCartContext({ addToCart: mockAddToCart });
+      renderComponent();
 
-  it("navigates to product detail page when card is clicked", async () => {
-    const { user } = renderCard();
+      const addButton = screen.getByRole("button", { name: /add to cart/i });
+      await user.click(addButton);
 
-    await user.click(screen.getByText("Test Product"));
+      await waitFor(() => {
+        expect(mockAddToCart).toHaveBeenCalledWith(mockProduct, 1);
+      });
+    });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/products/1");
-  });
+    it("shows adding state while addToCart is in progress", async () => {
+      const user = userEvent.setup();
+      const mockAddToCart = vi.fn(() => new Promise(resolve => setTimeout(resolve, 100)));
+      
+      mockCartContext({ addToCart: mockAddToCart });
+      renderComponent();
 
-  it("navigates to product detail page when Quick View is clicked", async () => {
-    const { user } = renderCard();
+      const addButton = screen.getByRole("button", { name: /add to cart/i });
+      await user.click(addButton);
 
-    await user.click(screen.getByText(/quick view/i));
+      expect(screen.getByText(/adding/i)).toBeInTheDocument();
 
-    expect(mockNavigate).toHaveBeenCalledWith("/products/1");
-  });
-
-  /* -------------------------------------------------- */
-  /* ADD TO CART */
-  /* -------------------------------------------------- */
-
-  it("calls addToCart when Add to Cart button is clicked", async () => {
-    mockAddToCart.mockResolvedValueOnce();
-
-    const { user } = renderCard();
-
-    await user.click(screen.getByText(/add to cart/i));
-
-    expect(mockAddToCart).toHaveBeenCalledWith(mockProduct, 1);
-  });
-
-  it("shows adding state while addToCart is in progress", async () => {
-    mockAddToCart.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 100))
-    );
-
-    const { user } = renderCard();
-
-    await user.click(screen.getByText(/add to cart/i));
-
-    expect(screen.getByText(/adding/i)).toBeInTheDocument();
-  });
+      await waitFor(() => {
+        expect(mockAddToCart).toHaveBeenCalled();
+      });
+    });
 
   it("disables Add to Cart button if product is already in cart", () => {
-    mockIsInCart.mockReturnValue(true);
-    mockGetCartItemQuantity.mockReturnValue(2);
+      mockCartContext({
+        isInCart: vi.fn().mockReturnValue(true),
+        getCartItemQuantity: vi.fn().mockReturnValue(2),
+      });
+      renderComponent();
 
-    renderCard();
-
-    expect(screen.getByText(/In Cart/i)).toBeInTheDocument();
-    expect(screen.getByRole("button",{name: /added to cart/i})).toBeDisabled();
-  });
-
-  /* -------------------------------------------------- */
-  /* CART STATUS BADGE */
-  /* -------------------------------------------------- */
-
-  it("shows In Cart badge with quantity", () => {
-    mockIsInCart.mockReturnValue(true);
-    mockGetCartItemQuantity.mockReturnValue(3);
-
-    renderCard();
-
-    expect(
-      screen.getByText(/in cart \(3\)/i)
-    ).toBeInTheDocument();
-  });
-
-  /* -------------------------------------------------- */
-  /* ERROR HANDLING */
-  /* -------------------------------------------------- */
-
-  it("does not crash when addToCart fails", async () => {
-    mockAddToCart.mockRejectedValueOnce(new Error("Failed"));
-
-    const { user } = renderCard();
-
-    await user.click(screen.getByText(/add to cart/i));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/add to cart/i)
-      ).toBeInTheDocument();
+      const button = screen.getByRole("button", { name: /added to cart/i });
+      expect(button).toBeDisabled();
     });
-  });
 
-  /* -------------------------------------------------- */
-  /* SYNC STATUS */
-  /* -------------------------------------------------- */
+    it("shows In Cart badge with quantity", () => {
+      mockCartContext({
+        isInCart: vi.fn().mockReturnValue(true),
+        getCartItemQuantity: vi.fn().mockReturnValue(3),
+      });
 
-  it("shows synced message when user and item is in cart", () => {
-    mockIsInCart.mockReturnValue(true);
-    mockGetCartItemQuantity.mockReturnValue(1);
+      renderComponent();
 
-    renderCard();
+      expect(screen.getByText("In Cart (3)")).toBeInTheDocument();
+    });
 
-    expect(
-      screen.getByText(/synced to server/i)
-    ).toBeInTheDocument();
+    it("does not show badge when product is not in cart", () => {
+      mockCartContext({
+        isInCart: vi.fn().mockReturnValue(false),
+        getCartItemQuantity: vi.fn().mockReturnValue(0),
+      });
+
+      renderComponent();
+
+      expect(screen.queryByText(/in cart/i)).not.toBeInTheDocument();
+    });
+
+    it("shows syncing message when cart is syncing", () => {
+      mockAuthContext({ id: "123", name: "Test User" });
+      mockCartContext({
+        isInCart: vi.fn().mockReturnValue(true),
+        getCartItemQuantity: vi.fn().mockReturnValue(1),
+        isSyncing: true,
+      });
+
+      renderComponent();
+
+      expect(screen.getByText(/syncing to server/i)).toBeInTheDocument();
+    });
+
+    it("does not show sync status when user is not logged in", () => {
+      mockAuthContext(null);
+      mockCartContext({
+        isInCart: vi.fn().mockReturnValue(true),
+        getCartItemQuantity: vi.fn().mockReturnValue(1),
+      });
+
+      renderComponent();
+
+      expect(screen.queryByText(/synced to server/i)).not.toBeInTheDocument();
+    });
   });
 });

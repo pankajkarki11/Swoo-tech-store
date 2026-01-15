@@ -169,7 +169,7 @@ const renderWithProviders = (
 
 // TESTS
 
-describe("CartPage", () => {
+describe("CartPage Testing Suite", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockNavigate.mockClear();
@@ -186,14 +186,9 @@ describe("CartPage", () => {
       renderWithProviders(<CartPage />, {
         cartState: { cart: [], cartItemCount: 0 },
       });
-
       expect(screen.getByText(/your cart is empty/i)).toBeInTheDocument();
-      expect(
-        screen.getByText(/add some items to your cart/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /start shopping/i })
-      ).toBeInTheDocument();
+      expect( screen.getByText(/add some items to your cart/i)).toBeInTheDocument();
+      expect( screen.getByRole("button", { name: /start shopping/i }) ).toBeInTheDocument();
     });
 
     it('should navigate to home when "Start Shopping" button is clicked', async () => {

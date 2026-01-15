@@ -339,6 +339,7 @@ const EcommerceHomepage = () => {
                         {slide.description}
                       </p>
                       <Button
+                      data-testid="shop-now-button"
                         onClick={() => navigate("/product")}
                         iconPosition="right"
                         icon={<ArrowRight  />}
