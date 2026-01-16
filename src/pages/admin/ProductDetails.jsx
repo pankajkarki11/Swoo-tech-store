@@ -213,10 +213,14 @@ const ProductDetails = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div 
+      data-testid="product-details-header"
+      className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center space-x-4">
          
-            <Button variant="outline" size="small"
+            <Button 
+            data-testid="back-button"
+            variant="outline" size="small"
             icon={ <ArrowLeft className="h-4 w-4" />}
              onClick={() => navigate("/admin/products")}
              >
@@ -235,16 +239,23 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div 
+      data-testid="product-details-grid"
+      className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column - Product info */}
-        <div className="lg:col-span-2 space-y-6">
+        <div 
+        data-testid="product-card-grid"
+        className="lg:col-span-2 space-y-6">
           {/* Product Card */}
-          <Card>
+          <Card
+          data-testid="product-card"
+          >
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Product Image */}
               <div className="lg:w-1/3">
                 <div className="aspect-square rounded-xl bg-gray-100 dark:bg-gray-700 overflow-hidden">
                   <img
+                  data-testid="product-image"
                     src={product.image}
                     alt={product.title}
                     className="w-full h-full object-contain p-4"
@@ -357,7 +368,9 @@ const ProductDetails = () => {
           </Card>
 
           {/* Reviews */}
-          <Card>
+          <Card
+          data-testid="reviews-card"
+          >
             <Card.Header>
               <Card.Title>Customer Reviews</Card.Title>
             </Card.Header>
@@ -407,13 +420,16 @@ const ProductDetails = () => {
         {/* Right column - Actions and Related Products */}
         <div className="space-y-6">
           {/* Actions */}
-          <Card>
+          <Card
+          data-testid="actions-card"
+          >
             <Card.Header>
               <Card.Title>Quick Actions</Card.Title>
             </Card.Header>
 
             <div className="space-y-2">
               <Button
+              data-testid="edit-button"
                 variant="outline"
                 fullWidth
                 onClick={() => handleEdit(product)}
@@ -424,6 +440,7 @@ const ProductDetails = () => {
               </Button>
 
               <Button
+              data-testid="delete-button"
                 variant="danger"
                 fullWidth
                 onClick={() => setIsDeleteModalOpen(true)}
@@ -436,7 +453,10 @@ const ProductDetails = () => {
           </Card>
 
           {/* Quick Stats */}
-          <Card>
+          <Card
+          data-testid="quick-stats-card"
+          
+          >
             <Card.Header>
               <Card.Title>Product Statistics</Card.Title>
             </Card.Header>
@@ -479,7 +499,9 @@ const ProductDetails = () => {
           </Card>
 
           {/* Related Products */}
-          <Card>
+          <Card
+          data-testid="related-products-card"
+          >
             <Card.Header>
               <Card.Title>Related Products</Card.Title>
               <Card.Description>

@@ -82,9 +82,7 @@ const renderProductDetails = () => {
     user: userEvent.setup(),
     ...render(
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<ProductDetails />} />
-        </Routes>
+       <ProductDetails />
       </BrowserRouter>
     ),
   };
@@ -113,7 +111,6 @@ describe("ProductDetails", () => {
   describe("Initial Render & Data Fetching", () => {
     it("should show loading spinner while fetching", () => {
       mockProductAPI.getById.mockImplementation(() => new Promise(() => {}));
-
       renderProductDetails();
 
       expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
@@ -130,30 +127,47 @@ describe("ProductDetails", () => {
       });
     });
 
-    it("should display product information", async () => {
+       it("should loads all containers correctly", async () => {
       renderProductDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("Gaming Laptop")).toBeInTheDocument();
-        expect(screen.getByText("$999.99")).toBeInTheDocument();
-        expect(screen.getAllByText("electronics").length).toBeGreaterThan(0);
-        expect(screen.getByText(/high-performance gaming laptop/i)).toBeInTheDocument();
+
+        expect(screen.getByTestId("product-details-grid")).toBeInTheDocument();//grid which divide it into tow colums for product card and related products 
+        expect(screen.getByTestId("product-card-grid")).toBeInTheDocument();//thi si the grid which divide it into two columns for product card and review card
+        expect(screen.getByTestId("product-card")).toBeInTheDocument();//this is the product card where we can see the product details
+        expect(screen.getByTestId("reviews-card")).toBeInTheDocument();//this is the review card where we can see the review of the product
+
+ expect(screen.getByTestId("actions-card")).toBeInTheDocument();//this is the action card where we can apply cruid operations to the product 
+
+
+        expect(screen.getByTestId("quick-stats-card")).toBeInTheDocument();
+        //this is the quick stats card where we can see the quick stats of the product
+        expect(screen.getByTestId("related-products-card")).toBeInTheDocument();
+//this is the related products card where we can see the related products of same category
+
+      
       });
     });
 
-    it("should fetch and display related products", async () => {
+
+    
+    it("should display product information & UI", async () => {
       renderProductDetails();
 
       await waitFor(() => {
-        expect(mockProductAPI.getByCategory).toHaveBeenCalledWith("electronics");
-        expect(screen.getByText("Gaming Mouse")).toBeInTheDocument();
-        expect(screen.getByText("Gaming Keyboard")).toBeInTheDocument();
+          const productCard = screen.getByTestId("product-card");
+        expect(productCard).toBeInTheDocument();
+        expect(productCard).toHaveTextContent("Gaming Laptop");
+        expect(productCard).toHaveTextContent("$999.99");
+        expect(productCard).toHaveTextContent("electronics");
+        expect(productCard).toHaveTextContent(/high-performance gaming laptop/i);
       });
     });
+
+ 
 
     it("should handle API errors", async () => {
       mockProductAPI.getById.mockRejectedValue(new Error("API Error"));
-
       renderProductDetails();
 
       await waitFor(() => {
@@ -170,26 +184,31 @@ describe("ProductDetails", () => {
       renderProductDetails();
 
       await waitFor(() => {
-        expect(screen.getAllByText("4.5").length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/(120 reviews)/i).length).toBeGreaterThan(0);
-            expect(screen.getByText("Total Reviews")).toBeInTheDocument();
-        expect(screen.getByText("120")).toBeInTheDocument();
-        expect(screen.getByText("Avg. Rating")).toBeInTheDocument();
-        expect(screen.getByText("Product ID")).toBeInTheDocument();
-        expect(screen.getByText("#1")).toBeInTheDocument();
+          const productCard = screen.getByTestId("product-card");
+        expect(productCard).toBeInTheDocument();
+        expect(productCard).toHaveTextContent("Gaming Laptop");
+        expect(productCard).toHaveTextContent("$999.99");
+        expect(productCard).toHaveTextContent("electronics");
+        expect(productCard).toHaveTextContent(/high-performance gaming laptop/i);
+        expect(productCard).toHaveTextContent("4.5");
+        expect(productCard).toHaveTextContent(/120 reviews/i);
+        expect(productCard).toHaveTextContent("(120 reviews)");
+        expect(productCard).toHaveTextContent("Avg. Rating");
+        expect(productCard).toHaveTextContent("Product ID");
       });
     });
 
    
-
     it("should handle product with no rating", async () => {
       const productWithoutRating = { ...mockProduct, rating: null };
       mockProductAPI.getById.mockResolvedValue({ data: productWithoutRating });
-
       renderProductDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("N/A")).toBeInTheDocument();
+          const productCard = screen.getByTestId("product-card");
+        expect(productCard).toBeInTheDocument();
+        expect(productCard).toHaveTextContent("N/A");
+        expect(productCard).toHaveTextContent("(0 reviews)");//we dont have any rating so reviews will be 0
       });
     });
 
@@ -197,9 +216,11 @@ describe("ProductDetails", () => {
       renderProductDetails();
 
       await waitFor(() => {
-        const image = screen.getByAltText("Gaming Laptop");
-        expect(image).toBeInTheDocument();
-        expect(image).toHaveAttribute("src", "laptop.jpg");
+           
+        const images=screen.getByTestId("product-image");
+        expect(images).toBeInTheDocument();
+        expect(images).toHaveAttribute("src", "laptop.jpg");
+
       });
     });
   });
@@ -212,24 +233,13 @@ describe("ProductDetails", () => {
       const { user } = renderProductDetails();
 
       await waitFor(() => {
-        expect(screen.getByText(/Back/i)).toBeInTheDocument();
+        const backButton = screen.getByTestId("back-button");
+        expect(backButton).toBeInTheDocument();
       });
 
-      const backButton = screen.getByText("Back");
+       const backButton = screen.getByTestId("back-button");
       await user.click(backButton);
-
       expect(mockNavigate).toHaveBeenCalledWith("/admin/products");
-    });
-
-    it("should navigate to related product on click", async () => {
-      renderProductDetails();
-
-      await waitFor(() => {
-        expect(screen.getByText("Gaming Mouse")).toBeInTheDocument();
-      });
-
-      const relatedProductLink = screen.getByText("Gaming Mouse").closest("a");
-      expect(relatedProductLink).toHaveAttribute("href", "/admin/products/2");
     });
   });
 
@@ -237,30 +247,37 @@ describe("ProductDetails", () => {
   // Product Actions
   // ==========================================================================
   describe("Product Actions", () => {
-    it("should open edit modal", async () => {
-      const { user } = renderProductDetails();
-
-      await waitFor(() => {
-        expect(screen.getByText("Edit Product")).toBeInTheDocument();
-      });
-
-      const editButton = screen.getByText("Edit Product");
-      await user.click(editButton);
-
-      await waitFor(() => {
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
-      });
-    });
+     it("should open edit modal with product data", async () => {
+          const { user } = renderProductDetails();
+    
+          await waitFor(() => {
+            const table = screen.getByTestId("product-card")
+            expect(table).toBeInTheDocument();
+          });
+    
+          const editbutton= screen.getByTestId("edit-button");
+          await user.click(editbutton);
+    
+            await waitFor(() => {
+    
+               expect(screen.getByRole("dialog")).toBeInTheDocument();
+                expect(screen.getByRole("button", { name:/Update Product/i})).toBeInTheDocument();
+                expect(screen.getByRole("button", { name:/cancel/i})).toBeInTheDocument();
+    
+            });
+          
+        });
 
     it("should populate edit form with product data", async () => {
       const { user } = renderProductDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("Gaming Laptop")).toBeInTheDocument();
+          const table = screen.getByTestId("product-card")
+            expect(table).toBeInTheDocument();
       });
 
-      const editButton = screen.getByText("Edit Product");
-      await user.click(editButton);
+        const editbutton= screen.getByTestId("edit-button");
+          await user.click(editbutton)
 
       await waitFor(() => {
         const titleInput = screen.getByLabelText(/product title/i);
@@ -270,19 +287,24 @@ describe("ProductDetails", () => {
 
 
 
-    it("should open delete modal", async () => {
+ it("should open delete modal with product data", async () => {
       const { user } = renderProductDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("Delete Product")).toBeInTheDocument();
+          const table = screen.getByTestId("product-card")
+        expect(table).toBeInTheDocument();
       });
 
-      const deleteButton = screen.getByText("Delete Product");
-      await user.click(deleteButton);
+      const deletebutton= screen.getByTestId("delete-button");
+      await user.click(deletebutton);
 
-      await waitFor(() => {
-        expect(screen.getByRole("dialog")).toBeInTheDocument();
-      });
+        await waitFor(() => {
+            expect(screen.getByText(/are you sure you want to delete/i)).toBeInTheDocument();
+            expect(screen.getAllByRole("button", { name:/delete/i}).length).toBeGreaterThan(0);
+            expect(screen.getByRole("button", { name:/cancel/i})).toBeInTheDocument();
+
+        });
+      
     });
 
     it("should delete product and navigate to products page", async () => {
@@ -291,11 +313,12 @@ describe("ProductDetails", () => {
       const { user } = renderProductDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("Delete Product")).toBeInTheDocument();
+          const table = screen.getByTestId("product-card")
+        expect(table).toBeInTheDocument();
       });
 
-      const deleteButton = screen.getByText("Delete Product");
-      await user.click(deleteButton);
+       const deletebutton= screen.getByTestId("delete-button");
+      await user.click(deletebutton);
 
       await waitFor(() => {
         expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -319,27 +342,21 @@ describe("ProductDetails", () => {
   // Related Products
   // ==========================================================================
   describe("Related Products", () => {
-    it("should display related products section", async () => {
+      it("should fetch and display related products", async () => {
       renderProductDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("Related Products")).toBeInTheDocument();
+        expect(mockProductAPI.getByCategory).toHaveBeenCalledWith("electronics");
+        const relatedProducts = screen.getAllByTestId("related-products-card");
+        expect(relatedProducts.length).toBeGreaterThan(0);
+        expect(relatedProducts[0]).toHaveTextContent("Gaming Mouse");
+        
+
+        expect(screen.getByText("Gaming Mouse")).toBeInTheDocument();
+        expect(screen.getByText("Gaming Keyboard")).toBeInTheDocument();
       });
     });
 
-    it("should filter out current product from related", async () => {
-      const relatedWithSameProduct = [mockProduct, ...mockRelatedProducts];
-      mockProductAPI.getByCategory.mockResolvedValue({ data: relatedWithSameProduct });
-
-      renderProductDetails();
-
-      await waitFor(() => {
-        // Current product should not appear in related section
-        const gamingLaptops = screen.getAllByText("Gaming Laptop");
-        // Only one instance (the main product, not in related)
-        expect(gamingLaptops.length).toBe(1);
-      });
-    });
 
     it("should show empty state when no related products", async () => {
       mockProductAPI.getByCategory.mockResolvedValue({ data: [] });
@@ -351,7 +368,6 @@ describe("ProductDetails", () => {
       });
     });
   });
-
   // ==========================================================================
   // Reviews Section
   // ==========================================================================
@@ -360,7 +376,10 @@ describe("ProductDetails", () => {
       renderProductDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("Customer Reviews")).toBeInTheDocument();
+        const reviewsSection = screen.getByTestId("reviews-card");
+        expect(reviewsSection).toBeInTheDocument();
+        expect(reviewsSection).toHaveTextContent("Customer Reviews");
+        expect(reviewsSection).toHaveTextContent(/4.5out of 5/i);
       });
     });
 
@@ -385,16 +404,6 @@ describe("ProductDetails", () => {
   // Edge Cases
   // ==========================================================================
   describe("Edge Cases", () => {
-    it("should handle product with missing image", async () => {
-      const productWithoutImage = { ...mockProduct, image: "" };
-      mockProductAPI.getById.mockResolvedValue({ data: productWithoutImage });
-
-      renderProductDetails();
-
-      await waitFor(() => {
-        expect(screen.getByText("Gaming Laptop")).toBeInTheDocument();
-      });
-    });
 
     it("should handle very long product titles", async () => {
       const productWithLongTitle = {

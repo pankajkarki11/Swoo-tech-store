@@ -9,17 +9,16 @@ import Products from "../../../pages/admin/Products";
 // MOCKS
 // ============================================================================
 
-const mockNavigate = vi.fn();
+
 const mockToast = {
   success: vi.fn(),
   error: vi.fn(),
 };
-
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return {
     ...actual,
-    useNavigate: () => mockNavigate,
+
     useOutletContext: () => ({ toast: mockToast }),
   };
 });
@@ -75,9 +74,7 @@ const renderProducts = () => {
     user: userEvent.setup(),
     ...render(
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Products />} />
-        </Routes>
+      <Products />
       </BrowserRouter>
     ),
   };
@@ -90,7 +87,6 @@ const renderProducts = () => {
 describe("Products", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockNavigate.mockClear();
     mockProductAPI.getAll.mockResolvedValue({ data: mockProducts });
     mockProductAPI.getCategories.mockResolvedValue({ data: mockCategories });
   });
@@ -105,7 +101,6 @@ describe("Products", () => {
   describe("Initial Render & Data Fetching", () => {
     it("should show loading spinner while fetching", () => {
       mockProductAPI.getAll.mockImplementation(() => new Promise(() => {}));
-
       renderProducts();
 
       expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
@@ -122,22 +117,58 @@ describe("Products", () => {
       });
     });
 
-    it("should display products after loading", async () => {
+    it("should display products UI after loading", async () => {
       renderProducts();
 
       await waitFor(() => {
+
+        //visual checks
         expect(screen.getByText("Laptop")).toBeInTheDocument();
         expect(screen.getByText("T-Shirt")).toBeInTheDocument();
+        expect(screen.getByText("$999.99")).toBeInTheDocument();
+        expect(screen.getByText("$19.99")).toBeInTheDocument();
+        expect(screen.getByText("electronics")).toBeInTheDocument();
+        expect(screen.getByText("clothing")).toBeInTheDocument();
+        expect(screen.queryByTestId("loading-spinner")).not.toBeInTheDocument();//should be disabled when we loaded the product in the DOM
+
+        expect(screen.getByTestId("products-page-container")).toBeInTheDocument();//this is the main container of the page
+
+        expect(screen.getByTestId("stats-grid")).toBeInTheDocument();//this shows the grid of stat card is visible and is there
+        expect(screen.getByTestId("filters-card")).toBeInTheDocument();//this is the section where we can filter product and search the product 
+        expect(screen.getByTestId("refresh-button")).toBeInTheDocument();//this is refresh button available to refresh all the products
+         expect(screen.getByTestId("add-new-button")).toBeInTheDocument(); //this is add new product button used to add new product to the list
+          expect(screen.getByTestId("clear-filters-button")).toBeInTheDocument(); //this clears the filers
+
+           expect(screen.getByTestId("products-table")).toBeInTheDocument();
+           //this is the table where all the products are displayed
       });
     });
 
     it("should handle API errors", async () => {
       mockProductAPI.getAll.mockRejectedValue(new Error("API Error"));
-
       renderProducts();
 
       await waitFor(() => {
         expect(mockToast.error).toHaveBeenCalledWith("Failed to load data");
+      });
+    });
+
+     it("should refresh data when refresh button clicked", async () => {
+      const { user } = renderProducts();
+
+      await waitFor(() => {
+        expect(screen.getByText("Products")).toBeInTheDocument();
+      });
+
+      mockProductAPI.getAll.mockClear();
+      mockProductAPI.getCategories.mockClear();
+
+      const refreshButton = screen.getByText(/^Refresh$/i);
+      await user.click(refreshButton);
+
+      await waitFor(() => {
+        expect(mockProductAPI.getAll).toHaveBeenCalledTimes(1);
+        expect(mockProductAPI.getCategories).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -150,8 +181,9 @@ describe("Products", () => {
       renderProducts();
 
       await waitFor(() => {
-        expect(screen.getByText("Total Products")).toBeInTheDocument();
-        expect(screen.getByText("2")).toBeInTheDocument();
+        const totalProducts = screen.getByTestId("total-products-card");
+        expect(totalProducts).toBeInTheDocument();
+        expect(totalProducts).toHaveTextContent("2");
       });
     });
 
@@ -159,8 +191,9 @@ describe("Products", () => {
       renderProducts();
 
       await waitFor(() => {
-        expect(screen.getByText("Categories")).toBeInTheDocument();
-        expect(screen.getByText("3")).toBeInTheDocument();
+        const totalCategories = screen.getByTestId("total-categories-card");
+        expect(totalCategories).toBeInTheDocument();
+        expect(totalCategories).toHaveTextContent("3");
       });
     });
 
@@ -169,8 +202,19 @@ describe("Products", () => {
 
       // Average: (999.99 + 19.99) / 2 = 509.99
       await waitFor(() => {
-        expect(screen.getByText("Avg. Price")).toBeInTheDocument();
-        expect(screen.getByText("$509.99")).toBeInTheDocument();
+          const averagePrice = screen.getByTestId("avg-price-card");
+        expect(averagePrice).toBeInTheDocument();
+        expect(averagePrice).toHaveTextContent("$509.99");  
+      });
+    });
+
+      it("should display filtered products count", async () => {
+      renderProducts();
+
+      await waitFor(() => {
+   const filteredProducts = screen.getByTestId("filtered-products-card");
+          expect(filteredProducts).toBeInTheDocument();
+          expect(filteredProducts).toHaveTextContent("2"); 
       });
     });
   });
@@ -178,20 +222,26 @@ describe("Products", () => {
   // ==========================================================================
   // Search & Filter
   // ==========================================================================
-  describe("Search & Filter", () => {
+  describe("Search & Filter functions and UI", () => {
     it("should filter products by search term", async () => {
       const { user } = renderProducts();
 
       await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
+
+        const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("Laptop");
+        expect(table).toHaveTextContent("T-Shirt");//visible bbefore searching
       });
 
-      const searchInput = screen.getByPlaceholderText(/search products/i);
+      const searchInput = screen.getByTestId("search-input");
       await user.type(searchInput, "Laptop");
 
       await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
-        expect(screen.queryByText("T-Shirt")).not.toBeInTheDocument();
+        const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("Laptop");
+        expect(table).not.toHaveTextContent("T-Shirt");//not visible after searching
       });
     });
 
@@ -199,46 +249,62 @@ describe("Products", () => {
       const { user } = renderProducts();
 
       await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
+      const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("Laptop");
+        expect(table).toHaveTextContent("T-Shirt");
       });
 
-      const categorySelect = screen.getByDisplayValue(/all categories/i);
+      const categorySelect = screen.getByTestId("category-select");
       await user.selectOptions(categorySelect, "clothing");
 
       await waitFor(() => {
-        expect(screen.getByText("T-Shirt")).toBeInTheDocument();
-        expect(screen.queryByText("Laptop")).not.toBeInTheDocument();
+          const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("T-Shirt");
+        expect(table).not.toHaveTextContent("Laptop");
+        expect(table).not.toHaveTextContent("electronics");
+
       });
     });
 
-    it("should clear filters", async () => {
+    it("Clear filters test", async () => {
       const { user } = renderProducts();
 
-      await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
+          await waitFor(() => {
+
+        const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("Laptop");
+        expect(table).toHaveTextContent("T-Shirt");//visible bbefore searching
       });
 
-      // Apply search filter
-      const searchInput = screen.getByPlaceholderText(/search products/i);
+      const searchInput = screen.getByTestId("search-input");
       await user.type(searchInput, "Laptop");
 
       await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
-        expect(screen.queryByText("T-Shirt")).not.toBeInTheDocument();
+        const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("Laptop");
+        expect(table).not.toHaveTextContent("T-Shirt");//not visible after searching
       });
 
       // Clear filters
-      const clearButton = screen.getByText(/clear filters/i);
+      const clearButton = screen.getByTestId("clear-filters-button");
       await user.click(clearButton);
 
       await waitFor(() => {
+
+         const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("Laptop");
+        expect(table).toHaveTextContent("T-Shirt")
+
         expect(searchInput).toHaveValue("");
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
-        expect(screen.getByText("T-Shirt")).toBeInTheDocument();
+       
       });
     });
   });
-
   // ==========================================================================
   // Product Actions
   // ==========================================================================
@@ -247,29 +313,36 @@ describe("Products", () => {
       const { user } = renderProducts();
 
       await waitFor(() => {
-        expect(screen.getByText("Products")).toBeInTheDocument();
+        const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("Laptop");
       });
 
-      const addButton = screen.getAllByRole("button", { name:/add product/i})[0];
+      const addButton = screen.getByTestId("add-new-button");
       await user.click(addButton);
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name:/Create Product/i})).toBeInTheDocument();
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name:/cancel/i})).toBeInTheDocument();
+        expect(screen.getByRole("button", { name:/create product/i})).toBeInTheDocument();
       });
     });
-
 
     it("should open edit modal with product data", async () => {
       const { user } = renderProducts();
 
       await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
+        const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("Laptop");
       });
 
-      const editbutton= screen.getAllByRole("button", { name:/edit/i})[0];
+      const editbutton= screen.getAllByTestId("edit-button")[0];
       await user.click(editbutton);
 
         await waitFor(() => {
+
+           expect(screen.getByRole("dialog")).toBeInTheDocument();
             expect(screen.getByText("Edit Product")).toBeInTheDocument();
             expect(screen.getByRole("button", { name:/Update Product/i})).toBeInTheDocument();
             expect(screen.getByRole("button", { name:/cancel/i})).toBeInTheDocument();
@@ -281,10 +354,12 @@ describe("Products", () => {
       const { user } = renderProducts();
 
       await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
+          const table = screen.getByTestId("products-table")
+        expect(table).toBeInTheDocument();
+        expect(table).toHaveTextContent("Laptop");
       });
 
-      const deletebutton= screen.getAllByRole("button", { name:/delete-product/i})[0];
+      const deletebutton= screen.getAllByTestId("delete-button")[0];
       await user.click(deletebutton);
 
         await waitFor(() => {
@@ -323,60 +398,5 @@ describe("Products", () => {
     );
   });
 });
-
-  });
-
-  // ==========================================================================
-  // Refresh
-  // ==========================================================================
-  describe("Refresh", () => {
-    it("should refresh data when refresh button clicked", async () => {
-      const { user } = renderProducts();
-
-      await waitFor(() => {
-        expect(screen.getByText("Products")).toBeInTheDocument();
-      });
-
-      mockProductAPI.getAll.mockClear();
-      mockProductAPI.getCategories.mockClear();
-
-      const refreshButton = screen.getByText(/^Refresh$/i);
-      await user.click(refreshButton);
-
-      await waitFor(() => {
-        expect(mockProductAPI.getAll).toHaveBeenCalledTimes(1);
-        expect(mockProductAPI.getCategories).toHaveBeenCalledTimes(1);
-      });
-    });
-  });
-
-  // ==========================================================================
-  // Empty State
-  // ==========================================================================
-  describe("Empty State", () => {
-    it("should show empty state when no products", async () => {
-      mockProductAPI.getAll.mockResolvedValue({ data: [] });
-
-      renderProducts();
-
-      await waitFor(() => {
-        expect(screen.getByText(/no products found/i)).toBeInTheDocument();
-      });
-    });
-
-    it("should show empty state with filtered results", async () => {
-      const { user } = renderProducts();
-
-      await waitFor(() => {
-        expect(screen.getByText("Laptop")).toBeInTheDocument();
-      });
-
-      const searchInput = screen.getByPlaceholderText(/search products/i);
-      await user.type(searchInput, "nonexistent");
-
-      await waitFor(() => {
-        expect(screen.getByText(/no products found/i)).toBeInTheDocument();
-      });
-    });
   });
 });

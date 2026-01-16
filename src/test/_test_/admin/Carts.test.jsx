@@ -1,6 +1,6 @@
 // tests/Carts.test.jsx
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor,within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Carts from "../../../pages/admin/Carts";
@@ -82,9 +82,7 @@ const renderCarts = () => {
     user: userEvent.setup(),
     ...render(
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Carts />} />
-        </Routes>
+        <Carts />
       </BrowserRouter>
     ),
   };
@@ -112,7 +110,6 @@ describe("Carts", () => {
   describe("Initial Render & Data Fetching", () => {
     it("should show loading spinner while fetching", () => {
       mockCartAPI.getAll.mockImplementation(() => new Promise(() => {}));
-
       renderCarts();
 
       expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
@@ -129,18 +126,34 @@ describe("Carts", () => {
       });
     });
 
-    it("should display carts after loading", async () => {
+    it("should display carts UI after loading", async () => {
       renderCarts();
 
       await waitFor(() => {
-        expect(screen.getByText("#1")).toBeInTheDocument();
-        expect(screen.getByText("#2")).toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).toHaveTextContent("User 2");
+        expect(cart).toHaveTextContent("High Value");
+        expect(cart).toHaveTextContent("Jan 1, 2024");
+
+        expect(screen.getByTestId("cart-header")).toBeInTheDocument(); //header
+        expect(screen.getByTestId("refresh-button")).toBeInTheDocument(); //refresh button
+        expect(screen.getByTestId("create-button")).toBeInTheDocument(); //to reaTe a new cart
+        expect(screen.getByTestId("cart-stats")).toBeInTheDocument(); //cart stats
+        expect(screen.getByTestId("cart-filters")).toBeInTheDocument(); //filter section with search and status
+        expect(screen.getByTestId("search-input")).toBeInTheDocument(); //filter search inout field
+        expect(screen.getByTestId("status-select")).toBeInTheDocument(); //select the status for carts such as incative,active etc
+        expect(screen.getByTestId("clear-filters-button")).toBeInTheDocument(); //clearing the filter
+        expect(screen.getByTestId("cart-table")).toBeInTheDocument(); //shows the table of the cart with various cart no ,theyr user id etc
+        expect(screen.getAllByTestId("delete-button").length).toBeGreaterThan(
+          0
+        ); //delete button in cart
+        expect(screen.getAllByTestId("view-button").length).toBeGreaterThan(0);
       });
     });
 
     it("should handle API errors", async () => {
       mockCartAPI.getAll.mockRejectedValue(new Error("API Error"));
-
       renderCarts();
 
       await waitFor(() => {
@@ -152,13 +165,14 @@ describe("Carts", () => {
   // ==========================================================================
   // Statistics Display
   // ==========================================================================
-  describe("Statistics Display", () => {
+  describe("Statistics Display for Carts At Top", () => {
     it("should display total carts count", async () => {
       renderCarts();
 
       await waitFor(() => {
-        expect(screen.getByText("Total Carts")).toBeInTheDocument();
-        expect(screen.getByText("3")).toBeInTheDocument();
+        const totalCartsElement = screen.getByTestId("total-carts-card");
+        expect(totalCartsElement).toBeInTheDocument();
+        expect(totalCartsElement).toHaveTextContent("3");
       });
     });
 
@@ -167,8 +181,9 @@ describe("Carts", () => {
 
       // 2 active carts (excluding empty cart)
       await waitFor(() => {
-        expect(screen.getAllByText("Active Carts").length).toBeGreaterThan(0);
-        expect(screen.getByText("2")).toBeInTheDocument();
+        const activeCartsElement = screen.getByTestId("active-carts-card");
+        expect(activeCartsElement).toBeInTheDocument();
+        expect(activeCartsElement).toHaveTextContent("2");
       });
     });
 
@@ -177,8 +192,9 @@ describe("Carts", () => {
 
       // Total: 999.99 + 59.98 + 29.99 = 1089.96
       await waitFor(() => {
-        expect(screen.getByText("Total Revenue")).toBeInTheDocument();
-        expect(screen.getByText("$1089.96")).toBeInTheDocument();
+        const totalRevenueElement = screen.getByTestId("total-revenue-card");
+        expect(totalRevenueElement).toBeInTheDocument();
+        expect(totalRevenueElement).toHaveTextContent("$1089.96");
       });
     });
 
@@ -187,8 +203,9 @@ describe("Carts", () => {
 
       // Average: 1089.96 / 2 active carts = 544.98
       await waitFor(() => {
-        expect(screen.getByText("Avg Cart Value")).toBeInTheDocument();
-        expect(screen.getByText("$544.98")).toBeInTheDocument();
+        const averageCartValue = screen.getByTestId("avg-cart-value-card");
+        expect(averageCartValue).toBeInTheDocument();
+        expect(averageCartValue).toHaveTextContent("$544.98");
       });
     });
   });
@@ -201,17 +218,20 @@ describe("Carts", () => {
       const { user } = renderCarts();
 
       await waitFor(() => {
-        expect(screen.getByText("User 1")).toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toBeInTheDocument();
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).toHaveTextContent("User 2");
+        expect(cart).toHaveTextContent("High Value");
+        expect(cart).toHaveTextContent("Jan 1, 2024");
       });
-
-      const searchInput = screen.getByPlaceholderText(
-        /search by user id or cart id/i
-      );
+      const searchInput = screen.getByTestId("search-input");
       await user.type(searchInput, "1");
 
       await waitFor(() => {
-        expect(screen.getByText("User 1")).toBeInTheDocument();
-        expect(screen.queryByText("User 2")).not.toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).not.toHaveTextContent("User 2");
       });
     });
 
@@ -219,10 +239,13 @@ describe("Carts", () => {
       const { user } = renderCarts();
 
       await waitFor(() => {
-        expect(screen.getAllByText(/User/i).length).toBeGreaterThan(0);
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toBeInTheDocument();
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).toHaveTextContent("User 2");
       });
 
-      const statusSelect = screen.getByDisplayValue(/all status/i);
+      const statusSelect = screen.getByTestId("status-select");
       await user.selectOptions(statusSelect, "empty");
 
       await waitFor(() => {
@@ -236,28 +259,31 @@ describe("Carts", () => {
       const { user } = renderCarts();
 
       await waitFor(() => {
-        expect(screen.getByText("User 1")).toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toBeInTheDocument();
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).toHaveTextContent("User 2");
       });
 
       // Apply filter
-      const searchInput = screen.getByPlaceholderText(
-        /search by user id or cart id/i
-      );
+      const searchInput = screen.getByTestId("search-input");
       await user.type(searchInput, "1");
 
       await waitFor(() => {
-        expect(screen.getByText("User 1")).toBeInTheDocument();
-        expect(screen.queryByText("User 2")).not.toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).not.toHaveTextContent("User 2");
       });
 
       // Clear filters
-      const clearButton = screen.getByText(/clear filters/i);
+      const clearButton = screen.getByTestId("clear-filters-button");
       await user.click(clearButton);
 
       await waitFor(() => {
         expect(searchInput).toHaveValue("");
-        expect(screen.getByText("User 1")).toBeInTheDocument();
-        expect(screen.queryByText("User 2")).toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).toHaveTextContent("User 2");
       });
     });
   });
@@ -270,68 +296,68 @@ describe("Carts", () => {
       const { user } = renderCarts();
 
       await waitFor(() => {
-        expect(screen.getByText("#1")).toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).toHaveTextContent("User 2");
       });
 
-    const viewButton=screen.getAllByRole("button", { name:/view cart/i})[0];
-    await user.click(viewButton);
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/admin/carts/1");
-      
-     
+      const viewButton = screen.getAllByTestId("view-button")[0];
+      await user.click(viewButton);
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith("/admin/carts/1");
+      });
     });
-  });
 
     it("should open delete modal", async () => {
       const { user } = renderCarts();
 
       await waitFor(() => {
-        expect(screen.getByText("#1")).toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).toHaveTextContent("User 2");
       });
 
-      const deleteButtons = screen.getAllByRole("button",{name:/delete cart/i})[0];
+      const deleteButtons = screen.getAllByTestId("delete-button")[0];
       await user.click(deleteButtons);
 
-         const dialog = await screen.findByRole("dialog");
-        
+      const dialog = await screen.findByRole("dialog");
 
-        await waitFor(() => {
-          expect(screen.getByRole("dialog")).toBeInTheDocument();
-          expect( within(dialog).getByRole("button", { name: /delete/i })).toBeInTheDocument();
-          expect(screen.getAllByText("Delete Cart").length).toBeGreaterThan(0);
-        });
-      
+      await waitFor(() => {
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(
+          within(dialog).getByRole("button", { name: /delete/i })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: "Cancel" })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: "Delete Cart" })
+        ).toBeInTheDocument();
+      });
     });
 
- it("should delete cart successfully with delete modal", async () => {
+    it("should delete cart successfully with delete modal", async () => {
       const { user } = renderCarts();
 
       await waitFor(() => {
-        expect(screen.getByText("#1")).toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).toHaveTextContent("User 2");
       });
 
-      const deleteButtons = screen.getAllByRole("button",{name:/delete cart/i})[0];
+      const deleteButtons = screen.getAllByTestId("delete-button")[0];
       await user.click(deleteButtons);
 
-       
+      const dialog = await screen.findByRole("dialog");
+      // confirm delete
+      await user.click(within(dialog).getByRole("button", { name: /delete/i }));
 
-        await waitFor(() => {
-          expect(screen.getByRole("dialog")).toBeInTheDocument();
-          expect(screen.getAllByText("Delete Cart").length).toBeGreaterThan(0);
-        });
-          const dialog = await screen.findByRole("dialog");
-         // confirm delete
-          await user.click(
-            within(dialog).getByRole("button", { name: /delete/i })
-          );
-        
-          await waitFor(() => {
-            expect(mockCartAPI.delete).toHaveBeenCalledWith(1);
-            expect(mockToast.success).toHaveBeenCalledWith(
-              "Cart deleted successfully"
-            );
-          });
-      
+      await waitFor(() => {
+        expect(mockCartAPI.delete).toHaveBeenCalledWith(1);
+        expect(mockToast.success).toHaveBeenCalledWith(
+          "Cart deleted successfully"
+        );
+      });
     });
   });
 
@@ -343,13 +369,15 @@ describe("Carts", () => {
       const { user } = renderCarts();
 
       await waitFor(() => {
-        expect(screen.getByText("Shopping Carts")).toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).toHaveTextContent("User 1");
+        expect(cart).toHaveTextContent("User 2");
       });
 
       mockCartAPI.getAll.mockClear();
       mockProductAPI.getAll.mockClear();
 
-      const refreshButton = screen.getByText(/^Refresh$/i);
+      const refreshButton = screen.getByTestId("refresh-button");
       await user.click(refreshButton);
 
       await waitFor(() => {
@@ -369,25 +397,10 @@ describe("Carts", () => {
       renderCarts();
 
       await waitFor(() => {
-        expect(screen.getByText(/no carts found/i)).toBeInTheDocument();
-      });
-    });
-  });
-
-  // ==========================================================================
-  // Edge Cases
-  // ==========================================================================
-  describe("Edge Cases", () => {
-   
-
-    it("should handle null/undefined API responses", async () => {
-      mockCartAPI.getAll.mockResolvedValue({ data: null });
-      mockProductAPI.getAll.mockResolvedValue({ data: undefined });
-
-      renderCarts();
-
-      await waitFor(() => {
-        expect(screen.getByText("Shopping Carts")).toBeInTheDocument();
+        const cart = screen.getByTestId("cart-table");
+        expect(cart).not.toHaveTextContent("User 1");
+        expect(cart).not.toHaveTextContent("User 2");
+        expect(cart).toHaveTextContent(/No Carts Found/i);
       });
     });
   });

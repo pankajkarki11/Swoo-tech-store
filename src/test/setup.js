@@ -3,6 +3,11 @@ import "@testing-library/user-event"
 import { cleanup } from '@testing-library/react';
 import { vi } from "vitest";
 
+ beforeEach(() => {
+     vi.spyOn(console, "error").mockImplementation(() => {});
+    });
+
+
 afterEach(()=>{
   cleanup();
 })

@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useRef} from "react";
+import { Link, useOutletContext,useNavigate } from "react-router-dom";
 import Card from "../../components_temp/ui/Card";
 import Button from "../../components_temp/ui/Button";
 import Input from "../../components_temp/ui/Input";
@@ -33,18 +33,15 @@ const UsersPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null); 
   const hasFetchedRef = useRef(false);
-    const fetchUsers = useCallback(async () => { 
-    if (hasFetchedRef.current) {
-      console.log("⏸️ Users already fetched, skipping...");
-      return; }
-    console.log("📥 Fetching users from API...");
 
+  const navigate = useNavigate();
+
+    const fetchUsers = useCallback(async () => { 
     try {
       setLoading(true);
       const response = await api.userAPI.getAll();
       setUsers(response.data || []);
       hasFetchedRef.current = true; 
-      console.log("✅ Users loaded:", response.data?.length || 0);
     } catch (error) {
       console.error("❌ Error loading users:", error);
       toast.error("Failed to load users");
@@ -124,7 +121,6 @@ const UsersPage = () => {
   };
 
   const handleRefresh = useCallback(() => {
-    console.log("🔄 Manual refresh triggered");
     hasFetchedRef.current = false; 
     fetchUsers();
   }, [fetchUsers]);
@@ -140,7 +136,9 @@ const UsersPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div 
+      data-testid="users-header"
+      className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Users
@@ -150,10 +148,14 @@ const UsersPage = () => {
           </p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" onClick={handleRefresh}>
+          <Button 
+          data-testid="refresh-button"
+          variant="outline" onClick={handleRefresh}>
             Refresh
           </Button>
-          <Button variant="primary" icon={ <Plus className="h-5 w-5" />}>
+          <Button 
+          data-testid="add-user-button"
+          variant="primary" icon={ <Plus className="h-5 w-5" />}>
            
             Add User
           </Button>
@@ -161,8 +163,12 @@ const UsersPage = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="hover:shadow-md transition-shadow">
+      <div 
+      data-testid="users-stats"
+      className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card 
+        data-testid="total-users-card"
+        className="hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -178,7 +184,9 @@ const UsersPage = () => {
           </div>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card 
+        data-testid="active-users-card"
+        className="hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -196,7 +204,9 @@ const UsersPage = () => {
           </div>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card 
+        data-testid="admins-card"
+        className="hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -220,7 +230,9 @@ const UsersPage = () => {
           </div>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card 
+        data-testid="customers-card"
+        className="hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -240,10 +252,13 @@ const UsersPage = () => {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card
+      data-testid="filters-card"
+      >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
             <Input
+            data-testid="search-input"
               leftIcon={<Search className="h-5 w-5 text-gray-400" />}
               placeholder="Search users by name, email, or username..."
               value={searchTerm}
@@ -253,6 +268,7 @@ const UsersPage = () => {
 
           <div>
             <select
+            data-testid="role-select"
               className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
@@ -265,6 +281,7 @@ const UsersPage = () => {
 
           <div>
             <Button
+            data-testid="clear-filters-button"
               variant="outline"
               fullWidth
               onClick={() => {
@@ -281,7 +298,9 @@ const UsersPage = () => {
       </Card>
 
       {/* Users Table */}
-      <Card padding={false}>
+      <Card 
+      data-testid="users-table"
+      padding={false}>
         <div className="overflow-x-auto">
           <Table>
             <Table.Header>
@@ -346,13 +365,18 @@ const UsersPage = () => {
 
                   <Table.Cell>
                     <div className="flex items-center space-x-2">
-                      <Link to={`/admin/users/${user.id}`}>
-                        <Button size="small" variant="ghost">
+                   
+                        <Button 
+                        onClick={() => navigate(`/admin/users/${user.id}`)}
+                       
+                        data-testid="view-button"
+                        size="small" variant="ghost">
                           <Eye className="h-4 w-4" />
                         </Button>
-                      </Link>
+                 
 
                       <Button
+                      data-testid="edit-button"
                         size="small"
                         variant="ghost"
                         onClick={() => {
@@ -363,6 +387,7 @@ const UsersPage = () => {
                       </Button>
 
                       <Button
+                      data-testid="delete-button"
                         aria-label="Delete user"
                         size="small"
                         variant="ghost"

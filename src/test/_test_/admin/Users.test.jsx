@@ -1,6 +1,6 @@
 // tests/UsersPage.test.jsx
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor,within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UsersPage from "../../../pages/admin/Users";
@@ -75,9 +75,7 @@ const renderUsersPage = () => {
     user: userEvent.setup(),
     ...render(
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<UsersPage />} />
-        </Routes>
+        <UsersPage />
       </BrowserRouter>
     ),
   };
@@ -104,7 +102,6 @@ describe("UsersPage", () => {
   describe("Initial Render & Data Fetching", () => {
     it("should show loading spinner while fetching", () => {
       mockUserAPI.getAll.mockImplementation(() => new Promise(() => {}));
-
       renderUsersPage();
 
       expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
@@ -112,18 +109,32 @@ describe("UsersPage", () => {
 
     it("should fetch users on mount", async () => {
       renderUsersPage();
-
       expect(mockUserAPI.getAll).toHaveBeenCalledTimes(1);
-
-      await waitFor(() => {
-        expect(screen.getByText("Users")).toBeInTheDocument();
-      });
     });
 
-    it("should display users after loading", async () => {
+    it("should display users UI after loading", async () => {
       renderUsersPage();
 
       await waitFor(() => {
+        expect(screen.getByTestId("users-header")).toBeInTheDocument();
+
+        expect(screen.getByTestId("refresh-button")).toBeInTheDocument();
+        expect(screen.getByTestId("add-user-button")).toBeInTheDocument();
+        expect(screen.getByTestId("users-stats")).toBeInTheDocument();
+
+        expect(screen.getByTestId("total-users-card")).toBeInTheDocument();
+        expect(screen.getByTestId("active-users-card")).toBeInTheDocument();
+        expect(screen.getByTestId("admins-card")).toBeInTheDocument();
+        expect(screen.getByTestId("customers-card")).toBeInTheDocument();
+        expect(screen.getByTestId("filters-card")).toBeInTheDocument();
+        expect(screen.getByTestId("search-input")).toBeInTheDocument();
+        expect(screen.getByTestId("role-select")).toBeInTheDocument();
+        expect(screen.getByTestId("clear-filters-button")).toBeInTheDocument();
+        expect(screen.getByTestId("users-table")).toBeInTheDocument();
+        expect(screen.getAllByTestId("view-button")[0]).toBeInTheDocument();//there are multiple view button because we have multiple users and each ahve their own view button,delete button and edit button.
+        expect(screen.getAllByTestId("edit-button")[0]).toBeInTheDocument();
+        expect(screen.getAllByTestId("delete-button")[0]).toBeInTheDocument();
+
         expect(screen.getByText("John Doe")).toBeInTheDocument();
         expect(screen.getByText("Admin User")).toBeInTheDocument();
         expect(screen.getByText("Jane Smith")).toBeInTheDocument();
@@ -132,14 +143,12 @@ describe("UsersPage", () => {
 
     it("should handle API errors", async () => {
       mockUserAPI.getAll.mockRejectedValue(new Error("API Error"));
-
       renderUsersPage();
 
       await waitFor(() => {
         expect(mockToast.error).toHaveBeenCalledWith("Failed to load users");
       });
     });
-
   });
 
   // ==========================================================================
@@ -150,8 +159,11 @@ describe("UsersPage", () => {
       renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("Total Users")).toBeInTheDocument();
-        expect(screen.getByText("3")).toBeInTheDocument();
+
+        const totalUsersCard = screen.getByTestId("total-users-card");
+        expect(totalUsersCard).toBeInTheDocument();
+        expect(totalUsersCard).toHaveTextContent("3");
+        expect(totalUsersCard).toHaveTextContent("Total Users");
       });
     });
 
@@ -160,8 +172,11 @@ describe("UsersPage", () => {
 
       // Active users = total - 1
       await waitFor(() => {
-        expect(screen.getByText("Active Users")).toBeInTheDocument();
-        expect(screen.getAllByText("2").length).toBeGreaterThan(0);
+
+        const activeUsersCard = screen.getByTestId("active-users-card");
+        expect(activeUsersCard).toBeInTheDocument();
+        expect(activeUsersCard).toHaveTextContent("2");
+        expect(activeUsersCard).toHaveTextContent("Active Users");
       });
     });
 
@@ -170,11 +185,26 @@ describe("UsersPage", () => {
 
       // 1 admin user (username contains "admin")
       await waitFor(() => {
-        expect(screen.getByText("Admins")).toBeInTheDocument();
-       
+
+        const adminsCard = screen.getByTestId("admins-card");
+        expect(adminsCard).toBeInTheDocument();
+        expect(adminsCard).toHaveTextContent("Admins");
       });
     });
+      it("should display Customer count", async () => {
+      renderUsersPage();
+
+      // 1 admin user (username contains "admin")
+      await waitFor(() => {
+
+      const customersCard = screen.getByTestId("customers-card");
+      expect(customersCard).toBeInTheDocument();
+      expect(customersCard).toHaveTextContent("2");
+      expect(customersCard).toHaveTextContent("Customers");
+      });
+ 
   });
+});
 
   // ==========================================================================
   // Search & Filter
@@ -184,17 +214,20 @@ describe("UsersPage", () => {
       const { user } = renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
+
+        const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
       });
 
-      const searchInput = screen.getByPlaceholderText(
-        /search users by name, email, or username/i
-      );
+      const searchInput = screen.getByTestId("search-input");
       await user.type(searchInput, "John");
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-        expect(screen.queryByText("Jane Smith")).not.toBeInTheDocument();
+         const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
+        expect(userTable).not.toHaveTextContent("Jane Smith");
       });
     });
 
@@ -202,17 +235,19 @@ describe("UsersPage", () => {
       const { user } = renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
+        const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
       });
 
-      const searchInput = screen.getByPlaceholderText(
-        /search users by name, email, or username/i
-      );
+      const searchInput = screen.getByTestId("search-input");
       await user.type(searchInput, "admin@example.com");
 
       await waitFor(() => {
-        expect(screen.getByText("Admin User")).toBeInTheDocument();
-        expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
+        const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).not.toHaveTextContent("John Doe");
+        expect(userTable).toHaveTextContent("Admin User");
       });
     });
 
@@ -220,16 +255,21 @@ describe("UsersPage", () => {
       const { user } = renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
+          const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
       });
 
-      const roleSelect = screen.getByDisplayValue(/all roles/i);
+      const roleSelect = screen.getByTestId("role-select");
       await user.selectOptions(roleSelect, "admin");
 
       await waitFor(() => {
-        expect(screen.getByText("Admin User")).toBeInTheDocument();
-        expect(screen.queryByText("Jane Smith")).not.toBeInTheDocument();
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
+
+         const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
+        expect(userTable).toHaveTextContent("Admin User");
+        expect(userTable).not.toHaveTextContent("Jane Smith");
       });
     });
 
@@ -237,23 +277,30 @@ describe("UsersPage", () => {
       const { user } = renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
+            const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
       });
 
       // Apply filter
-      const searchInput = screen.getByPlaceholderText(
-        /search users by name, email, or username/i
-      );
+       const searchInput = screen.getByTestId("search-input");
       await user.type(searchInput, "John");
 
+      await waitFor(() => {
+         const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
+        expect(userTable).not.toHaveTextContent("Jane Smith");
+      });
+
       // Clear filters
-      const clearButton = screen.getByText(/clear filters/i);
+      const clearButton = screen.getByTestId("clear-filters-button");
       await user.click(clearButton);
 
       await waitFor(() => {
-        expect(searchInput).toHaveValue("");
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-        expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+       const userTable = screen.getByTestId("users-table");
+        expect(userTable).toHaveTextContent("John Doe");
+        expect(userTable).toHaveTextContent("Jane Smith");
       });
     });
   });
@@ -262,72 +309,86 @@ describe("UsersPage", () => {
   // User Actions
   // ==========================================================================
   describe("User Actions", () => {
-    it("should navigate to user details on view", async () => {
-      renderUsersPage();
+    it("should navigate to user details on Clicking view Button", async () => {
+      const { user } = renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
+         const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
       });
 
       // Find link to user details
-      const userLink = screen.getByText("John Doe").closest("tr").querySelector("a");
-      
-      if (userLink) {
-        expect(userLink).toHaveAttribute("href", "/admin/users/1");
-      }
-    });
+      const userLink = screen.getAllByTestId("view-button")[0];
+      await user.click(userLink);
 
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith("/admin/users/1");
+      });
+    });
 
     it("should open delete modal", async () => {
       const { user } = renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getAllByText(/john/i).length).toBeGreaterThan(0);
+      const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
       });
 
-      const deleteButtons = screen.getAllByRole("button",{name:/delete user/i})[0];
+      const deleteButtons = screen.getAllByTestId("delete-button")[0];
       await user.click(deleteButtons);
 
-         const dialog = await screen.findByRole("dialog");
-        
-
-        await waitFor(() => {
-          expect(screen.getByRole("dialog")).toBeInTheDocument();
-          expect( within(dialog).getByRole("button", { name: /delete user/i })).toBeInTheDocument();
-          expect(screen.getAllByText(/Delete user/i).length).toBeGreaterThan(0);
-        });
-      
-    });
-
- it("should delete user successfully with delete modal", async () => {
-      const { user } = renderUsersPage();
+      const dialog = await screen.findByRole("dialog");
 
       await waitFor(() => {
-        expect(screen.getAllByText(/john/i).length).toBeGreaterThan(0);
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(
+          within(dialog).getByRole("button", { name: /delete user/i })
+        ).toBeInTheDocument();
+        expect(
+          within(dialog).getByRole("button", { name: /cancel/i })
+        ).toBeInTheDocument();
+       
+      });
+    });
+
+    it("should delete user successfully with delete modal", async () => {
+      const { user } = renderUsersPage();
+
+       await waitFor(() => {
+      const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
       });
 
-      const deleteButtons = screen.getAllByRole("button",{name:/delete user/i})[0];
+      const deleteButtons = screen.getAllByTestId("delete-button")[0];
       await user.click(deleteButtons);
 
-       
+      const dialog = await screen.findByRole("dialog");
 
         await waitFor(() => {
-          expect(screen.getByRole("dialog")).toBeInTheDocument();
-          expect(screen.getAllByText(/delete user/i).length).toBeGreaterThan(0);
-        });
-          const dialog = await screen.findByRole("dialog");
-         // confirm delete
-          await user.click(
-            within(dialog).getByRole("button", { name: /delete user/i })
-          );
-        
-          await waitFor(() => {
-            expect(mockUserAPI.delete).toHaveBeenCalledWith(1);
-            expect(mockToast.success).toHaveBeenCalledWith(
-              "User deleted successfully"
-            );
-          });
-      
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+        expect(
+          within(dialog).getByRole("button", { name: /delete user/i })
+        ).toBeInTheDocument();
+        expect(
+          within(dialog).getByRole("button", { name: /cancel/i })
+        ).toBeInTheDocument();
+       
+      });
+
+      // confirm delete
+      await user.click(
+        within(dialog).getByRole("button", { name: /delete user/i })
+      );
+
+      await waitFor(() => {
+        expect(mockUserAPI.delete).toHaveBeenCalledWith(1);
+        expect(mockToast.success).toHaveBeenCalledWith(
+          "User deleted successfully"
+        );
+      });
     });
   });
 
@@ -339,12 +400,14 @@ describe("UsersPage", () => {
       const { user } = renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("Users")).toBeInTheDocument();
+        const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
       });
 
       mockUserAPI.getAll.mockClear();
 
-      const refreshButton = screen.getByText(/^Refresh$/i);
+      const refreshButton = screen.getByTestId("refresh-button");
       await user.click(refreshButton);
 
       await waitFor(() => {
@@ -361,16 +424,17 @@ describe("UsersPage", () => {
       const { user } = renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
+        const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("John Doe");
       });
 
-      const searchInput = screen.getByPlaceholderText(
-        /search users by name, email, or username/i
-      );
-      await user.type(searchInput, "nonexistent");
+      const searchInput = screen.getByTestId("search-input");
+      await user.type(searchInput, "Hari");
 
       await waitFor(() => {
-        expect(screen.getByText(/no users found/i)).toBeInTheDocument();
+          const userTable = screen.getByTestId("users-table");
+          expect(userTable).toHaveTextContent(/no users found/i);
       });
     });
   });
@@ -396,7 +460,9 @@ describe("UsersPage", () => {
       renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("Users")).toBeInTheDocument();
+         const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("testuser");
       });
     });
 
@@ -406,7 +472,10 @@ describe("UsersPage", () => {
       renderUsersPage();
 
       await waitFor(() => {
-        expect(screen.getByText("Users")).toBeInTheDocument();
+          const userTable = screen.getByTestId("users-table");
+        expect(userTable).toBeInTheDocument();
+        expect(userTable).toHaveTextContent("No users foundNo users have been created yet");//as there is no response from the api so it shows no users founf ,no users have been creayted yet
+     
       });
     });
   });

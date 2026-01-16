@@ -229,7 +229,10 @@ const Carts = () => {
 
   if (loading) {
     return (
-   <div data-testid="loading-spinner" className="flex items-center justify-center h-64">
+      <div
+        data-testid="loading-spinner"
+        className="flex items-center justify-center h-64"
+      >
         <LoadingSpinner size="large" />
       </div>
     );
@@ -238,7 +241,10 @@ const Carts = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div
+        data-testid="cart-header"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+      >
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Shopping Carts
@@ -248,19 +254,33 @@ const Carts = () => {
           </p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" onClick={handleRefresh} loading={loading}>
+          <Button
+            data-testid="refresh-button"
+            variant="outline"
+            onClick={handleRefresh}
+            loading={loading}
+          >
             Refresh
           </Button>
-          <Button variant="primary"icon={<Plus className="h-5 w-5" />}>
-            
+          <Button
+            data-testid="create-button"
+            variant="primary"
+            icon={<Plus className="h-5 w-5" />}
+          >
             Create Cart
           </Button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="hover:shadow-md transition-shadow">
+      <div
+        data-testid="cart-stats"
+        className="grid grid-cols-1 md:grid-cols-4 gap-6"
+      >
+        <Card
+          data-testid="total-carts-card"
+          className="hover:shadow-md transition-shadow"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -276,7 +296,10 @@ const Carts = () => {
           </div>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card
+          data-testid="active-carts-card"
+          className="hover:shadow-md transition-shadow"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -292,7 +315,10 @@ const Carts = () => {
           </div>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card
+          data-testid="total-revenue-card"
+          className="hover:shadow-md transition-shadow"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -308,7 +334,10 @@ const Carts = () => {
           </div>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card
+          data-testid="avg-cart-value-card"
+          className="hover:shadow-md transition-shadow"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -326,10 +355,11 @@ const Carts = () => {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card data-testid="cart-filters">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
             <Input
+              data-testid="search-input"
               leftIcon={<Search className="h-5 w-5 text-gray-400" />}
               placeholder="Search by User ID or Cart ID..."
               value={searchTerm}
@@ -339,6 +369,7 @@ const Carts = () => {
 
           <div>
             <select
+              data-testid="status-select"
               className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
@@ -351,8 +382,13 @@ const Carts = () => {
           </div>
 
           <div>
-            <Button variant="outline" fullWidth onClick={clearFilters} icon={  <Filter className="h-5 w-5 mr-2" />}>
-            
+            <Button
+              data-testid="clear-filters-button"
+              variant="outline"
+              fullWidth
+              onClick={clearFilters}
+              icon={<Filter className="h-5 w-5 mr-2" />}
+            >
               Clear Filters
             </Button>
           </div>
@@ -360,7 +396,7 @@ const Carts = () => {
       </Card>
 
       {/* Carts Table */}
-      <Card padding={false}>
+      <Card data-testid="cart-table" padding={false}>
         <div className="overflow-x-auto">
           <Table>
             <Table.Header>
@@ -420,17 +456,21 @@ const Carts = () => {
 
                   <Table.Cell>
                     <div className="flex items-center space-x-2">
-                      
-                        <Button 
+                      <Button
+                        data-testid="view-button"
                         aria-label="View cart"
-                        onClick={() =>{ navigate(`/admin/carts/${cart.id}`)}}
-                        size="small" variant="ghost">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      
+                        onClick={() => {
+                          navigate(`/admin/carts/${cart.id}`);
+                        }}
+                        size="small"
+                        variant="ghost"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
 
                       <Button
-                      aria-label="Delete cart"
+                        data-testid="delete-button"
+                        aria-label="Delete cart"
                         size="small"
                         variant="ghost"
                         onClick={() => {

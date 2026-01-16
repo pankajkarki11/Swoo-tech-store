@@ -198,7 +198,9 @@ const Products = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div 
+    data-testid="products-page-container" 
+    className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -210,10 +212,14 @@ const Products = () => {
           </p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" onClick={handleRefresh} loading={loading}>
+          <Button
+          data-testid="refresh-button"
+          variant="outline" onClick={handleRefresh} loading={loading}>
             Refresh
           </Button>
-          <Button variant="primary" icon={<Plus className="h-5 w-5" />} onClick={handleAddNew}>
+          <Button
+          data-testid="add-new-button"
+          variant="primary" icon={<Plus className="h-5 w-5" />} onClick={handleAddNew}>
             
             Add Product
           </Button>
@@ -221,8 +227,12 @@ const Products = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <Card>
+      <div 
+      data-testid="stats-grid"
+      className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <Card
+        data-testid="total-products-card"
+        >
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Total Products
@@ -233,7 +243,9 @@ const Products = () => {
           </div>
         </Card>
 
-        <Card>
+        <Card
+        data-testid="total-categories-card"
+        >
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Categories
@@ -244,7 +256,9 @@ const Products = () => {
           </div>
         </Card>
 
-        <Card>
+        <Card
+        data-testid="avg-price-card"
+        >
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Avg. Price
@@ -261,7 +275,11 @@ const Products = () => {
           </div>
         </Card>
 
-        <Card>
+ 
+
+        <Card
+        data-testid="filtered-products-card"
+        >
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">Filtered</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
@@ -272,10 +290,13 @@ const Products = () => {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card
+      data-testid="filters-card"
+      >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
             <Input
+            data-testid="search-input"
               leftIcon={<Search className="h-5 w-5 text-gray-400" />}
               placeholder="Search products..."
               value={searchTerm}
@@ -285,6 +306,7 @@ const Products = () => {
 
           <div>
             <select
+            data-testid="category-select"
               className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
@@ -299,7 +321,9 @@ const Products = () => {
           </div>
 
           <div>
-            <Button variant="outline" icon={  <Filter className="h-5 w-5 mr-2" />}fullWidth onClick={clearFilters}>
+            <Button
+            data-testid="clear-filters-button"
+            variant="outline" icon={  <Filter className="h-5 w-5 mr-2" />}fullWidth onClick={clearFilters}>
             
               Clear Filters
             </Button>
@@ -308,7 +332,9 @@ const Products = () => {
       </Card>
 
       {/* Products Table */}
-      <Card padding={false}>
+      <Card 
+      data-testid="products-table"
+      padding={false}>
         <div className="overflow-x-auto">
           <Table>
             <Table.Header>
@@ -377,6 +403,7 @@ const Products = () => {
                       </Link>
                             
                       <Button
+                      data-testid="edit-button"
                      aria-label="Edit"
                         size="small"
                         variant="ghost"
@@ -387,6 +414,7 @@ const Products = () => {
                      
 
                       <Button
+                      data-testid="delete-button"
                       aria-label="delete-product"
                         size="small"
                         variant="ghost"

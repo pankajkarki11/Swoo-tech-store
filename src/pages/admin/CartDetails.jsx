@@ -193,9 +193,13 @@ const CartDetails = () => {
     <div className="container mx-auto px-1 py-8">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div 
+        data-testid="cart-header"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center space-x-4">
-            <Button variant="outline" size="small" onClick={handleBack}
+            <Button 
+            data-testid="back-button"
+            variant="outline" size="small" onClick={handleBack}
             icon={<ArrowLeft/>}>
               Back to Carts
             </Button>
@@ -210,7 +214,9 @@ const CartDetails = () => {
           </div>
 
           <div className="flex space-x-3">
-            <Button variant="primary" onClick={() => navigate("/admin/processorder")}
+            <Button 
+            data-testid="process-order-button"
+            variant="primary" onClick={() => navigate("/admin/processorder")}
               icon={<Truck />}>
               Process Order
             </Button>
@@ -221,7 +227,10 @@ const CartDetails = () => {
           {/* Left column - Cart items */}
           <div className="lg:col-span-2 space-y-6">
             {/* Cart Items */}
-            <Card>
+            <Card
+            data-testid="cart-table"
+            className="dark:bg-gray-800 dark:border-gray-700"
+            >
               <Card.Header>
                 <Card.Title>Cart Items ({cartItems.length})</Card.Title>
                 <Card.Description>
@@ -299,6 +308,7 @@ const CartDetails = () => {
 
                           <Table.Cell>
                             <Button
+                            data-testid="remove-item-button"
                               size="small"
                               variant="ghost"
                               className="text-red-500 hover:text-red-600"
@@ -331,7 +341,9 @@ const CartDetails = () => {
             </Card>
 
             {/* Order Summary */}
-            <Card>
+            <Card 
+            data-testid="order-summary-card"
+            >
               <Card.Header>
                 <Card.Title>Order Summary</Card.Title>
               </Card.Header>
@@ -346,7 +358,9 @@ const CartDetails = () => {
                   </span>
                 </div>
 
-                <div className="flex justify-between">
+                <div 
+                data-testid="shipping-fee"
+                className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
                     Shipping
                   </span>
@@ -365,7 +379,9 @@ const CartDetails = () => {
                 </div>
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <div className="flex justify-between text-lg font-bold">
+                  <div 
+                  data-testid="total-amount"
+                  className="flex justify-between text-lg font-bold">
                     <span className="text-gray-900 dark:text-white">Total</span>
                     <span className="text-gray-900 dark:text-white">
                       ${calculateTotal().toFixed(2)}
@@ -376,6 +392,7 @@ const CartDetails = () => {
 
               <Card.Footer>
                 <Button
+                  data-testid="checkout-button"
                   variant="primary"
                   fullWidth
                   onClick={() => {
@@ -395,7 +412,9 @@ const CartDetails = () => {
           {/* Right column - Cart info & actions */}
           <div className="space-y-6">
             {/* Cart Information */}
-            <Card>
+            <Card
+            data-testid="cart-info-card"
+            >
               <Card.Header>
                 <Card.Title>Cart Information</Card.Title>
               </Card.Header>
@@ -442,7 +461,7 @@ const CartDetails = () => {
             </Card>
 
             {/* Customer Information */}
-            <Card>
+            <Card data-testid="customer-info-card">
               <Card.Header>
                 <Card.Title>Customer Information</Card.Title>
               </Card.Header>
@@ -505,7 +524,9 @@ const CartDetails = () => {
 
               <Card.Footer>
                 <Link to={`/admin/users/${user?.id}`}>
-                  <Button variant="outline" fullWidth disabled={!user?.id}>
+                  <Button 
+                  data-testid="view-customer-button"
+                  variant="outline" fullWidth disabled={!user?.id}>
                     View Customer Profile
                   </Button>
                 </Link>

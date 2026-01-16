@@ -115,8 +115,9 @@ const Dashboard = () => {
     };
   };
 
-  const StatCard = ({ title, value, icon: Icon, change, trend, subtitle }) => (
-    <Card className="hover:shadow-md transition-shadow">
+
+   const StatCard = ({ title, value, icon: Icon, change, trend, subtitle, ...props }) => (
+   <Card {...props} className="hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -164,7 +165,9 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div 
+    data-testid="dashboard-container"
+    className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -176,6 +179,7 @@ const Dashboard = () => {
           </p>
         </div>
         <Button
+        data-testid="refresh-button"
           variant="primary"
           onClick={fetchDashboardData}
           loading={loading}
@@ -185,7 +189,9 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div 
+      data-testid="stats-grid"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Revenue"
           value={`$${stats.totalRevenue.toFixed(2)}`}
@@ -195,6 +201,7 @@ const Dashboard = () => {
           trend="up"
         />
         <StatCard
+        data-testid="total-products-card"
           title="Total Products"
           value={stats.totalProducts}
           icon={Package}
@@ -203,6 +210,7 @@ const Dashboard = () => {
           trend="up"
         />
         <StatCard
+        data-testid="active-carts-card"
           title="Active Carts"
           value={stats.activeCartsCount}
           icon={ShoppingCart}
@@ -211,6 +219,7 @@ const Dashboard = () => {
           trend="down"
         />
         <StatCard
+        data-testid="total-users-card"
           title="Total Users"
           value={stats.totalUsers}
           icon={Users}
@@ -221,8 +230,12 @@ const Dashboard = () => {
       </div>
 
       {/* Additional Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <Card className="hover:shadow-md transition-shadow">
+      <div 
+      data-testid="additional-stats-row"
+      className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <Card 
+        data-testid="average-cart-value-card"
+        className="hover:shadow-md transition-shadow">
           <div className="text-center py-4">
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
               Average Cart Value
@@ -265,7 +278,7 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Products */}
-      <Card>
+      <Card data-testid="card-recent-products">
         <Card.Header>
           <Card.Title>Recent Products</Card.Title>
           <Card.Description>
@@ -295,7 +308,9 @@ const Dashboard = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody 
+              data-testid="recent-products-table items"
+              className="divide-y divide-gray-200 dark:divide-gray-700">
                 {recentProducts.map((product) => (
                   <tr
                     key={product.id}
@@ -369,6 +384,7 @@ const Dashboard = () => {
 
         <Card.Footer>
           <Button
+          data-testid="view-all-products-button"
             onClick={() => navigate("/admin/products")}
             variant="outline"
             fullWidth

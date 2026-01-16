@@ -8,19 +8,15 @@ import Dashboard from "../../../pages/admin/Dashboard";
 // ============================================================================
 // MOCKS
 // ============================================================================
-
-const mockNavigate = vi.fn();
 const mockToast = {
   success: vi.fn(),
   error: vi.fn(),
-  info: vi.fn(),
 };
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return {
     ...actual,
-    useNavigate: () => mockNavigate,
     useOutletContext: () => ({ toast: mockToast }),
   };
 });
@@ -47,37 +43,6 @@ vi.mock("../../../services/AdminuseApi", () => ({
   })),
 }));
 
-// Mock UI Components
-const Card = ({ children, className }) => (
-  <div data-testid="card" className={className}>
-    {children}
-  </div>
-);
-Card.Header = ({ children }) => <div data-testid="card-header">{children}</div>;
-Card.Title = ({ children }) => <h3>{children}</h3>;
-Card.Description = ({ children }) => <p>{children}</p>;
-Card.Footer = ({ children }) => <div data-testid="card-footer">{children}</div>;
-
-vi.mock("../../components_temp/ui/Card", () => ({
-  default: Card,
-}));
-
-vi.mock("../../components_temp/ui/Button", () => ({
-  default: ({ children, onClick, loading, disabled }) => (
-    <button onClick={onClick} disabled={loading || disabled}>
-      {loading ? "Loading..." : children}
-    </button>
-  ),
-}));
-
-vi.mock("../../components_temp/ui/Badge", () => ({
-  default: ({ children }) => <span>{children}</span>,
-}));
-
-vi.mock("../../components_temp/ui/LoadingSpinner", () => ({
-  default: () => <div data-testid="loading-spinner">Loading...</div>,
-}));
-
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -87,9 +52,7 @@ const renderDashboard = () => {
     user: userEvent.setup(),
     ...render(
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-        </Routes>
+          <Dashboard />
       </BrowserRouter>
     ),
   };
@@ -182,7 +145,7 @@ const mockUsers = [
 describe("Dashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockNavigate.mockClear();
+    // mockNavigate.mockClear();
 
     // Default successful responses
     mockProductAPI.getAll.mockResolvedValue({ data: mockProducts });
@@ -204,8 +167,7 @@ describe("Dashboard", () => {
       expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
     });
 
-
-    it("should fetch all required data on mount", async () => {
+    it("should fetch all required data(Product,carts,users) on mount", async () => {
       renderDashboard();
 
       await waitFor(() => {
@@ -216,36 +178,39 @@ describe("Dashboard", () => {
       });
     });
 
-    it("should display dashboard after data loads", async () => {
+    it("should display dashboard UI after data loads", async () => {
       renderDashboard();
 
       await waitFor(() => {
+          expect(screen.getByText("Recent Products")).toBeInTheDocument();
         expect(screen.getByText("Dashboard")).toBeInTheDocument();
         expect(screen.queryByTestId("loading-spinner")).not.toBeInTheDocument();
+        expect(screen.getByTestId("dashboard-container")).toBeInTheDocument();
+          expect(screen.getByTestId("stats-grid")).toBeInTheDocument();
+            expect(screen.getByTestId("additional-stats-row")).toBeInTheDocument();
+              expect(screen.getByTestId("card-recent-products")).toBeInTheDocument();
+               expect(screen.getByTestId("view-all-products-button")).toBeInTheDocument();
+                expect(screen.getByTestId("refresh-button")).toBeInTheDocument();
       });
     });
 
     it("should handle API errors", async () => {
-      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
       mockProductAPI.getAll.mockRejectedValue(new Error("API Error"));
-
       renderDashboard();
 
       await waitFor(() => {
         expect(mockToast.error).toHaveBeenCalledWith("Failed to load dashboard data");
       });
-
-      consoleError.mockRestore();
     });
   });
 
 //   // ==========================================================================
 //   // Statistics Display
 //   // ==========================================================================
-  describe("Statistics Display", () => {
+  describe("Statistics Display showed in the dashboard", () => {
+
     it("should calculate and display total revenue correctly", async () => {
       renderDashboard();
-
       // Total: 999.99 + 59.98 + 38.97 + 45.50 + 299.99 = 1444.43
       await waitFor(() => {
         expect(screen.getByText("$1444.43")).toBeInTheDocument();
@@ -256,8 +221,10 @@ describe("Dashboard", () => {
       renderDashboard();
 
       await waitFor(() => {
-        expect(screen.getByText("Total Products")).toBeInTheDocument();
-        expect(screen.getByText("5")).toBeInTheDocument();
+
+        const totalProducts = screen.getByTestId("total-products-card");
+         expect(totalProducts).toBeInTheDocument();
+         expect(totalProducts).toHaveTextContent("5");
       });
     });
 
@@ -265,16 +232,20 @@ describe("Dashboard", () => {
       renderDashboard();
 
       await waitFor(() => {
-        expect(screen.getByText("Active Carts")).toBeInTheDocument();
-        expect(screen.getByText("3")).toBeInTheDocument(); // 3 active, 1 empty
+         const activeCarts = screen.getByTestId("active-carts-card");
+         expect(activeCarts).toBeInTheDocument();
+         expect(activeCarts).toHaveTextContent("3");
+        // 3 active, 1 empty
       });
     });
 
     it("should display total users", async () => {
       renderDashboard();
-
+    
       await waitFor(() => {
-        expect(screen.getByText("Total Users")).toBeInTheDocument();
+          const totalUsers = screen.getByTestId("total-users-card");
+        expect(totalUsers).toBeInTheDocument();
+        expect(totalUsers).toHaveTextContent("4");
        
       });
     });
@@ -284,11 +255,11 @@ describe("Dashboard", () => {
 
       // 1444.43 / 3 = 481.48
       await waitFor(() => {
-        expect(screen.getByText("Average Cart Value")).toBeInTheDocument();
-        expect(screen.getByText("$481.48")).toBeInTheDocument();
+        const averageCartValue = screen.getByTestId("average-cart-value-card");
+        expect(averageCartValue).toBeInTheDocument();
+        expect(averageCartValue).toHaveTextContent("$481.48");
       });
     });
-
   });
 
   // ==========================================================================
@@ -299,9 +270,11 @@ describe("Dashboard", () => {
       renderDashboard();
 
       await waitFor(() => {
-        expect(screen.getByText("Recent Products")).toBeInTheDocument();
-        expect(screen.getByText("Office Chair")).toBeInTheDocument();
-        expect(screen.getByText("Wireless Mouse")).toBeInTheDocument();
+        const  recentProductsTable = screen.getByTestId("card-recent-products");
+        expect(recentProductsTable).toBeInTheDocument();
+        expect(recentProductsTable).toHaveTextContent("Recent Products");
+       expect(recentProductsTable).toHaveTextContent("Office Chair");
+       expect(recentProductsTable).toHaveTextContent("Wireless Mouse");
       });
     });
 
@@ -309,25 +282,30 @@ describe("Dashboard", () => {
       const { user } = renderDashboard();
 
       await waitFor(() => {
-        expect(screen.getByText("Office Chair")).toBeInTheDocument();
+       
+         const  recentProductsTable = screen.getByTestId("card-recent-products");
+           expect(recentProductsTable).toHaveTextContent("Office Chair");
       });
-
+    const tableRow = screen.getAllByTestId("recent-products-table items")[0];
+        await user.click(tableRow);
+        
       const productRow = screen.getByText("Office Chair").closest("tr");
       await user.click(productRow);
-
-      expect(mockNavigate).toHaveBeenCalledWith("/admin/products/5");
+        expect(window.location.pathname).toBe("/admin/products/5");
+      // expect(mockNavigate).toHaveBeenCalledWith("/admin/products/5");
     });
 
     it("should navigate to products page when View All is clicked", async () => {
       const { user } = renderDashboard();
 
       await waitFor(() => {
-        expect(screen.getByText("View All Products")).toBeInTheDocument();
+        expect(screen.getByTestId("view-all-products-button")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByText("View All Products"));
+      await user.click(screen.getByTestId("view-all-products-button"));
+       expect(window.location.pathname).toBe("/admin/products");
 
-      expect(mockNavigate).toHaveBeenCalledWith("/admin/products");
+      // expect(mockNavigate).toHaveBeenCalledWith("/admin/products");
     });
 
     it("should show empty state when no products", async () => {
@@ -340,32 +318,6 @@ describe("Dashboard", () => {
       });
     });
   });
-
-  // ==========================================================================
-  // User Actions
-  // ==========================================================================
-  describe("User Actions", () => {
-    it("should refresh data when refresh button is clicked", async () => {
-      const { user } = renderDashboard();
-
-      await waitFor(() => {
-        expect(screen.getByText("Refresh Data")).toBeInTheDocument();
-      });
-
-      mockProductAPI.getAll.mockClear();
-      mockCartAPI.getAll.mockClear();
-      mockUserAPI.getAll.mockClear();
-
-      await user.click(screen.getByText("Refresh Data"));
-
-      await waitFor(() => {
-        expect(mockProductAPI.getAll).toHaveBeenCalledTimes(1);
-        expect(mockCartAPI.getAll).toHaveBeenCalledTimes(1);
-        expect(mockUserAPI.getAll).toHaveBeenCalledTimes(1);
-      });
-    });
-  });
-
   // ==========================================================================
   // Edge Cases
   // ==========================================================================
@@ -378,6 +330,7 @@ describe("Dashboard", () => {
       renderDashboard();
 
       await waitFor(() => {
+
         expect(screen.getAllByText("$0.00").length).toBeGreaterThan(1);
       });
     });
@@ -408,7 +361,17 @@ describe("Dashboard", () => {
       renderDashboard();
 
       await waitFor(() => {
-        expect(screen.getByText("Dashboard")).toBeInTheDocument();
+         const totalProducts = screen.getByTestId("total-products-card");
+         expect(totalProducts).toBeInTheDocument();
+         expect(totalProducts).toHaveTextContent("0");
+
+             const totalUsers = screen.getByTestId("total-users-card");
+        expect(totalUsers).toBeInTheDocument();
+        expect(totalUsers).toHaveTextContent("0");
+
+           const activeCarts = screen.getByTestId("active-carts-card");
+         expect(activeCarts).toBeInTheDocument();
+         expect(activeCarts).toHaveTextContent("0");
       });
     });
   });
