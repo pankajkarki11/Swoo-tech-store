@@ -103,14 +103,12 @@ describe("Details of products", () => {
     );
       const cards = screen.getAllByTestId("product-card");
       expect(cards.length).toBeGreaterThan(8);
-      console.log(cards.length);
 
     await user.click(screen.getByText("Electronics"));
 
     await waitFor(() => {
       const cards = screen.getAllByTestId("product-card");
       expect(cards.length).toBeGreaterThan(8);
-      console.log(cards.length);
     });
   });
 

@@ -648,6 +648,7 @@ const CartPage = () => {
                                   disabled:opacity-40 disabled:cursor-not-allowed
                                 "
                                 aria-label="Decrease quantity"
+                                data-testid="decrease-quantity"
                                 disabled={item.quantity <= 1}
                               >
                                 <Minus size={18} className="text-gray-700 dark:text-gray-300" />
@@ -690,7 +691,7 @@ const CartPage = () => {
                                     hover:bg-gray-50 dark:hover:bg-gray-750
                                     transition-all duration-200
                                   "
-                                  
+                                  data-testid="item-quantity-input"
                                 />
                               </div>
 
@@ -708,7 +709,7 @@ const CartPage = () => {
                                   flex items-center justify-center
                                   bg-gray-100 dark:bg-gray-800
                                   border border-gray-300 dark:border-gray-600
-                                  border-l-0
+                                border-l-0
                                   rounded-r-lg
                                   hover:bg-gray-200 dark:hover:bg-gray-700
                                   hover:border-blue-400 dark:hover:border-blue-500
@@ -716,6 +717,7 @@ const CartPage = () => {
                                   transition-all duration-200
                                 "
                                 aria-label="Increase quantity"
+                                data-testid="increase-quantity"
                               >
                                 <Plus size={18} className="text-gray-700 dark:text-gray-300" />
                               </button>

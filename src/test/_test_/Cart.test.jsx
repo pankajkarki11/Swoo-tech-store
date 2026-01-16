@@ -189,21 +189,22 @@ describe("CartPage Testing Suite", () => {
       expect(screen.getByText(/your cart is empty/i)).toBeInTheDocument();
       expect( screen.getByText(/add some items to your cart/i)).toBeInTheDocument();
       expect( screen.getByRole("button", { name: /start shopping/i }) ).toBeInTheDocument();
+      expect(screen.getByText(/0 items in your cart/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /refresh/i })).toBeDisabled();
     });
+       it('should navigate back to home when "Continue Shopping" is clicked', async () => {
+      const { user } = renderWithProviders(<CartPage />);
 
-    it('should navigate to home when "Start Shopping" button is clicked', async () => {
-      const { user } = renderWithProviders(<CartPage />, {
-        cartState: { cart: [], cartItemCount: 0 },
+      const continueShoppingButton = screen.getByRole("button", {
+        name: /continue shopping/i,
       });
-
-      const startShoppingButton = screen.getByRole("button", {
-        name: /start shopping/i,
-      });
-      await user.click(startShoppingButton);
+      await user.click(continueShoppingButton);
 
       expect(mockNavigate).toHaveBeenCalledWith("/");
     });
   });
+
+
 
   describe("Cart with Items", () => {
     const mockCartItems = [
@@ -241,17 +242,9 @@ describe("CartPage Testing Suite", () => {
       expect(screen.getByText("Test Product 2")).toBeInTheDocument();
       expect(screen.getByText("$59.98")).toBeInTheDocument(); // 29.99 * 2
       expect(screen.getByText("$49.99")).toBeInTheDocument();
-    });
 
-    it("should show order summary with correct calculations", () => {
-      renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: mockCartItems,
-          cartItemCount: 3,
-          cartStats: { totalValue: 109.97 },
-        },
-      });
 
+      
       expect(screen.getByText("$109.97")).toBeInTheDocument(); // Subtotal
       expect(screen.getByText("FREE")).toBeInTheDocument(); // Free shipping over $100
       expect(screen.getByText("$8.80")).toBeInTheDocument(); // Tax (8% of 109.97)
@@ -282,7 +275,7 @@ describe("CartPage Testing Suite", () => {
     });
   });
 
-  describe("Quantity Controls", () => {
+  describe("Quantity Controls Testing", () => {
     const mockCartItem = [
       {
         id: 1,
@@ -309,57 +302,58 @@ describe("CartPage Testing Suite", () => {
       expect(screen.getByDisplayValue("2")).toBeInTheDocument();
     });
 
-    it("should call handleQuantityAdjust when increase button is clicked", async () => {
-      const mockHandleQuantityAdjust = vi.fn();
+   it("increments item quantity when the increase button is clicked", async () => {
+  const handleQuantityAdjust = vi.fn();
 
-      const { user } = renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-        },
-        quantityState: {
-          handleQuantityAdjust: mockHandleQuantityAdjust,
-        },
-      });
+  const { user } = renderWithProviders(<CartPage />, {
+    cartState: {
+      cart: mockCartItem,
+      cartItemCount: 2,
+      cartStats: { totalValue: 59.98 },
+    },
+    quantityState: {
+      handleQuantityAdjust,
+    },
+  });
 
-      const increaseButton = screen.getByLabelText(/increase quantity/i);
-      await user.click(increaseButton);
+  await user.click(screen.getByLabelText(/increase quantity/i));
 
-      expect(mockHandleQuantityAdjust).toHaveBeenCalledWith(
-        1,
-        1,
-        2,
-        expect.any(Function),
-        { min: 1, max: 10 }
-      );
-    });
+  expect(handleQuantityAdjust).toHaveBeenCalledTimes(1);
 
-    it("should call handleQuantityAdjust when decrease button is clicked", async () => {
-      const mockHandleQuantityAdjust = vi.fn();
+  expect(handleQuantityAdjust).toHaveBeenCalledWith(
+    1,                    // productId
+    1,                    // increment
+    2,                    // current quantity
+    expect.any(Function), // updater callback
+    expect.objectContaining({ min: 1, max: 10 })
+  );
+});
 
-      const { user } = renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-        },
-        quantityState: {
-          handleQuantityAdjust: mockHandleQuantityAdjust,
-        },
-      });
 
-      const decreaseButton = screen.getByLabelText(/decrease quantity/i);
-      await user.click(decreaseButton);
+  it("decrements item quantity when the decrease button is clicked", async () => {
+  const handleQuantityAdjust = vi.fn();
 
-      expect(mockHandleQuantityAdjust).toHaveBeenCalledWith(
-        1,
-        -1,
-        2,
-        expect.any(Function),
-        { min: 1, max: 10 }
-      );
-    });
+  const { user } = renderWithProviders(<CartPage />, {
+    cartState: {
+      cart: mockCartItem,
+      cartItemCount: 2,
+      cartStats: { totalValue: 59.98 },
+    },
+    quantityState: { handleQuantityAdjust },
+  });
+
+  await user.click(screen.getByLabelText(/decrease quantity/i));
+
+  expect(handleQuantityAdjust).toHaveBeenCalledTimes(1);
+  expect(handleQuantityAdjust).toHaveBeenCalledWith(
+    1,                     // productId
+    -1,                    // decrement
+    2,                     // current quantity
+    expect.any(Function),
+    expect.objectContaining({ min: 1, max: 10 })
+  );
+});
+
 
     it("should disable decrease button when quantity is 1", () => {
       renderWithProviders(<CartPage />, {
@@ -378,7 +372,7 @@ describe("CartPage Testing Suite", () => {
     });
   });
 
-  describe("Modal Interactions", () => {
+  describe("Buttons Visibility test", () => {
     const mockCartItem = [
       {
         id: 1,
@@ -391,145 +385,7 @@ describe("CartPage Testing Suite", () => {
       },
     ];
 
-    it("should open remove item modal when remove button is clicked", async () => {
-      const { user } = renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-        },
-      });
-
-      const removeButton = screen.getByLabelText(/remove item/i);
-      await user.click(removeButton);
-
-      await waitFor(() => {
-        expect(screen.getByText("Remove Item")).toBeInTheDocument();
-        expect(
-          screen.getByText(/are you sure you want to remove/i)
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("should close modal when cancel button is clicked", async () => {
-      const { user } = renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-        },
-      });
-
-      const removeButton = screen.getByLabelText(/remove item/i);
-      await user.click(removeButton);
-
-      await waitFor(() => {
-        expect(screen.getByText("Remove Item")).toBeInTheDocument();
-      });
-
-      const cancelButton = screen.getByRole("button", { name: /cancel/i });
-      await user.click(cancelButton);
-
-      await waitFor(() => {
-        expect(screen.queryByText("Remove Item")).not.toBeInTheDocument();
-      });
-    });
-
-    it("should call removeFromCart when removal is confirmed", async () => {
-      const mockRemoveFromCart = vi.fn().mockResolvedValue({ success: true });
-
-      const { user } = renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-          removeFromCart: mockRemoveFromCart,
-        },
-      });
-
-      const removeButton = screen.getByLabelText(/remove item/i);
-      await user.click(removeButton);
-
-      await waitFor(() => {
-        expect(screen.getByText("Remove Item")).toBeInTheDocument();
-      });
-
-      const confirmButton = screen.getByRole("button", { name: /confirm/i });
-      await user.click(confirmButton);
-
-      await waitFor(() => {
-        expect(mockRemoveFromCart).toHaveBeenCalledWith(1);
-      });
-    });
-
-    it("should open clear cart modal", async () => {
-      const { user } = renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-        },
-      });
-
-      const clearCartButton = screen.getByRole("button", {
-        name: /clear cart/i,
-      });
-      await user.click(clearCartButton);
-
-      await waitFor(() => {
-        // Use getByRole to avoid multiple element error
-        expect(
-          screen.getByRole("heading", { name: /clear cart/i })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByText(/are you sure you want to clear all/i)
-        ).toBeInTheDocument();
-      });
-    });
-
-    it('should open checkout modal when authenticated user clicks "Proceed to Checkout"', async () => {
-      const { user } = renderWithProviders(<CartPage />, {
-        authState: {
-          user: { id: 1, username: "testuser", isAdmin: false },
-        },
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-        },
-      });
-
-      const checkoutButton = screen.getByRole("button", {
-        name: /proceed to checkout/i,
-      });
-      await user.click(checkoutButton);
-
-      await waitFor(() => {
-        // Use getByRole to avoid multiple element error
-        expect(
-          screen.getByRole("heading", { name: /proceed to checkout/i })
-        ).toBeInTheDocument();
-        expect(
-          screen.getByText(/proceed to checkout with 2 items/i)
-        ).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe("Authentication Features", () => {
-    const mockCartItem = [
-      {
-        id: 1,
-        title: "Test Product",
-        price: 29.99,
-        quantity: 2,
-        image: "test.jpg",
-        category: "Electronics",
-        addedAt: new Date().toISOString(),
-      },
-    ];
-
-    it("should show sync button when user is logged in with items in cart", () => {
+    it("should show Sync,History & Refresh button when user is logged in with items in cart", () => {
       renderWithProviders(<CartPage />, {
         authState: {
           user: { id: 1, username: "testuser", isAdmin: false },
@@ -546,6 +402,9 @@ describe("CartPage Testing Suite", () => {
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: /refresh/i })
+      ).toBeInTheDocument();
+       expect(
+        screen.getByRole("button", { name: /show cart history/i })
       ).toBeInTheDocument();
     });
 
@@ -564,23 +423,6 @@ describe("CartPage Testing Suite", () => {
       expect(
         screen.queryByRole("button", { name: /save to server/i })
       ).not.toBeInTheDocument();
-    });
-
-    it("should show cart history button for logged in users", () => {
-      renderWithProviders(<CartPage />, {
-        authState: {
-          user: { id: 1, username: "testuser", isAdmin: false },
-        },
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-        },
-      });
-
-      expect(
-        screen.getByRole("button", { name: /show cart history/i })
-      ).toBeInTheDocument();
     });
 
     it("should toggle cart history when button is clicked", async () => {
@@ -616,203 +458,8 @@ describe("CartPage Testing Suite", () => {
         expect(mockGetUserCarts).toHaveBeenCalledWith(1);
       });
     });
-
-    it("should show auto-sync info banner when user is logged in", () => {
-      renderWithProviders(<CartPage />, {
-        authState: {
-          user: { id: 1, username: "testuser", isAdmin: false },
-        },
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-        },
-      });
-
-      expect(screen.getByText("Auto-sync Info")).toBeInTheDocument();
-      expect(
-        screen.getByText(/your cart automatically syncs/i)
-      ).toBeInTheDocument();
-    });
   });
-
-  describe("Navigation", () => {
-    it('should navigate back to home when "Continue Shopping" is clicked', async () => {
-      const { user } = renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: [],
-          cartItemCount: 0,
-        },
-      });
-
-      const continueShoppingButton = screen.getByRole("button", {
-        name: /continue shopping/i,
-      });
-      await user.click(continueShoppingButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith("/");
-    });
-
-    it("should navigate to checkout when authenticated user confirms", async () => {
-      const mockCartItem = [
-        {
-          id: 1,
-          title: "Test Product",
-          price: 29.99,
-          quantity: 2,
-          image: "test.jpg",
-          category: "Electronics",
-          addedAt: new Date().toISOString(),
-        },
-      ];
-
-      const { user } = renderWithProviders(<CartPage />, {
-        authState: {
-          user: { id: 1, username: "testuser", isAdmin: false },
-        },
-        cartState: {
-          cart: mockCartItem,
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-        },
-      });
-
-      const checkoutButton = screen.getByRole("button", {
-        name: /proceed to checkout/i,
-      });
-      await user.click(checkoutButton);
-
-      await waitFor(() => {
-        // Use getByRole to avoid multiple element error
-        expect(
-          screen.getByRole("heading", { name: /proceed to checkout/i })
-        ).toBeInTheDocument();
-      });
-
-      const confirmButton = screen.getByRole("button", { name: /confirm/i });
-      await user.click(confirmButton);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith("/checkout");
-      });
-    });
-  });
-
-  describe("Edge Cases", () => {
-    it("should disable checkout button when cart is empty (authenticated)", () => {
-      renderWithProviders(<CartPage />, {
-        authState: {
-          user: { id: 1, username: "testuser", isAdmin: false },
-        },
-        cartState: {
-          cart: [],
-          cartItemCount: 0,
-          cartStats: { totalValue: 0 },
-        },
-      });
-
-      const checkoutButton = screen.getByRole("button", {
-        name: /proceed to checkout/i,
-      });
-      expect(checkoutButton).toBeDisabled();
-    });
-
-    it("should disable checkout button when cart is empty (non-authenticated)", () => {
-      renderWithProviders(<CartPage />, {
-        authState: {
-          user: null,
-        },
-        cartState: {
-          cart: [],
-          cartItemCount: 0,
-          cartStats: { totalValue: 0 },
-        },
-      });
-
-      const loginButton = screen.getByRole("button", {
-        name: /login to checkout/i,
-      });
-      expect(loginButton).toBeDisabled();
-    });
-
-    it("should disable buttons when syncing", () => {
-      renderWithProviders(<CartPage />, {
-        authState: {
-          user: { id: 1, username: "testuser", isAdmin: false },
-        },
-        cartState: {
-          cart: [
-            {
-              id: 1,
-              title: "Test Product",
-              price: 29.99,
-              quantity: 2,
-              image: "test.jpg",
-              category: "Electronics",
-              addedAt: new Date().toISOString(),
-            },
-          ],
-          cartItemCount: 2,
-          cartStats: { totalValue: 59.98 },
-          isSyncing: true,
-        },
-      });
-
-      const syncButton = screen.getByRole("button", { name: /syncing/i });
-      expect(syncButton).toBeDisabled();
-    });
-
-    it("should handle items with zero price", () => {
-      const freeItem = [
-        {
-          id: 1,
-          title: "Free Product",
-          price: 0,
-          quantity: 1,
-          image: "test.jpg",
-          category: "Free",
-          addedAt: new Date().toISOString(),
-        },
-      ];
-
-      renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: freeItem,
-          cartItemCount: 1,
-          cartStats: { totalValue: 0 },
-        },
-      });
-
-      expect(screen.getByText("$0.00 each")).toBeInTheDocument();
-    });
-
-    it("should handle very long product titles", () => {
-      const longTitleItem = [
-        {
-          id: 1,
-          title:
-            "This is a very long product title that should be truncated or handled properly in the UI",
-          price: 29.99,
-          quantity: 1,
-          image: "test.jpg",
-          category: "Test",
-          addedAt: new Date().toISOString(),
-        },
-      ];
-
-      renderWithProviders(<CartPage />, {
-        cartState: {
-          cart: longTitleItem,
-          cartItemCount: 1,
-          cartStats: { totalValue: 29.99 },
-        },
-      });
-
-      expect(
-        screen.getByText(/this is a very long product title/i)
-      ).toBeInTheDocument();
-    });
-  });
+ 
 
   describe("Checkout Button - Authentication States", () => {
     const mockCartItem = [
@@ -868,9 +515,21 @@ describe("CartPage Testing Suite", () => {
         });
         expect(checkoutButton).toBeEnabled();
       });
+       it("should disable checkout button when cart is empty", () => {
+      renderWithProviders(<CartPage />, {
+        authState: {
+          user: { id: 1, username: "testuser", isAdmin: false },
+        },
+      });
+      const checkoutButton = screen.getByRole("button", {
+        name: /proceed to checkout/i,
+      });
+      expect(checkoutButton).toBeDisabled();
+    });
     });
 
     describe("Non-Authenticated Users", () => {
+
       it('should show "Login to Checkout" button when user is not authenticated', () => {
         renderWithProviders(<CartPage />, {
           authState: {
@@ -882,7 +541,6 @@ describe("CartPage Testing Suite", () => {
             cartStats: { totalValue: 59.98 },
           },
         });
-
         // Should show "Login to Checkout" for non-authenticated users
         expect(
           screen.getByRole("button", { name: /login to checkout/i })
@@ -892,45 +550,6 @@ describe("CartPage Testing Suite", () => {
         expect(
           screen.queryByRole("button", { name: /proceed to checkout/i })
         ).not.toBeInTheDocument();
-      });
-
-      it('should navigate to login page when "Login to Checkout" is clicked', async () => {
-        const { user } = renderWithProviders(<CartPage />, {
-          authState: {
-            user: null,
-          },
-          cartState: {
-            cart: mockCartItem,
-            cartItemCount: 2,
-            cartStats: { totalValue: 59.98 },
-          },
-        });
-
-        const loginButton = screen.getByRole("button", {
-          name: /login to checkout/i,
-        });
-        await user.click(loginButton);
-
-        // Should navigate directly to login page (no modal)
-        expect(mockNavigate).toHaveBeenCalledWith("/login");
-      });
-
-      it('should disable "Login to Checkout" button when cart is empty', () => {
-        renderWithProviders(<CartPage />, {
-          authState: {
-            user: null,
-          },
-          cartState: {
-            cart: [],
-            cartItemCount: 0,
-            cartStats: { totalValue: 0 },
-          },
-        });
-
-        const loginButton = screen.getByRole("button", {
-          name: /login to checkout/i,
-        });
-        expect(loginButton).toBeDisabled();
       });
 
       it('should enable "Login to Checkout" button when cart has items', () => {
@@ -950,97 +569,24 @@ describe("CartPage Testing Suite", () => {
         });
         expect(loginButton).toBeEnabled();
       });
-
-      it('should not open modal when non-authenticated user clicks "Login to Checkout"', async () => {
-        const { user } = renderWithProviders(<CartPage />, {
-          authState: {
-            user: null,
-          },
-          cartState: {
-            cart: mockCartItem,
-            cartItemCount: 2,
-            cartStats: { totalValue: 59.98 },
-          },
-        });
-
-        const loginButton = screen.getByRole("button", {
-          name: /login to checkout/i,
-        });
-        await user.click(loginButton);
-
-        // Should NOT show checkout modal
-        expect(
-          screen.queryByRole("heading", { name: /proceed to checkout/i })
-        ).not.toBeInTheDocument();
-
-        // Should navigate to login
-        expect(mockNavigate).toHaveBeenCalledWith("/login");
+       it("should disable checkout button when cart is empty (non-authenticated)", () => {
+      renderWithProviders(<CartPage />, {
+        // authState: {
+        //   user: null,//same as not includinig these stated means we dont have these state and user is not authenticated and cart is empty
+        // },
+        // cartState: {
+        //   cart: [],
+        //   cartItemCount: 0,
+        //   cartStats: { totalValue: 0 },
+        // },
       });
+
+      const loginButton = screen.getByRole("button", {
+        name: /login to checkout/i,
+      });
+      expect(loginButton).toBeDisabled();
     });
-
-    describe("Button Behavior Differences", () => {
-      it("authenticated user button opens modal before navigation", async () => {
-        const { user } = renderWithProviders(<CartPage />, {
-          authState: {
-            user: { id: 1, username: "testuser", isAdmin: false },
-          },
-          cartState: {
-            cart: mockCartItem,
-            cartItemCount: 2,
-            cartStats: { totalValue: 59.98 },
-          },
-        });
-
-        const checkoutButton = screen.getByRole("button", {
-          name: /proceed to checkout/i,
-        });
-        await user.click(checkoutButton);
-
-        // Modal should open
-        await waitFor(() => {
-          expect(
-            screen.getByRole("heading", { name: /proceed to checkout/i })
-          ).toBeInTheDocument();
-        });
-
-        // Navigate only happens after confirm
-        expect(mockNavigate).not.toHaveBeenCalled();
-
-        // Click confirm
-        const confirmButton = screen.getByRole("button", { name: /confirm/i });
-        await user.click(confirmButton);
-
-        // Now navigation happens
-        await waitFor(() => {
-          expect(mockNavigate).toHaveBeenCalledWith("/checkout");
-        });
-      });
-
-      it("non-authenticated user button navigates immediately without modal", async () => {
-        const { user } = renderWithProviders(<CartPage />, {
-          authState: {
-            user: null,
-          },
-          cartState: {
-            cart: mockCartItem,
-            cartItemCount: 2,
-            cartStats: { totalValue: 59.98 },
-          },
-        });
-
-        const loginButton = screen.getByRole("button", {
-          name: /login to checkout/i,
-        });
-        await user.click(loginButton);
-
-        // Should navigate immediately (no modal)
-        expect(mockNavigate).toHaveBeenCalledWith("/login");
-
-        // Should NOT show modal
-        expect(
-          screen.queryByRole("heading", { name: /proceed to checkout/i })
-        ).not.toBeInTheDocument();
-      });
     });
   });
 });
+

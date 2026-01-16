@@ -16,6 +16,9 @@ const renderComponent = () =>
   );
 
 describe("ClientLogin Component", () => {
+   beforeEach(() => {
+        vi.spyOn(console, "error").mockImplementation(() => {});
+    });
 
   it("renders login page", () => {
     renderComponent();
