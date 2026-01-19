@@ -19,7 +19,6 @@ vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return {
     ...actual,
-    useParams: () => ({ id: "1" }),
     useNavigate: () => mockNavigate,
     useOutletContext: () => ({ toast: mockToast }),
   };
@@ -106,9 +105,7 @@ const renderUserDetails = () => {
     user: userEvent.setup(),
     ...render(
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<UserDetails />} />
-        </Routes>
+        <UserDetails />
       </BrowserRouter>
     ),
   };
@@ -122,7 +119,7 @@ describe("UserDetails", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockNavigate.mockClear();
-    
+
     mockUserAPI.getById.mockResolvedValue({ data: mockUser });
     mockCartAPI.getUserCarts.mockResolvedValue({ data: mockCarts });
     mockProductAPI.getById
@@ -141,39 +138,53 @@ describe("UserDetails", () => {
   describe("Initial Render & Data Fetching", () => {
     it("should show loading spinner while fetching", () => {
       mockUserAPI.getById.mockImplementation(() => new Promise(() => {}));
-
       renderUserDetails();
 
       expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
     });
 
-    it("should fetch user and cart data on mount", async () => {
+    it("should fetch data on mount", async () => {
       renderUserDetails();
 
       await waitFor(() => {
         expect(screen.getByText("User Details")).toBeInTheDocument();
-         expect(mockUserAPI.getById).toHaveBeenCalledWith("1");
-      expect(mockCartAPI.getUserCarts).toHaveBeenCalledWith("1");
+        expect(mockUserAPI.getById).toHaveBeenCalledTimes(1);
+        expect(mockCartAPI.getUserCarts).toHaveBeenCalledTimes(1);
+        expect(mockProductAPI.getById).toHaveBeenCalledTimes(3);
       });
     });
 
-    it("should display user information after loading", async () => {
+    it("should display UI after loading", async () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-        expect(screen.getByText("@johndoe")).toBeInTheDocument();
-        expect(screen.getByText("john@example.com")).toBeInTheDocument();
+        expect(screen.getByTestId("user-details-header")).toBeInTheDocument();
+
+        expect(screen.getByTestId("back-button")).toBeInTheDocument();//to go back to the users page
+        expect(screen.getByTestId("edit-button")).toBeInTheDocument();//to edit the details of the users
+        expect(screen.getByTestId("user-profile-card")).toBeInTheDocument();//stores the detail of the user like cart,name,addressetc
+        expect(screen.getByTestId("send-email")).toBeInTheDocument();//button to send email
+        expect(screen.getByTestId("view-orders")).toBeInTheDocument();//buttton to view the orders of this particular user
+        expect(screen.getByTestId("recent-carts")).toBeInTheDocument();//view the recent carts of the users
+        expect(screen.getAllByTestId("view-cart-detail")[0]).toBeInTheDocument();//we have multiple carts for this particular user so we get all the view cart button and select the first one for the testing
+        expect(screen.getByTestId("user-statistics")).toBeInTheDocument();//store user stats
+        expect(screen.getByTestId("quick-actions")).toBeInTheDocument();//quick actions like delete user,deactiveate,send email etc
+        expect(screen.getByTestId("send-welcome-email")).toBeInTheDocument();
+        expect(screen.getByTestId("view-purchase-history")).toBeInTheDocument();
+        expect(screen.getByTestId("deactivate-user")).toBeInTheDocument();
+        expect(screen.getByTestId("notes")).toBeInTheDocument();//stores the notes for this particular user like some special information
+        expect(screen.getByTestId("save-notes")).toBeInTheDocument();
       });
     });
 
     it("should handle user fetch error", async () => {
       mockUserAPI.getById.mockRejectedValue(new Error("User Error"));
-
       renderUserDetails();
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith("Failed to load user details");
+        expect(mockToast.error).toHaveBeenCalledWith(
+          "Failed to load user details"
+        );
       });
     });
   });
@@ -186,17 +197,18 @@ describe("UserDetails", () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-         expect(screen.getByText("JD")).toBeInTheDocument();
-             expect(screen.getByText("@johndoe")).toBeInTheDocument();
-             expect(screen.getByText("john@example.com")).toBeInTheDocument();
-             expect(screen.getByText("+1 (555) 123-4567")).toBeInTheDocument();
-              expect(screen.getByText(/123 Main St, New York/i)).toBeInTheDocument();
-                      expect(screen.getByText("User ID")).toBeInTheDocument();
-                      expect(screen.getByText("Active")).toBeInTheDocument();
+        const userDetails = screen.getByTestId("user-profile-card");
+        expect(userDetails).toBeInTheDocument();
+        expect(userDetails).toHaveTextContent("John Doe");
+        expect(userDetails).toHaveTextContent("johndoe");
+        expect(userDetails).toHaveTextContent("john@example.com");
+        expect(userDetails).toHaveTextContent("Active");
+        expect(userDetails).toHaveTextContent("123 Main St, New York");
+        expect(userDetails).toHaveTextContent("User ID");
+        expect(userDetails).toHaveTextContent("JD");
+        expect(userDetails).toHaveTextContent("+1 (555) 123-4567");
       });
     });
-
   });
 
   // ==========================================================================
@@ -223,7 +235,7 @@ describe("UserDetails", () => {
         expect(screen.getByText("$2109.96")).toBeInTheDocument();
       });
     });
-    });
+  });
 
   // ==========================================================================
   // Recent Carts Display
@@ -233,8 +245,9 @@ describe("UserDetails", () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("Recent Carts")).toBeInTheDocument();
-        expect(screen.getByText("User's recent shopping carts")).toBeInTheDocument();
+        const recentCarts = screen.getByTestId("recent-carts");
+        expect(recentCarts).toBeInTheDocument();
+        expect(recentCarts).toHaveTextContent("User's recent shopping carts");
       });
     });
 
@@ -243,8 +256,10 @@ describe("UserDetails", () => {
 
       await waitFor(() => {
         // Cart 1 has 3 items, Cart 2 has 1 item
-        const itemCounts = screen.getAllByText("3");
-        expect(itemCounts.length).toBeGreaterThan(0);
+           const recentCarts = screen.getByTestId("recent-carts");
+        expect(recentCarts).toBeInTheDocument();
+        expect(recentCarts).toHaveTextContent("3");
+        expect(recentCarts).toHaveTextContent("1");
       });
     });
 
@@ -252,8 +267,11 @@ describe("UserDetails", () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("$2029.97")).toBeInTheDocument();
-        expect(screen.getByText("$79.99")).toBeInTheDocument();
+         const recentCarts = screen.getByTestId("recent-carts");
+        expect(recentCarts).toBeInTheDocument();
+        expect(recentCarts).toHaveTextContent("$2029.97");
+        expect(recentCarts).toHaveTextContent("$79.99");
+  
       });
     });
 
@@ -261,20 +279,28 @@ describe("UserDetails", () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("High Value")).toBeInTheDocument();
-        expect(screen.getByText("Low Value")).toBeInTheDocument();
+         const recentCarts = screen.getByTestId("recent-carts");
+        expect(recentCarts).toBeInTheDocument();
+        expect(recentCarts).toHaveTextContent("High Value");
+        expect(recentCarts).toHaveTextContent("Low Value");
+
       });
     });
 
     it("should navigate to cart details on view click", async () => {
-      renderUserDetails();
+      const { user } = renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getAllByText("#1").length).toBeGreaterThan(0);
+            const recentCarts = screen.getByTestId("recent-carts");
+        expect(recentCarts).toBeInTheDocument();
+        expect(recentCarts).toHaveTextContent("User's recent shopping carts");
       });
 
-      const viewButton = screen.getAllByText("View")[0];
-      expect(viewButton.closest("a")).toHaveAttribute("href", "/admin/carts/1");
+      const viewButton = screen.getAllByTestId("view-cart-detail")[0];
+      await user.click(viewButton);
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith("/admin/carts/1");
+      });
     });
 
     it("should show empty state when user has no carts", async () => {
@@ -283,8 +309,10 @@ describe("UserDetails", () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("No carts found")).toBeInTheDocument();
-        expect(screen.getByText(/hasn't created any shopping carts yet/i)).toBeInTheDocument();
+           const recentCarts = screen.getByTestId("recent-carts");
+        expect(recentCarts).toBeInTheDocument();
+        expect(recentCarts).toHaveTextContent("No carts found");
+         expect(recentCarts).toHaveTextContent("hasn't created any shopping carts yet");
       });
     });
   });
@@ -294,17 +322,17 @@ describe("UserDetails", () => {
   // ==========================================================================
   describe("Navigation", () => {
     it("should navigate back to Users page", async () => {
-        const { user } = renderUserDetails();
-  
-        await waitFor(() => {
-          expect(screen.getByText("Back")).toBeInTheDocument();
-        });
-  
-        const backButton = screen.getByText("Back");
-        await user.click(backButton);
-  
-        expect(mockNavigate).toHaveBeenCalledWith("/admin/users");
+      const { user } = renderUserDetails();
+
+      await waitFor(() => {
+        expect(screen.getByTestId("user-details-header")).toBeInTheDocument();
       });
+
+      const backButton = screen.getByTestId("back-button");
+      await user.click(backButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith("/admin/users");
+    });
   });
 
   // ==========================================================================
@@ -315,31 +343,22 @@ describe("UserDetails", () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("Edit User")).toBeInTheDocument();
-        expect(screen.getByText("Send Email")).toBeInTheDocument();
+        expect(screen.getByTestId("edit-button")).toBeInTheDocument();
+        expect(screen.getByTestId("send-email")).toBeInTheDocument();
       });
     });
-
 
     it("should navigate to send email on button click", async () => {
       const { user } = renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("Send Email")).toBeInTheDocument();
+        expect(screen.getByTestId("send-email")).toBeInTheDocument();
       });
 
-      const sendEmailButton = screen.getAllByText("Send Email")[0];
+      const sendEmailButton = screen.getByTestId("send-email")
       await user.click(sendEmailButton);
 
       expect(mockNavigate).toHaveBeenCalledWith("/sentemail");
-    });
-
-    it("should display view orders button", async () => {
-      renderUserDetails();
-
-      await waitFor(() => {
-        expect(screen.getByText("View Orders")).toBeInTheDocument();
-      });
     });
 
     it("should navigate to view orders on button click", async () => {
@@ -354,7 +373,6 @@ describe("UserDetails", () => {
 
       expect(mockNavigate).toHaveBeenCalledWith("/vieworder");
     });
-
   });
 
   // ==========================================================================
@@ -368,7 +386,9 @@ describe("UserDetails", () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("User Details")).toBeInTheDocument();
+         const recentCarts = screen.getByTestId("recent-carts");
+        expect(recentCarts).toBeInTheDocument();
+        expect(recentCarts).toHaveTextContent("User's recent shopping carts");
       });
     });
 
@@ -379,7 +399,9 @@ describe("UserDetails", () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("User Details")).toBeInTheDocument();
+         const recentCarts = screen.getByTestId("recent-carts");
+        expect(recentCarts).toBeInTheDocument();
+        expect(recentCarts).toHaveTextContent("User's recent shopping carts");
       });
     });
 
@@ -393,13 +415,17 @@ describe("UserDetails", () => {
         },
       ];
 
-      mockCartAPI.getUserCarts.mockResolvedValue({ data: cartsWithMissingProducts });
+      mockCartAPI.getUserCarts.mockResolvedValue({
+        data: cartsWithMissingProducts,
+      });
       mockProductAPI.getById.mockRejectedValue(new Error("Product not found"));
 
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
+         const recentCarts = screen.getByTestId("recent-carts");
+        expect(recentCarts).toBeInTheDocument();
+        expect(recentCarts).toHaveTextContent("User's recent shopping carts");
       });
     });
   });

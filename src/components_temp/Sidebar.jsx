@@ -36,6 +36,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     // Created a custom toast component
     const LogoutConfirmation = ({ t }) => (
       <div
+      data-testid="logout-confirmation-dialog"
        role="dialog"
         className={`${
           t.visible ? "animate-enter" : "animate-leave"
@@ -63,12 +64,14 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Action Buttons */}
         <div className="flex p-4 gap-3">
           <button
+          data-testid="logout-cancel-button"
             onClick={() => {toast.dismiss(t.id)}}
             className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Cancel
           </button>
           <button
+          data-testid="logout-confirm-button"
             onClick={() => {
               logout();
               navigate("/admin/login");
@@ -111,6 +114,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       {/* Sidebar */}
       <aside
+      data-testid="sidebar"
         className={`
           fixed top-0 left-0 h-full bg-white dark:bg-gray-800 
           border-r border-gray-200 dark:border-gray-700
@@ -120,7 +124,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         `}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 h-16">
+        <div 
+        data-testid="sidebar-header"
+        className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 h-16">
           {!collapsed ? (
             <div className="flex items-center space-x-3">
               <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -136,6 +142,8 @@ const Sidebar = ({ isOpen, onClose }) => {
 
           <div className="flex items-center space-x-1">
             <Button
+            iconOnly
+            data-testid="collapse-button"
               variant="ghost"
               size="small"
               className="hidden lg:inline-flex"
@@ -144,11 +152,13 @@ const Sidebar = ({ isOpen, onClose }) => {
               {collapsed ? (
                 <ChevronRight className="h-5 w-5" />
               ) : (
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-4 w-4" />
               )}
             </Button>
 
             <Button
+            data-testid="close-button-mobile"
+            iconOnly
               variant="ghost"
               size="small"
               className="lg:hidden"
@@ -163,6 +173,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         <nav className="p-4 space-y-1">
           {navItems.map((item) => (
             <NavLink
+            data-testid="sidebar-link"
               key={item.path}
               to={item.path}
               onClick={onClose}
@@ -184,10 +195,13 @@ const Sidebar = ({ isOpen, onClose }) => {
         </nav>
 
         {/* User info & Logout */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700">
+        <div 
+        data-testid="sidebar-user-info" 
+        className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700">
           {!collapsed ? (
             <div className="flex items-center space-x-3 mb-4">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <div 
+              className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                 {user?.name?.charAt(0) || user?.username?.charAt(0) ? (
                   <span className="text-white font-bold">
                     {(
@@ -195,7 +209,9 @@ const Sidebar = ({ isOpen, onClose }) => {
                     ).toUpperCase()}
                   </span>
                 ) : (
-                  <User className="h-5 w-5 text-white" />
+                  <User 
+                  data-testid="user-icon"
+                  className="h-5 w-5 text-white" />
                 )}
               </div>
               <div>
@@ -222,6 +238,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           )}
 
           <Button
+          data-testid="logout-button"
             variant="danger"
             fullWidth
             onClick={handleLogout}

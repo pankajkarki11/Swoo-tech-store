@@ -15,7 +15,6 @@ import Switch from "./ui/Switch";
 const HeaderAdmin = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
   const { user, logout,} = useAuth();
@@ -58,32 +57,6 @@ const HeaderAdmin = ({ onMenuClick }) => {
     });
   };
 
-  const handleLogout = () => {
-    toast((t) => (
-      <div className="flex flex-col space-y-2">
-        <p className="font-medium">Are you sure you want to logout?</p>
-        <div className="flex space-x-2 justify-end">
-          <button
-            onClick={() => {
-              logout();
-              navigate("/admin/login");
-              toast.dismiss(t.id);
-            }}
-            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            Yes, logout
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    ));
-  };
-
   const unreadNotifications = notifications.filter((n) => !n.read).length;
 
   return (
@@ -93,52 +66,35 @@ const HeaderAdmin = ({ onMenuClick }) => {
           {/* Left section */}
           <div className="flex items-center">
             <button
+            data-testid="mobile-menu-button"
               onClick={onMenuClick}
               className="lg:hidden mr-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <Menu className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </button>
 
-            {searchOpen ? (
-              <div className="flex-1 max-w-xl">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#01A49E]"
-                    autoFocus
-                    onBlur={() => setSearchOpen(false)}
-                  />
-                </div>
-              </div>
-              
-            ) : (
+        
               <div className="hidden md:block">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Welcome back, {user?.firstname || user?.name || "Admin"} 👋
                 </h2>
               </div>
-            )}
+           
           </div>
 
           {/* Right section */}
           <div className="flex items-center space-x-3">
-            {/* Search button */}
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <Search className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-            </button>
 
-           <div className="flex items-center">
+           <div 
+           data-testid="dark-mode-toggle"
+           className="flex items-center">
               <Switch checked={darkMode} onChange={toggleDarkMode} />
             </div>
 
             {/* Notifications */}
             <div className="relative">
               <button
+              data-testid="notification-button"
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
               >
@@ -152,8 +108,12 @@ const HeaderAdmin = ({ onMenuClick }) => {
 
               {/* Notifications dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                <div 
+                  data-testid="notification-dropdown"
+                className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                  <div 
+                
+                  className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       Notifications ({notifications.length})
                     </h3>
@@ -178,7 +138,9 @@ const HeaderAdmin = ({ onMenuClick }) => {
                     ))}
                   </div>
                   <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
-                    <button className="text-sm text-[#01A49E] dark:text-[#01A49E] hover:text-[#01857F] w-full text-center">
+                    <button 
+                    data-testid="view-all-notifications-button"
+                    className="text-sm text-[#01A49E] dark:text-[#01A49E] hover:text-[#01857F] w-full text-center">
                       View all notifications
                     </button>
                   </div>
@@ -189,7 +151,7 @@ const HeaderAdmin = ({ onMenuClick }) => {
             {/* User profile */}
             <div className="relative">
               <button
-                onClick={() => setShowUserDropdown(!showUserDropdown)}
+              data-testid="profile-button"
                 className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="h-8 w-8 bg-gradient-to-br from-[#01A49E] to-[#01857F] rounded-full flex items-center justify-center">

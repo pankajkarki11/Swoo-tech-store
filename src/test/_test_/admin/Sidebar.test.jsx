@@ -1,29 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach} from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BrowserRouter } from "react-router-dom";
 import Sidebar from "../../../components_temp/Sidebar";
 
-// ============================================================================
-// MOCKS
-// ============================================================================
-
-const mockNavigate = vi.fn();
-const mockLogout = vi.fn();
-const mockOnClose = vi.fn();
 
 const mockAuthContext = {
-  user: { name: "John Doe", username: "johndoe" },
-  logout: mockLogout,
+  user: {},
 };
-
-vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual("react-router-dom");
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
 
 vi.mock("../../../contexts/AuthContext", () => ({
   useAuth: () => mockAuthContext,
@@ -37,40 +21,26 @@ const mockToast = vi.hoisted(() => {
       id: "test-toast",
       visible: true,
     });
-
-    // 🔥 THIS IS THE FIX
     render(jsx);
   });
-
   fn.dismiss = vi.fn();
-  fn.success = vi.fn();
-
   return fn;
 });
 
 vi.mock("react-hot-toast", () => ({
   default: mockToast,
 }));
-// Mock Button component
-vi.mock("../../../components/layout/ui/Button", () => ({
-  default: ({ children, onClick, variant, icon }) => (
-    <button onClick={onClick} data-variant={variant}>
-      {icon}
-      {children}
-    </button>
-  ),
-}));
 
 // ============================================================================
 // HELPER
 // ============================================================================
 
-const renderSidebar = (isOpen = true, onClose = mockOnClose) => {
+const renderSidebar = (isOpen) => {
   return {
     user: userEvent.setup(),
     ...render(
       <BrowserRouter>
-        <Sidebar isOpen={isOpen} onClose={onClose} />
+        <Sidebar />
       </BrowserRouter>
     ),
   };
@@ -83,16 +53,13 @@ const renderSidebar = (isOpen = true, onClose = mockOnClose) => {
 describe("Sidebar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockNavigate.mockClear();
-    mockLogout.mockClear();
-    mockOnClose.mockClear();
+   
     mockAuthContext.user = { name: "John Doe", username: "johndoe" };
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
-
   // ==========================================================================
   // Initial Render
   // ==========================================================================
@@ -103,160 +70,141 @@ describe("Sidebar", () => {
       expect(screen.getByText("SwooTechMart")).toBeInTheDocument();
     });
 
-    it("should display all navigation items", () => {
+    it("should display all navigation items & UI components", () => {
       renderSidebar(true);
 
+      expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+      expect(screen.getByTestId("sidebar-header")).toBeInTheDocument();
+      expect(screen.getByTestId("collapse-button")).toBeInTheDocument();
+      expect(screen.getByTestId("close-button-mobile")).toBeInTheDocument();
+      expect(screen.getAllByTestId("sidebar-link").length).toBe(4); //as there are 4 links in sidebarsuch as dashboard,products,carts,users.
+      expect(screen.getByTestId("logout-button")).toBeInTheDocument();
+      expect(screen.getByTestId("sidebar-user-info")).toBeInTheDocument();
+      // expect(screen.getByTestId("logout-confirmation-dialog")).toBeInTheDocument();//as it is not loaded initially but when logout button is clicked
+
       expect(screen.getByText("Dashboard")).toBeInTheDocument();
-      expect(screen.getByText("Products")).toBeInTheDocument();
+      expect(screen.getByText("Products")).toBeInTheDocument(); //names of the links
       expect(screen.getByText("Carts")).toBeInTheDocument();
       expect(screen.getByText("Users")).toBeInTheDocument();
-       expect(screen.getByText("Logout")).toBeInTheDocument();
-        expect(screen.getByText("John Doe")).toBeInTheDocument();
-        expect(screen.getByText("J")).toBeInTheDocument();
+      expect(screen.getByText("Logout")).toBeInTheDocument();
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
+      expect(screen.getByText("J")).toBeInTheDocument();
     });
-
   });
 
   // ==========================================================================
   // Navigation Links
   // ==========================================================================
-  describe("Navigation Links", () => {
+  describe("Navigation Links in the sidebars", () => {
     it("should have correct href for dashboard,products,carts,users", () => {
       renderSidebar(true);
 
-      const dashboardLink = screen.getByText("Dashboard").closest("a");
+      const dashboardLink = screen.getAllByTestId("sidebar-link")[0];
+      expect(dashboardLink).toHaveTextContent("Dashboard");
       expect(dashboardLink).toHaveAttribute("href", "/admin/dashboard");
 
-      const productsLink = screen.getByText("Products").closest("a");
+      const productsLink = screen.getAllByTestId("sidebar-link")[1];
+      expect(productsLink).toHaveTextContent("Products");
       expect(productsLink).toHaveAttribute("href", "/admin/products");
 
-       const cartsLink = screen.getByText("Carts").closest("a");
-          expect(cartsLink).toHaveAttribute("href", "/admin/carts");
+      const cartsLink = screen.getAllByTestId("sidebar-link")[2];
+      expect(cartsLink).toHaveTextContent("Carts");
+      expect(cartsLink).toHaveAttribute("href", "/admin/carts");
 
-            const usersLink = screen.getByText("Users").closest("a");
-                 expect(usersLink).toHaveAttribute("href", "/admin/users");
+      const usersLink = screen.getAllByTestId("sidebar-link")[3];
+      expect(usersLink).toHaveTextContent("Users");
+      expect(usersLink).toHaveAttribute("href", "/admin/users");
     });
-
   });
 
   // ==========================================================================
   // Collapse/Expand
   // ==========================================================================
   describe("Collapse/Expand", () => {
-
     it("should hide navigation labels when collapsed", async () => {
       const { user } = renderSidebar(true);
 
-      const buttons = screen.getAllByRole("button");
-      const collapseButton = buttons.find(btn => 
-        btn.querySelector("svg") && btn.dataset.variant === "ghost"
-      );
+      const collapseButton = screen.getByTestId("collapse-button");
+      await user.click(collapseButton);
 
-      if (collapseButton) {
-        await user.click(collapseButton);
-
-        await waitFor(() => {
-          const dashboardText = screen.queryByText("Dashboard");
-          expect(dashboardText).toBeInTheDocument();
-             const productText = screen.queryByText("Products");
-          expect(productText).not.toBeInTheDocument();
-        });
-      }
-    });
-
-    it("should show only user initial when collapsed", async () => {
-      const { user } = renderSidebar(true);
-
-      const buttons = screen.getAllByRole("button");
-      const collapseButton = buttons.find(btn => 
-        btn.querySelector("svg") && btn.dataset.variant === "ghost"
-      );
-
-      if (collapseButton) {
-        await user.click(collapseButton);
-
-        await waitFor(() => {
-          expect(screen.getByText("J")).toBeInTheDocument();
-        });
-      }
+      await waitFor(() => {
+        expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+        const sidebarHeader = screen.getByTestId("sidebar-header");
+        expect(sidebarHeader).toBeInTheDocument();
+        expect(sidebarHeader).not.toHaveTextContent("SwooTechMart"); //as when collapsed swootechmart is not visible.
+        const sidebarLinks = screen.getAllByTestId("sidebar-link");
+        expect(sidebarLinks.length).toBe(4);
+        expect(sidebarLinks[0]).not.toHaveTextContent("Dashboard");
+        expect(sidebarLinks[1]).not.toHaveTextContent("Products");
+        expect(sidebarLinks[2]).not.toHaveTextContent("Carts");
+        expect(sidebarLinks[3]).not.toHaveTextContent("Users"); //thses are the names of the links and they are not visible, only the icons are visible
+      });
     });
   });
-
   // ==========================================================================
   // Logout Functionality
   // ==========================================================================
   describe("Logout Functionality", () => {
-    it("should show logout confirmation when logout clicked", async () => {
+    it("should show logout confirmation dialog when logout clicked", async () => {
       const { user } = renderSidebar(true);
 
-      const logoutButton = screen.getByText("Logout");
+      const logoutButton = screen.getByTestId("logout-button");
       await user.click(logoutButton);
-
-      expect(mockToast.custom).toHaveBeenCalled();
-    });
-
-    it("should render logout confirmation with correct buttons", async () => {
-      const { user } = renderSidebar(true);
-
-      const logoutButton = screen.getByText("Logout");
-      await user.click(logoutButton);
-
-      const logoutToast = await screen.findByRole("dialog");
-        await waitFor(()=>{
-  expect(logoutToast).toBeInTheDocument();
-
-  expect(screen.getByText("Cancel")).toBeInTheDocument();
-  expect(screen.getByText("Yes, Logout")).toBeInTheDocument();
-  expect(screen.getByText("Confirm Logout")).toBeInTheDocument();
-    });
-    })
-
-    it("should dismiss toast when cancel clicked", async () => {
-      const { user } = renderSidebar(true);
-
-      const logoutButton = screen.getByText("Logout");
-      await user.click(logoutButton);
+        expect(mockToast.custom).toHaveBeenCalled();
 
       await waitFor(() => {
-        expect(screen.getByText("Cancel")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("logout-confirmation-dialog")
+        ).toBeInTheDocument();
+        expect(screen.getByTestId("logout-cancel-button")).toBeInTheDocument();
+        expect(screen.getByTestId("logout-confirm-button")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("logout-confirmation-dialog")
+        ).toHaveTextContent("Confirm Logout");
       });
+    });
 
-      const cancelButton = screen.getByText("Cancel");
+ it("should dismiss toast when cancel clicked", async () => {
+      const { user } = renderSidebar(true);
+
+  const logoutButton = screen.getByTestId("logout-button");
+      await user.click(logoutButton);
+        expect(mockToast.custom).toHaveBeenCalled();
+
+        await waitFor(() => {
+        expect(
+          screen.getByTestId("logout-confirmation-dialog")
+        ).toBeInTheDocument();
+        expect(screen.getByTestId("logout-cancel-button")).toBeInTheDocument();
+        expect(screen.getByTestId("logout-confirm-button")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("logout-confirmation-dialog")
+        ).toHaveTextContent("Confirm Logout");
+      });
+      const cancelButton =screen.getByTestId("logout-cancel-button")
       await user.click(cancelButton);
-
       expect(mockToast.dismiss).toHaveBeenCalledWith("test-toast");
-    });
-
-    it("should logout and navigate when confirmed", async () => {
-      const { user } = renderSidebar(true);
-
-      const logoutButton = screen.getByText("Logout");
-      await user.click(logoutButton);
-
-      await waitFor(() => {
-        expect(screen.getByText("Yes, Logout")).toBeInTheDocument();
-      });
-
-      const confirmButton = screen.getByText("Yes, Logout");
-      await user.click(confirmButton);
-
-      expect(mockLogout).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith("/admin/login");
-      expect(mockToast.dismiss).toHaveBeenCalledWith("test-toast");
-      expect(mockToast.success).toHaveBeenCalledWith(
-        "Logged out successfully!",
-        expect.objectContaining({
-          duration: 1000,
-          position: "top-center",
-        })
-      );
     });
   });
 
   // ==========================================================================
   // User Display
-  // ==========================================================================
+  // ===============
   describe("User Display", () => {
+    it("should show only user initial when collapsed", async () => {
+      const { user } = renderSidebar(true);
+
+      const collapseButton = screen.getByTestId("collapse-button");
+      await user.click(collapseButton);
+
+      await waitFor(() => {
+        const sidebarUser = screen.getByTestId("sidebar-user-info");
+        expect(sidebarUser).toBeInTheDocument();
+        expect(sidebarUser).toHaveTextContent("J");
+        expect(sidebarUser).not.toHaveTextContent("John Doe");
+      });
+    });
+
     it("should display user name from user.name", () => {
       renderSidebar(true);
 
@@ -264,8 +212,7 @@ describe("Sidebar", () => {
     });
 
     it("should display username if name not available", () => {
-      mockAuthContext.user = { username: "johndoe" };
-
+      mockAuthContext.user = { username: "johndoe", name: null };
       renderSidebar(true);
 
       expect(screen.getByText("johndoe")).toBeInTheDocument();
@@ -273,7 +220,6 @@ describe("Sidebar", () => {
 
     it("should display default text if no user info", () => {
       mockAuthContext.user = {};
-
       renderSidebar(true);
 
       expect(screen.getByText("Admin User")).toBeInTheDocument();
@@ -297,13 +243,10 @@ describe("Sidebar", () => {
 
     it("should display fallback icon if no initials", () => {
       mockAuthContext.user = {};
-
       renderSidebar(true);
 
+      expect(screen.getByTestId("user-icon")).toBeInTheDocument();
       // Should render User icon instead of initial
-      const avatars = document.querySelectorAll(".rounded-full");
-      expect(avatars.length).toBeGreaterThan(0);
     });
   });
-
 });

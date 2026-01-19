@@ -204,10 +204,13 @@ const UserDetails = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div
+      data-testid="user-details-header"
+      className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center space-x-4">
         
             <Button 
+            data-testid="back-button"
             onClick={() => navigate("/admin/users")}
             variant="outline" size="small" icon={<ArrowLeft />}>
               Back
@@ -224,7 +227,9 @@ const UserDetails = () => {
         </div>
 
         <div className="flex space-x-3">
-          <Button variant="primary" icon={<Edit />}>
+          <Button 
+          data-testid="edit-button"
+          variant="primary" icon={<Edit />}>
             Edit User
           </Button>
         </div>
@@ -234,7 +239,9 @@ const UserDetails = () => {
         {/* Left column - User info */}
         <div className="lg:col-span-2 space-y-6">
           {/* User Profile Card */}
-          <Card>
+          <Card
+          data-testid="user-profile-card"
+          >
             <div className="flex flex-col md:flex-row gap-6">
               {/* User Avatar */}
               <div className="md:w-1/3">
@@ -247,6 +254,7 @@ const UserDetails = () => {
                 {/* Quick Actions */}
                 <div className="mt-4 space-y-2">
                   <Button
+                  data-testid="send-email"
                     onClick={() => navigate("/sentemail")}
                     variant="outline"
                     fullWidth
@@ -255,6 +263,7 @@ const UserDetails = () => {
                     Send Email
                   </Button>
                   <Button
+                  data-testid="view-orders"
                     onClick={() => navigate("/vieworder")}
                     variant="primary"
                     fullWidth
@@ -388,7 +397,9 @@ const UserDetails = () => {
           </Card>
 
           {/* Recent Orders */}
-          <Card>
+          <Card
+          data-testid="recent-carts"
+          >
             <Card.Header>
               <Card.Title>Recent Carts</Card.Title>
               <Card.Description>User's recent shopping carts</Card.Description>
@@ -464,11 +475,14 @@ const UserDetails = () => {
                           </Table.Cell>
 
                           <Table.Cell>
-                            <Link to={`/admin/carts/${cart.id}`}>
-                              <Button size="small" className="hover:underline">
+                            
+                              <Button 
+                              onClick={() => navigate(`/admin/carts/${cart.id}`)}
+                              data-testid="view-cart-detail"
+                              size="small" className="hover:underline">
                                 View
                               </Button>
-                            </Link>
+                           
                           </Table.Cell>
                         </Table.Row>
                       );
@@ -493,7 +507,9 @@ const UserDetails = () => {
         {/* Right column - Quick info */}
         <div className="space-y-6">
           {/* User Statistics */}
-          <Card>
+          <Card
+          data-testid="user-statistics"
+          >
             <Card.Header>
               <Card.Title>User Statistics</Card.Title>
             </Card.Header>
@@ -541,13 +557,17 @@ const UserDetails = () => {
           </Card>
 
           {/* Quick Actions */}
-          <Card>
+          <Card
+          data-testid="quick-actions"
+          >
             <Card.Header>
               <Card.Title>Quick Actions</Card.Title>
             </Card.Header>
 
             <div className="space-y-2">
               <Button
+
+              data-testid="send-welcome-email"
                 variant="outline"
                 fullWidth
                 icon={<Mail className="h-4 w-4 mr-2" />}
@@ -556,6 +576,7 @@ const UserDetails = () => {
               </Button>
 
               <Button
+              data-testid="view-purchase-history"
                 variant="outline"
                 fullWidth
                 icon={<CreditCard className="h-4 w-4 mr-2" />}
@@ -564,6 +585,7 @@ const UserDetails = () => {
               </Button>
 
               <Button
+              data-testid="deactivate-user"
                 variant="danger"
                 fullWidth
                 icon={<User className="h-4 w-4 mr-2" />}
@@ -574,7 +596,9 @@ const UserDetails = () => {
           </Card>
 
           {/* Notes */}
-          <Card>
+          <Card
+          data-testid="notes"
+          >
             <Card.Header>
               <Card.Title>Notes</Card.Title>
             </Card.Header>
@@ -586,7 +610,9 @@ const UserDetails = () => {
                 placeholder="Add notes about this user..."
               />
 
-              <Button variant="primary" fullWidth>
+              <Button 
+              data-testid="save-notes"
+              variant="primary" fullWidth>
                 Save Notes
               </Button>
             </div>
