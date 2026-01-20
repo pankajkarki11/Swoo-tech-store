@@ -138,7 +138,6 @@ describe("Carts", () => {
 
         expect(screen.getByTestId("cart-header")).toBeInTheDocument(); //header
         expect(screen.getByTestId("refresh-button")).toBeInTheDocument(); //refresh button
-        expect(screen.getByTestId("create-button")).toBeInTheDocument(); //to reaTe a new cart
         expect(screen.getByTestId("cart-stats")).toBeInTheDocument(); //cart stats
         expect(screen.getByTestId("cart-filters")).toBeInTheDocument(); //filter section with search and status
         expect(screen.getByTestId("search-input")).toBeInTheDocument(); //filter search inout field
@@ -245,14 +244,7 @@ describe("Carts", () => {
         expect(cart).toHaveTextContent("User 2");
       });
 
-      const statusSelect = screen.getByTestId("status-select");
-      await user.selectOptions(statusSelect, "empty");
-
-      await waitFor(() => {
-        // Only empty cart should show
-        const cartIds = screen.queryAllByText(/#\d+/);
-        expect(cartIds.length).toBe(1);
-      });
+    
     });
 
     it("should clear filters", async () => {

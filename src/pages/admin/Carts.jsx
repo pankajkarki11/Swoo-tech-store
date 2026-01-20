@@ -262,13 +262,13 @@ const Carts = () => {
           >
             Refresh
           </Button>
-          <Button
+          {/* <Button
             data-testid="create-button"
             variant="primary"
             icon={<Plus className="h-5 w-5" />}
           >
             Create Cart
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -413,8 +413,10 @@ const Carts = () => {
               {filteredCarts.map((cart) => (
                 <Table.Row key={cart.id}>
                   <Table.Cell>
-                    <div className="font-medium text-gray-900 dark:text-white">
-                      #{cart.id}
+                    <div 
+                    data-testid="cart-id"
+                    className="font-medium text-gray-900 dark:text-white">
+                      {cart.id}
                     </div>
                   </Table.Cell>
 
@@ -565,7 +567,9 @@ const Carts = () => {
           >
             Cancel
           </Button>
-          <Button variant="danger" onClick={handleDelete} loading={api.loading}>
+          <Button 
+          data-testid="delete-confirm-button"
+          variant="danger" onClick={handleDelete} loading={api.loading}>
             Delete Cart
           </Button>
         </div>

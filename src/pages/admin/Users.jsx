@@ -153,12 +153,12 @@ const UsersPage = () => {
           variant="outline" onClick={handleRefresh}>
             Refresh
           </Button>
-          <Button 
+          {/* <Button 
           data-testid="add-user-button"
           variant="primary" icon={ <Plus className="h-5 w-5" />}>
            
             Add User
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -321,7 +321,9 @@ const UsersPage = () => {
                         {getInitials(user)}
                       </div>
                       <div className="ml-4">
-                        <div className="font-medium text-gray-900 dark:text-white">
+                        <div 
+                        data-testid="user-name"
+                        className="font-medium text-gray-900 dark:text-white">
                           {user.name?.firstname} {user.name?.lastname}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -375,7 +377,7 @@ const UsersPage = () => {
                         </Button>
                  
 
-                      <Button
+                      {/* <Button
                       data-testid="edit-button"
                         size="small"
                         variant="ghost"
@@ -384,7 +386,7 @@ const UsersPage = () => {
                         }}
                       >
                         <Edit className="h-4 w-4" />
-                      </Button>
+                      </Button> */}
 
                       <Button
                       data-testid="delete-button"
@@ -470,7 +472,9 @@ const UsersPage = () => {
           >
             Cancel
           </Button>
-          <Button variant="danger" onClick={handleDelete} loading={api.loading}>
+          <Button 
+          data-testid="delete-confirm-button"
+          variant="danger" onClick={handleDelete} loading={api.loading}>
             Delete User
           </Button>
         </div>

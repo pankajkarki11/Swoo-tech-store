@@ -225,14 +225,14 @@ const UserDetails = () => {
             </p>
           </div>
         </div>
-
+{/* 
         <div className="flex space-x-3">
           <Button 
           data-testid="edit-button"
           variant="primary" icon={<Edit />}>
             Edit User
           </Button>
-        </div>
+        </div> */}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -278,7 +278,9 @@ const UserDetails = () => {
               <div className="md:w-2/3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <h2 
+                    data-testid="user-name"
+                    className="text-2xl font-bold text-gray-900 dark:text-white">
                       {user.name?.firstname} {user.name?.lastname}
                     </h2>
                     <div className="flex items-center mt-2 space-x-4">

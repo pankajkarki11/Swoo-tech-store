@@ -360,7 +360,9 @@ const Products = () => {
                         }}
                       />
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
+                        <div
+                        data-testid="product-title-name"
+                        className="font-medium text-gray-900 dark:text-white">
                           {product.title.length > 50
                             ? `${product.title.substring(0, 50)}...`
                             : product.title}
@@ -396,7 +398,9 @@ const Products = () => {
 
                   <Table.Cell>
                     <div className="flex items-center space-x-2">
-                      <Link to={`/admin/products/${product.id}`}>
+                      <Link 
+                      data-testid="view-button"
+                      to={`/admin/products/${product.id}`}>
                         <Button size="small" variant="ghost">
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -487,7 +491,9 @@ const Products = () => {
           >
             Cancel
           </Button>
-          <Button variant="danger" onClick={handleDelete} loading={api.loading}>
+          <Button 
+          data-testid="delete-confirm-button"
+          variant="danger" onClick={handleDelete} loading={api.loading}>
             Delete
           </Button>
         </div>
@@ -508,16 +514,18 @@ const Products = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
+              data-testid="product-title"
                 label="Product Title"
                 value={formData.title}
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                required
+               required
                 placeholder="Enter product title"
               />
 
               <Input
+              data-testid="product-price"
                 label="Price ($)"
                 type="number"
                 step="0.01"
@@ -537,6 +545,7 @@ const Products = () => {
                   Category *
                 </label>
                 <select
+                data-testid="product-category"
                   className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={formData.category}
                   onChange={(e) =>
@@ -554,6 +563,7 @@ const Products = () => {
               </div>
 
               <Input
+              data-testid="product-image"
                 label="Image URL"
                 type="url"
                 value={formData.image}
@@ -570,6 +580,7 @@ const Products = () => {
                 Description *
               </label>
               <textarea
+              data-testid="product-description"
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows="4"
                 value={formData.description}
@@ -611,7 +622,9 @@ const Products = () => {
             >
               Cancel
             </Button>
-            <Button variant="primary" type="submit" loading={api.loading}>
+            <Button
+            data-testid="create-product-button"
+            variant="primary" type="submit" loading={api.loading}>
               {selectedProduct ? "Update Product" : "Create Product"}
             </Button>
           </div>

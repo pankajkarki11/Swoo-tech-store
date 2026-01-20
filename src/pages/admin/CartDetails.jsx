@@ -204,7 +204,9 @@ const CartDetails = () => {
               Back to Carts
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 
+              data-testid="cart-title"
+              className="text-2xl font-bold text-gray-900 dark:text-white">
                 Cart #{cart.id}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">

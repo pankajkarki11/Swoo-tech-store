@@ -119,7 +119,6 @@ describe("UsersPage", () => {
         expect(screen.getByTestId("users-header")).toBeInTheDocument();
 
         expect(screen.getByTestId("refresh-button")).toBeInTheDocument();
-        expect(screen.getByTestId("add-user-button")).toBeInTheDocument();
         expect(screen.getByTestId("users-stats")).toBeInTheDocument();
 
         expect(screen.getByTestId("total-users-card")).toBeInTheDocument();
@@ -132,7 +131,6 @@ describe("UsersPage", () => {
         expect(screen.getByTestId("clear-filters-button")).toBeInTheDocument();
         expect(screen.getByTestId("users-table")).toBeInTheDocument();
         expect(screen.getAllByTestId("view-button")[0]).toBeInTheDocument();//there are multiple view button because we have multiple users and each ahve their own view button,delete button and edit button.
-        expect(screen.getAllByTestId("edit-button")[0]).toBeInTheDocument();
         expect(screen.getAllByTestId("delete-button")[0]).toBeInTheDocument();
 
         expect(screen.getByText("John Doe")).toBeInTheDocument();

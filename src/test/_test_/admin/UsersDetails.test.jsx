@@ -160,8 +160,7 @@ describe("UserDetails", () => {
       await waitFor(() => {
         expect(screen.getByTestId("user-details-header")).toBeInTheDocument();
 
-        expect(screen.getByTestId("back-button")).toBeInTheDocument();//to go back to the users page
-        expect(screen.getByTestId("edit-button")).toBeInTheDocument();//to edit the details of the users
+        expect(screen.getByTestId("back-button")).toBeInTheDocument();//to go back to the users pageh
         expect(screen.getByTestId("user-profile-card")).toBeInTheDocument();//stores the detail of the user like cart,name,addressetc
         expect(screen.getByTestId("send-email")).toBeInTheDocument();//button to send email
         expect(screen.getByTestId("view-orders")).toBeInTheDocument();//buttton to view the orders of this particular user
@@ -339,11 +338,11 @@ describe("UserDetails", () => {
   // Actions
   // ==========================================================================
   describe("Actions", () => {
-    it("should display edit and send email button", async () => {
+    it("should display  send email button", async () => {
       renderUserDetails();
 
       await waitFor(() => {
-        expect(screen.getByTestId("edit-button")).toBeInTheDocument();
+      
         expect(screen.getByTestId("send-email")).toBeInTheDocument();
       });
     });

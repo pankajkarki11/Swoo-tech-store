@@ -232,3 +232,12 @@ export async function performLogin(page) {
   await loginbutton.click();
   await page.waitForURL('/');
 }
+
+export async function performAdminLogin(page) {
+ await page.goto('/admin/login');
+  const demoAccountButton = page.getByTestId('admin-demo-login');
+  await demoAccountButton.click();
+ const loginbutton= page.getByTestId('admin-login-button');
+  await loginbutton.click();
+  await page.waitForURL('/admin/dashboard');
+}

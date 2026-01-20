@@ -331,7 +331,9 @@ const Dashboard = () => {
                           />
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          <div 
+                          data-testid="product-title"
+                          className="text-sm font-medium text-gray-900 dark:text-white">
                             {product.title.length > 40
                               ? `${product.title.substring(0, 40)}...`
                               : product.title}

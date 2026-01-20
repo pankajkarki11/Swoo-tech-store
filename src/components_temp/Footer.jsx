@@ -248,6 +248,14 @@ const Footer = () => {
                   Product Support
                 </a>
               </li>
+              <li data-testid="admin-link">
+                <a
+                  href="/admin/login"
+                  className="text-gray-600 hover:text-gray-900 transition dark:text-white"
+                >
+                  Access Admin
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -261,7 +269,7 @@ const Footer = () => {
           <p>
             {" "}
             © 2024 SWOO TECH MART. All rights reserved. | Privacy Policy | Terms
-            of Service
+            of Service 
           </p>
         </div>
       </div>

@@ -210,6 +210,7 @@ const AdminLogin = () => {
 
             <div className="mt-6 space-y-3">
               <Button
+              data-testId="admin-login-button"
                 type="submit"
                 variant="primary"
                 fullWidth
@@ -226,6 +227,7 @@ const AdminLogin = () => {
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
+                  data-testId="admin-demo-login"
                     type="button"
                     variant="outline"
                     onClick={() => handleAdminPatternLogin("john")}
