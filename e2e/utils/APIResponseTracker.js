@@ -138,30 +138,34 @@ export class APIResponseTracker {
 
   /**
    * Validate that API was called with expected status
-   */
- assertCalled(urlPattern, method, expectedStatus = 200) {
-    const response = this.responses.find(resp => {
-       const urlMatch = 
-       urlPattern instanceof RegExp
+   *///as for webkit it uses catched data aswell so we get response as 304 but for other browser like chromium and firefox it is 200,so we add array of both and compare the array itmd with the response and expeted response status to validate
+assertCalled(urlPattern, method, expectedStatus = [200, 304]) {
+  const response = this.responses.find(resp => {
+    const urlMatch =
+      urlPattern instanceof RegExp
         ? urlPattern.test(resp.url)
         : resp.url.includes(urlPattern);
 
+    return urlMatch && resp.method === method;
+  });
 
-      return urlMatch && resp.method === method;
-    });
-    
-    if (!response) {
-      throw new Error(`API not called: ${method} ${urlPattern}`);
-    }
-    
-    if (response.status !== expectedStatus) {
-      throw new Error(
-        `Unexpected status: ${method} ${urlPattern} → ${response.status} (expected ${expectedStatus})`
-      );
-    }
-    
-    return response;
+  if (!response) {
+    throw new Error(`API not called: ${method} ${urlPattern}`);
   }
+
+  const allowedStatuses = Array.isArray(expectedStatus)
+    ? expectedStatus
+    : [expectedStatus];
+
+  if (!allowedStatuses.includes(response.status)) {
+    throw new Error(
+      `Unexpected status: ${method} ${urlPattern} → ${response.status} (expected ${allowedStatuses.join(',')})`
+    );
+  }
+
+  return response;
+}
+
 
   getErrors() {
     return this.errors;

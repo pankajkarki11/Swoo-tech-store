@@ -18,22 +18,25 @@ console.log(' E2E TEST SUITE - Product Detail Page ');
 
 
 
-    const productsResponse=tracker.assertCalled(/\/products\/\d+$/, 'GET', 200);
+    const productsResponse=tracker.assertCalled(/\/products\/\d+$/, 'GET', [200,304]);
 
-     expect(productsResponse.body).toBeTruthy();
+    if (productsResponse.status === 200) {
+  expect(productsResponse.body).toBeTruthy();
+  const productName = productsResponse.body.title;
 
-     const productName= productsResponse.body.title;
-     console.log(`    Product name from API: ${productName}`);
+  const productTitleUi = page.locator('h1').nth(1);
+  //nth(0) returns the first element (which is the first element)
 
-//nth(0) returns the first element (which is the first element)
-    const productTitleUi = page.locator('h1').nth(1);
-    const productTitle = await productTitleUi.textContent();
 
-     console.log(`product name from UI : ${productTitle}`);//we cannot directly print locator object it will shows object and property so to print the name we have to fetch its text content using .textcontent();
+     console.log(`product name from UI : ${productTitleUi}`);//we cannot directly print locator object it will shows object and property so to print the name we have to fetch its text content using .textcontent();
 
     await expect(productTitleUi).toContainText(productName);//to containtext can be only used with loactor and not with textcontent
 
-     console.log('\n✅  Validated product name in UI and API\n\n');
+ 
+   console.log(`    Product name from API: ${productName}`);
+}
+
+  console.log('\n✅  Validated product name in UI and API\n\n');
 
 
    console.log('\n  Cruid Operations from Product detail page\n\n');

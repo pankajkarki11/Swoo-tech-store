@@ -143,10 +143,9 @@ const EcommerceHomepage = () => {
       setError(null);
 
       try {
-        const [productsResponse, categoriesResponse,] = await Promise.all([
+        const [productsResponse, categoriesResponse] = await Promise.all([
           api.productAPI.getAll(),
           api.productAPI.getCategories(),
-          
         ]);
 
         const allProductsData = productsResponse.data;
@@ -157,8 +156,8 @@ const EcommerceHomepage = () => {
         setCategories(categoriesData);
       } catch (err) {
         setError("Failed to load data. Please try again.");
-         console.error("Load data error:", err);
-       
+        console.error("Load data error:", err);
+
         // Reset flag on error to allow retry
         hasLoadedDataRef.current = false;
       } finally {
@@ -297,61 +296,64 @@ const EcommerceHomepage = () => {
   return (
     <div className="min-h-screen bg-white font-sans dark:bg-gray-900">
       <main className="container mx-auto px-4 py-8">
-        {/* Hero Carousel */}
+        {/* Hero Carousel with Continuous Loop Animation */}
         <div className="relative mb-12 rounded-3xl overflow-hidden shadow-2xl">
           <div className="relative h-[300px] md:h-[400px] lg:h-[500px] bg-gray-300 dark:bg-gray-700">
-            {heroSlides.map((slide, index) => (
-              <div
-                key={slide.id}
-                className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-                  index === currentSlide
-                    ? "opacity-100 translate-x-0"
-                    : "opacity-0 translate-x-full"
-                }`}
-                style={{
-                  transform: `translateX(${
-                    index === currentSlide
-                      ? "0%"
-                      : index < currentSlide
-                      ? "-100%"
-                      : "100%"
-                  })`,
-                  transition: "all 700ms ease-in-out",
-                }}
-              >
+            {heroSlides.map((slide, index) => {
+              // Calculate position relative to current slide for continuous loop
+              let position = index - currentSlide;
+
+              // Handle wrapping for continuous loop animation
+              if (position < -heroSlides.length / 2) {
+                position += heroSlides.length;
+              } else if (position > heroSlides.length / 2) {
+                position -= heroSlides.length;
+              }
+
+              return (
                 <div
-                  className={`absolute inset-0 bg-gradient-to-r ${slide.color} bg-cover bg-center`}
-                  style={{ backgroundImage: `url(${slide.image})` }}
+                  key={slide.id}
+                  className="absolute inset-0 transition-all duration-700 ease-in-out"
+                  style={{
+                    transform: `translateX(${position * 100}%)`,
+                    opacity: position === 0 ? 1 : 0,
+                    zIndex: position === 0 ? 10 : 0,
+                  }}
                 >
-                  <div className="absolute inset-0 bg-black/20 dark:bg-black/30"></div>
-                  <div className="absolute inset-0 bg-black/40"></div>
-                </div>
-                <div className="relative h-full flex items-center">
-                  <div className="container mx-auto px-4 md:px-8 lg:px-16">
-                    <div className="max-w-lg">
-                      <span className="inline-block bg-green-500 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-4 animate-bounce">
-                        {slide.discount}
-                      </span>
-                      <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-                        {slide.title}
-                      </h2>
-                      <p className="text-lg md:text-xl text-white/90 mb-8">
-                        {slide.description}
-                      </p>
-                      <Button
-                      data-testid="shop-now-button"
-                        onClick={() => navigate("/product")}
-                        iconPosition="right"
-                        icon={<ArrowRight  />}
-                        className={`${slide.buttonColor} hover:shadow-2xl transition-all hover:scale-105 flex items-center gap-2`}
-                      >
-                        Shop Now 
-                      </Button>
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-r ${slide.color} bg-cover bg-center`}
+                    style={{ backgroundImage: `url(${slide.image})` }}
+                  >
+                    <div className="absolute inset-0 bg-black/20 dark:bg-black/30"></div>
+                    <div className="absolute inset-0 bg-black/40"></div>
+                  </div>
+                  <div className="relative h-full flex items-center">
+                    <div className="container mx-auto px-4 md:px-8 lg:px-16">
+                      <div className="max-w-lg">
+                        <span className="inline-block bg-green-500 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-4 animate-bounce">
+                          {slide.discount}
+                        </span>
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+                          {slide.title}
+                        </h2>
+                        <p className="text-lg md:text-xl text-white/90 mb-8">
+                          {slide.description}
+                        </p>
+                        <Button
+                          data-testid="shop-now-button"
+                          onClick={() => navigate("/product")}
+                          iconPosition="right"
+                          icon={<ArrowRight />}
+                          className={`${slide.buttonColor} hover:shadow-2xl transition-all hover:scale-105 flex items-center gap-2`}
+                        >
+                          Shop Now
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <button
@@ -459,40 +461,17 @@ const EcommerceHomepage = () => {
                 </div>
 
                 {hasMoreProducts ? (
-
-              <Button 
-                variant="teal"
-                iconPosition="right"
-                icon={<ArrowRight/>}
-                size="xlarge"
-                onClick={loadMoreProducts}
-                disabled={isLoadingMore}
-                loading={isLoadingMore}
-              >
-                {isLoadingMore ? 'Loading Products...' : 'Load More Products'}
-              </Button>
-
-
-
-                  // <Button
-                  //   variant="teal"
-                  //   iconPosition="right"
-                  //   size="xlarge"
-                  //   onClick={loadMoreProducts}
-                  //   disabled={isLoadingMore}
-                  // >
-                  //   {isLoadingMore ? (
-                  //     <>
-                  //       <Loader2 className="h-5 w-5 animate-spin" />
-                  //       Loading...
-                  //     </>
-                  //   ) : (
-                  //     <>
-                  //       Load More Products
-                  //       <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                  //     </>
-                  //   )}
-                  // </Button>
+                  <Button
+                    variant="teal"
+                    iconPosition="right"
+                    icon={<ArrowRight />}
+                    size="xlarge"
+                    onClick={loadMoreProducts}
+                    disabled={isLoadingMore}
+                    loading={isLoadingMore}
+                  >
+                    {isLoadingMore ? "Loading Products..." : "Load More Products"}
+                  </Button>
                 ) : (
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 border border-green-200 dark:border-green-800 rounded-2xl p-6 max-w-md mx-auto">
                     <div className="flex items-center justify-center gap-3 mb-3">
