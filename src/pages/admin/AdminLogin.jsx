@@ -212,7 +212,7 @@ const AdminLogin = () => {
               <Button
               data-testId="admin-login-button"
                 type="submit"
-                variant="primary"
+                variant="teal"
                 fullWidth
                 loading={isLoading}
                 disabled={isLoading}

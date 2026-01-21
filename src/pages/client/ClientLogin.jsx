@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
+import Input from "../../components_temp/ui/Input";
 
 const ClientLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +33,6 @@ const ClientLogin = () => {
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
-      
     }
   }, [isAuthenticated, navigate]);
 
@@ -81,15 +81,11 @@ const ClientLogin = () => {
       // Clear form
       setUsername("");
       setPassword("");
-     toast.success(
-  "Login successful!",  
- );
- 
+      toast.success("Login successful!");
+
       setTimeout(() => {
-      navigate("/");
-      
-    }, 1000);
-    
+        navigate("/");
+      }, 1000);
     } catch (error) {
       setError(error.message);
       console.error(error);
@@ -136,7 +132,21 @@ const ClientLogin = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
+                    <Input
+                      label="Username"
+                      type="text"
+                      
+                       helperText='must be a member'
+                      data-testid="username-input"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      leftIcon={<User className="h-5 w-5 text-[#01A49E]" />}
+                      placeholder="Enter your username"
+                      required
+                      disabled={isLoading}
+                    />
+
+                    {/* <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
                       Username
                     </label>
                     <div className="relative">
@@ -153,18 +163,19 @@ const ClientLogin = () => {
                         required
                         disabled={isLoading}
                       />
-                    </div>
+                    </div> */}
                   </div>
+                  {/* dont using input component  */}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
+                    {/* <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
                       Password
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    </label> */}
+
+                    {/* <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <Lock className="h-5 w-5 text-[#01A49E]" />
-                      </div>
-                      <input
+                      </div> */}
+                    {/* <input
                       data-testid="password-input"
                         type={showPassword ? "text" : "password"}
                         value={password}
@@ -173,25 +184,48 @@ const ClientLogin = () => {
                         placeholder="Enter your password"
                         required
                         disabled={isLoading}
-                      />
-                      <button
-                      data-testid="toggle-password-button"
-                        type="button"
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                        onClick={() => setShowPassword(!showPassword)}
+                      /> */}
+                    {/* <button
+    data-testid="toggle-password-button"
+    type="button"
+    className="absolute right-0 pr-4 flex items-center h-full"
+    onClick={() => setShowPassword(!showPassword)}
+    disabled={isLoading}
+  >
+    {showPassword ? (
+      <Eye className="h-5 w-5 text-gray-500 hover:text-[#01A49E] transition" />
+    ) : (
+      <EyeOff className="h-5 w-5 text-gray-500 hover:text-[#01A49E] transition" />
+    )}
+  </button> */}
+                    <div className="relative ">
+                      <Input
+                        label="Password"
+                        // error={error}
+                        
+                       
+                        type={showPassword ? "text" : "password"}
+                        data-testid="password-input"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        leftIcon={<Lock className="h-5 w-5 text-[#01A49E]" />}
+                        rightIcon={
+                          showPassword ? (
+                            <Eye className="h-5 w-5 text-gray-500 hover:text-[#01A49E] transition" />
+                          ) : (
+                            <EyeOff className="h-5 w-5 text-gray-500 hover:text-[#01A49E] transition" />
+                          )
+                        }
+                        onRightIconClick={() => setShowPassword(!showPassword)}
+                        placeholder="Enter your password"
+                        required
                         disabled={isLoading}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-5 w-5 text-gray-500 hover:text-[#01A49E] transition" />
-                        ) : (
-                          <Eye className="h-5 w-5 text-gray-500 hover:text-[#01A49E] transition" />
-                        )}
-                      </button>
+                      />
                     </div>
                   </div>
 
                   <button
-                  data-testid="login-button"
+                    data-testid="login-button"
                     type="submit"
                     className="w-full bg-gradient-to-r from-[#01A49E] to-[#01857F] hover:from-[#01857F] hover:to-[#016F6B] text-white py-3.5 px-4 rounded-xl font-semibold hover:shadow-xl transition-all duration-300 flex items-center justify-center shadow-lg hover:scale-[1.02] group disabled:opacity-70 disabled:cursor-not-allowed"
                     disabled={isLoading}
@@ -208,9 +242,7 @@ const ClientLogin = () => {
                       </>
                     )}
                   </button>
-                  <div 
-                  
-                  className="text-center pt-2">
+                  <div className="text-center pt-2">
                     <p className="text-gray-600 dark:text-white">
                       Don't have an account?{" "}
                       <Link
@@ -231,18 +263,15 @@ const ClientLogin = () => {
                     </h3>
                   </div>
 
-                  <div className="space-y-3"
-                 
-                  data-testid="demo-accounts">
+                  <div className="space-y-3" data-testid="demo-accounts">
                     {demoCredentials.map((cred, index) => (
                       <button
-                      // disabled
-                      data-testid="demo-account-button"
+                        // disabled
+                        data-testid="demo-account-button"
                         key={index}
                         onClick={() =>
                           useDemoAccount(cred.username, cred.password)
                         }
-                     
                         disabled={isLoading}
                         className="w-full text-left bg-white hover:from-gray-100 hover:to-gray-200 text-gray-800 py-3 px-4 rounded-lg transition text-sm font-medium border border-gray-200 hover:border-gray-300 disabled:opacity-50 group dark:bg-gray-400 dark:hover:bg-gray-500 "
                       >
@@ -268,7 +297,7 @@ const ClientLogin = () => {
                     ))}
                   </div>
                 </div>
-              </div>             
+              </div>
             </div>
           </div>
 
@@ -278,16 +307,16 @@ const ClientLogin = () => {
 "
           >
             <div className="relative z-10">
-              <div className="mb-8">               
+              <div className="mb-8">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                   Never Lose Your Cart
                   <br />
                   <span className="text-[#01A49E]">With Account Sync</span>
-                </h2>             
+                </h2>
                 <p className="text-gray-700 text-lg dark:text-white">
                   Login to save your shopping cart, access it from any device,
                   and continue shopping where you left off.
-                </p>                
+                </p>
               </div>
 
               {/* Features List */}

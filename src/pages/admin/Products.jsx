@@ -192,7 +192,7 @@ const Products = () => {
   if (loading) {
     return (
             <div data-testid="loading-spinner" className="flex items-center justify-center h-64">
-        <LoadingSpinner size="large" />
+        <LoadingSpinner size="large"/>
       </div>
     );
   }

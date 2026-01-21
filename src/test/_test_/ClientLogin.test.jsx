@@ -40,7 +40,9 @@ describe("ClientLogin Component", () => {
 it("Check Button functionality",()=>{
     renderComponent();
      expect(screen.getByTestId("login-button")).toBeEnabled();
-    expect(screen.getByTestId("toggle-password-button")).toBeEnabled();
+     const passwordInput = screen.getByTestId("password-input");
+     expect(passwordInput).toBeInTheDocument();
+     expect(passwordInput).toHaveAttribute("type");
     expect(screen.getAllByTestId("demo-account-button")[0]).toBeEnabled();
     expect(screen.getByTestId("login-button")).toHaveAttribute("type", "submit");
     //to check if it has sumit type

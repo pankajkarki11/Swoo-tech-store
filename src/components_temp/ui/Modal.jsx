@@ -1,22 +1,22 @@
-// src/components/ui/Modal.jsx
-import React, { useEffect } from "react";
-
+import { useEffect } from "react";
+import { X } from "lucide-react";
+import Button from "./Button";
 const Modal = ({
   isOpen,
   onClose,
   title,
   children,
   size = "medium",
-  hideCloseButton = false,
+  hideCloseButton = false,//forces user to make choice from either of two by disbaling all close button nad options
 }) => {
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onClose();//used to listen to escape key when pressed ,model closes
     };
 
     if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
+      document.addEventListener("keydown", handleEscape);//when model opens ,set up keyboard listening ,it check the pressed key and run function handleescape if the pressed key is escape then it closes the model and prevent page scrolling
+      document.body.style.overflow = "hidden";//this prevent page scrollingby hiding scrollbar
     }
 
     return () => {
@@ -37,11 +37,15 @@ const Modal = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* //fixed position fixed the elements position relative to broswer window,not the page,
+      // inset-0=used to make the element take 100% of the parents container ,
+      // z-50=used to set the z-index of the element controls stacking oders which elements are in front or behind other elementsfor page contents we use z-0-10,for modal we use z-50,for dropdown we use z-20-30
+      // overflow-y-auto=allows vertical scrolling if content is taller than the viewport*/}
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={onClose}
-        aria-hidden="true"
+        aria-hidden="true"//this is the section whcih appers behiond the modal and is used to make the modal focusableand when we click on the backdrop it closes the modal
       />
 
       {/* Modal */}
@@ -64,25 +68,14 @@ const Modal = ({
                 </h3>
 
                 {!hideCloseButton && (
-                  <button
+                  <Button
+                  variant="ghost"
                     onClick={onClose}
                     aria-label="Close modal"
-                    className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                    icon={<X />}
+                    iconOnly
                   >
-                    <svg
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
