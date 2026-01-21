@@ -8,7 +8,7 @@ const Footer = () => {
               <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">S</span>
               </div>
-              <h3 className="text-xl font-bold">SWOO TECH MART</h3>
+              <h3 className="text-xl text-gray-700 dark:text-white font-bold">SWOO TECH MART</h3>
             </div>
             <p className="text-gray-800 dark:text-white">
               Your one-stop destination for all tech needs in KTM.
