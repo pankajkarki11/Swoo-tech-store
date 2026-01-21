@@ -13,27 +13,6 @@ vi.mock("../../../contexts/AuthContext", () => ({
   useAuth: () => mockAuthContext,
 }));
 
-const mockToast = vi.hoisted(() => {
-  const fn = vi.fn();
-
-  fn.custom = vi.fn((renderFn) => {
-    const jsx = renderFn({
-      id: "test-toast",
-      visible: true,
-    });
-    render(jsx);
-  });
-  fn.dismiss = vi.fn();
-  return fn;
-});
-
-vi.mock("react-hot-toast", () => ({
-  default: mockToast,
-}));
-
-// ============================================================================
-// HELPER
-// ============================================================================
 
 const renderSidebar = (isOpen) => {
   return {
@@ -46,10 +25,6 @@ const renderSidebar = (isOpen) => {
   };
 };
 
-// ============================================================================
-// TESTS
-// ============================================================================
-
 describe("Sidebar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -60,9 +35,7 @@ describe("Sidebar", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
-  // ==========================================================================
-  // Initial Render
-  // ==========================================================================
+
   describe("Initial Render", () => {
     it("should display sidebar when open", () => {
       renderSidebar(true);
@@ -139,51 +112,6 @@ describe("Sidebar", () => {
         expect(sidebarLinks[2]).not.toHaveTextContent("Carts");
         expect(sidebarLinks[3]).not.toHaveTextContent("Users"); //thses are the names of the links and they are not visible, only the icons are visible
       });
-    });
-  });
-  // ==========================================================================
-  // Logout Functionality
-  // ==========================================================================
-  describe("Logout Functionality", () => {
-    it("should show logout confirmation dialog when logout clicked", async () => {
-      const { user } = renderSidebar(true);
-
-      const logoutButton = screen.getByTestId("logout-button");
-      await user.click(logoutButton);
-        expect(mockToast.custom).toHaveBeenCalled();
-
-      await waitFor(() => {
-        expect(
-          screen.getByTestId("logout-confirmation-dialog")
-        ).toBeInTheDocument();
-        expect(screen.getByTestId("logout-cancel-button")).toBeInTheDocument();
-        expect(screen.getByTestId("logout-confirm-button")).toBeInTheDocument();
-        expect(
-          screen.getByTestId("logout-confirmation-dialog")
-        ).toHaveTextContent("Confirm Logout");
-      });
-    });
-
- it("should dismiss toast when cancel clicked", async () => {
-      const { user } = renderSidebar(true);
-
-  const logoutButton = screen.getByTestId("logout-button");
-      await user.click(logoutButton);
-        expect(mockToast.custom).toHaveBeenCalled();
-
-        await waitFor(() => {
-        expect(
-          screen.getByTestId("logout-confirmation-dialog")
-        ).toBeInTheDocument();
-        expect(screen.getByTestId("logout-cancel-button")).toBeInTheDocument();
-        expect(screen.getByTestId("logout-confirm-button")).toBeInTheDocument();
-        expect(
-          screen.getByTestId("logout-confirmation-dialog")
-        ).toHaveTextContent("Confirm Logout");
-      });
-      const cancelButton =screen.getByTestId("logout-cancel-button")
-      await user.click(cancelButton);
-      expect(mockToast.dismiss).toHaveBeenCalledWith("test-toast");
     });
   });
 

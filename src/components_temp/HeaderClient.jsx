@@ -33,6 +33,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
 import Switch from "./ui/Switch";
 import toast from "react-hot-toast";
+import Modal from "./ui/Modal";
+import Button from "./ui/Button";
 
 const HeaderClient = () => {
   const { user, logout, isAuthenticated, isAdmin } = useAuth();
@@ -53,6 +55,7 @@ const HeaderClient = () => {
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const searchRef = useRef(null);
@@ -513,7 +516,9 @@ const HeaderClient = () => {
 
                       <div className="border-t border-gray-100 dark:border-gray-700 pt-2 pb-2">
                         <button
-                          onClick={handleLogout}
+                          onClick={()=>{
+                        setIsLogoutModalOpen(true);
+                      }}
                           className="flex items-center w-full px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors group"
                         >
                           <LogOut size={18} className="mr-3" />
@@ -890,6 +895,7 @@ const HeaderClient = () => {
                     <button
                      data-testid="mobile-menu-logout"
                       onClick={handleLogout}
+                      
                       className="flex items-center w-full text-left py-3 px-4 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
                       <LogOut size={18} className="mr-3" />
@@ -948,6 +954,48 @@ const HeaderClient = () => {
             </div>
           </div>
         </div>
+
+              <Modal
+        isOpen={isLogoutModalOpen}
+        // onClose={() => {
+        //   setIsLogoutModalOpen(false);
+        
+        // }}
+
+         onClose={() => {}}//this make us to choose either of two options and close the model that is yes ,logout or cancel
+
+
+        title="Logout Confirmation"
+        size="small"
+        hideCloseButton
+      >
+        <p className="text-gray-600 dark:text-gray-400">
+          Are you sure you want to Logout?
+        </p>
+
+        <div className="mt-6 flex justify-end space-x-3">
+          <Button
+          variant="danger"
+            onClick={() => {
+              logout();
+              navigate("/login");
+              setIsLogoutModalOpen(false);
+            }}
+          
+          >
+            Yes, Logout
+          </Button>
+          <Button
+          variant="secondary"
+            onClick={() => setIsLogoutModalOpen(false)}
+           
+          >
+            Cancel
+          </Button>
+        </div>
+
+     
+      </Modal>
       </div>
     </header>
   );
