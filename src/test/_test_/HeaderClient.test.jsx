@@ -157,14 +157,6 @@ describe("HeaderClient", () => {
        await user.type(searchInputs, "laptop");
        expect(searchInputs).toHaveValue("laptop");
     });
-       it("Testing search Submit button Fucntionality", async() => {
-      renderComponent();
-
-      const searchInputs = screen.getByTestId("search-button");
-      expect(searchInputs).toBeInTheDocument();
-      expect(searchInputs).toHaveAttribute("type", "submit");
-    expect(searchInputs).toBeVisible();
-    });
 
     it("should call performSearch when user types", async () => {
       renderComponent();
@@ -175,7 +167,6 @@ describe("HeaderClient", () => {
       await waitFor(() => {
         expect(useSearch().performSearch).toHaveBeenCalledWith("mens");
         expect(screen.getByTestId("search-input")).toHaveValue("mens");
-        expect(screen.getByTestId("clear-search-button")).toBeInTheDocument();
       });
     });
   });

@@ -1,13 +1,13 @@
-// src/components/ui/Table.jsx
-import React from "react";
-
-const Table = ({ children, className = "", ...props }) => {
+const Table = ({
+   children,
+    className = "",
+     ...props }) => {
   return (
     <div
-      className={`overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 ${className}`}
+      className={`overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 ${className}`}//overflwo-x-auto adds the horizontal scroll bar if the table is wider than container
     >
       <table
-        className="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+        className="min-w-full divide-y divide-gray-200 dark:divide-gray-700"//min-w-full makes the table take 100% of the parents width//divide y adds a line between each row between thead and tbody which seperates the title of table and body which is data
         {...props}
       >
         {children}
@@ -29,7 +29,7 @@ Table.HeaderCell = ({ children, className = "", ...props }) => (
       text-gray-500 dark:text-gray-400 
       uppercase tracking-wider
       ${className}
-    `}
+    `}//px and py are horizontal and vertical padding which add space between the text and the border in both direction equally//tracking-wider adds more space between letters,more breating room 
     {...props}
   >
     {children}
@@ -61,7 +61,7 @@ Table.Cell = ({ children, className = "", ...props }) => (
       px-6 py-4 whitespace-nowrap text-sm 
       text-gray-900 dark:text-gray-300
       ${className}
-    `}
+    `}//whitespace-nowrap prevents the text from wrapping to the next line like john doe is large name if we dont use this we can see john in one line and doe in the next which is not good looking so we use whitespace-nowrap which makes john doe appers in same line
     {...props}
   >
     {children}
