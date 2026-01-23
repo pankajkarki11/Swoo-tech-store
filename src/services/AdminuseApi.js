@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from "react";//without useCallback the fucntion will be created in every render and child component associated with it will also re-render
 
 const useApi = () => {
   const [loading, setLoading] = useState(false);
