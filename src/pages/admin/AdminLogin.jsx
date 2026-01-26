@@ -132,7 +132,7 @@ const AdminLogin = () => {
   if (loading) {
     return (
       <div 
-      data-testId="loading-spinner"
+      data-testid="loading-spinner"
       className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <LoadingSpinner size="large" />
       </div>
@@ -214,7 +214,7 @@ const AdminLogin = () => {
 
             <div className="mt-6 space-y-3">
               <Button
-              data-testId="admin-login-button"
+              data-testid="admin-login-button"
                 type="submit"
                 variant="teal"
                 fullWidth
@@ -231,7 +231,7 @@ const AdminLogin = () => {
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
-                  data-testId="admin-demo-login"
+                  data-testid="admin-demo-login"
                     type="button"
                     variant="outline"
                     onClick={() => handleAdminPatternLogin("john")}

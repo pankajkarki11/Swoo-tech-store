@@ -27,7 +27,7 @@ base("Performing login flow ", async ({ page }) => {
 
   // 2. Verify UI result
   await expect(page.getByText("John")).toBeVisible();
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1500);
   // 3. Verify side effects (APIs, storage)
 
   //this is to verifu if thr following api is called once or not but doesnt check the actual status  and even if they are called but dshows wrong status like 400,500 they will pass beacuse it only check if it is called or not not actual data and responses.so it is valid to use here because we focus on login here not actaul all data for it we check in other test files

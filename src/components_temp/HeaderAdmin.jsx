@@ -84,7 +84,6 @@ const HeaderAdmin = ({ onMenuClick }) => {
           <div className="flex items-center space-x-3">
             <Button
               variant="admin"
-              classname="mr-2 bg-green-600 hover:bg-blue-700"
               onClick={() => navigate("/")}
             >
               Client Panel
